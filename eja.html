@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <!-- Pautan ke Manifest PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3b82f6">
+
+<script>
+  // Mendaftarkan Service Worker PWA untuk Mod Offline
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('PWA Service Worker berjaya didaftarkan!'))
+        .catch(err => console.log('Gagal mendaftar PWA:', err));
+    });
+  }
+</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Permainan Mengeja & Sebutan - Bahasa Melayu</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
+    }
+
+    body {
+      background-color: #fdf2f8;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 15px;
+    }
+
+    .external-menu-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 680px;
+      width: 100%;
+      margin-bottom: 12px;
+    }
+
+    .nav-mode-btn {
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-weight: bold;
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #1d4ed8;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.1s;
+    }
+
+    .nav-mode-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #1d4ed8;
+    }
+
+    .game-container {
+      background: #ffffff;
+      border: 4px solid #ec4899;
+      border-radius: 20px;
+      padding: 20px;
+      max-width: 680px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    .main-title {
+      color: #9d174d;
+      font-size: 1.6rem;
+      margin-top: 5px;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+
+    .instruction-text {
+      color: #475569;
+      font-size: 0.95rem;
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-style: italic;
+    }
+
+    .header-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      background: #fce7f3;
+      padding: 8px 15px;
+      border-radius: 12px;
+      font-weight: bold;
+      color: #9d174d;
+    }
+
+    .word-card {
+      background-color: #fff1f2;
+      border: 3px solid #fda4af;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .syllable-container {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .syllable-btn {
+      background-color: #fb7185;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1.4rem;
+      font-weight: bold;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #e11d48;
+      transition: transform 0.1s;
+    }
+
+    .syllable-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #e11d48;
+    }
+
+    .spell-letters {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .letter-btn {
+      background-color: #bae6fd;
+      color: #0369a1;
+      border: 2px solid #38bdf8;
+      padding: 8px 12px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      padding: 10px 18px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    }
+
+    .btn-prev { background-color: #64748b; }
+    .btn-audio { background-color: #8b5cf6; }
+    .btn-next { background-color: #22c55e; }
+
+    .action-btn:disabled {
+      background-color: #cbd5e1 !important;
+      color: #94a3b8 !important;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Menu Luar Bar Navigasi -->
+<div class="external-menu-bar">
+  <a href="index.html" class="nav-mode-btn">⬅️ Mod Bina Ayat</a>
+</div>
+
+<div class="game-container">
+  <h1 class="main-title">Permainan Mengeja & Sebutan</h1>
+  <p class="instruction-text">Tekan suku kata atau huruf untuk mendengar sebutan ejaan yang betul.</p>
+
+  <div class="header-info">
+    <span id="exercise-title">Latihan Sebutan 1</span>
+    <span id="progress-info">Perkataan 1 / 20</span>
+  </div>
+
+  <div class="word-card">
+    <p style="color: #881337; font-weight: bold; margin-top: 0;">1. Tekan Suku Kata untuk Sebutan:</p>
+    <div class="syllable-container" id="syllable-box"></div>
+
+    <p style="color: #0369a1; font-weight: bold; margin-top: 15px;">2. Tekan Huruf untuk Ejaan:</p>
+    <div class="spell-letters" id="letter-box"></div>
+  </div>
+
+  <div class="controls">
+    <button class="action-btn btn-prev" id="prev-btn" onclick="prevWord()">⬅️ Sebelum</button>
+    <button class="action-btn btn-audio" onclick="playFullWord()">🔊 Sebut Penuh</button>
+    <button class="action-btn btn-next" id="next-btn" onclick="nextWord()">Seterusnya ➡️</button>
+  </div>
+</div>
+
+<script>
+  // 20 Senarai Perkataan Latihan Mengeja & Sebutan
+  const spellingData = [
+    { word: "MELINTAS", syllables: ["me", "lin", "tas"], file: "sebutan/melintas.mp3" },
+    { word: "MEMAKAI", syllables: ["me", "ma", "kai"], file: "sebutan/memakai.mp3" },
+    { word: "MENANAM", syllables: ["me", "na", "nam"], file: "sebutan/menanam.mp3" },
+    { word: "MEMBACA", syllables: ["mem", "ba", "ca"], file: "sebutan/membaca.mp3" },
+    { word: "MENULIS", syllables: ["me", "nu", "lis"], file: "sebutan/menulis.mp3" },
+    { word: "MENYAPU", syllables: ["me", "nya", "pu"], file: "sebutan/menyapu.mp3" },
+    { word: "MEMBANTU", syllables: ["mem", "ban", "tu"], file: "sebutan/membantu.mp3" },
+    { word: "MEMASAK", syllables: ["me", "ma", "sak"], file: "sebutan/memasak.mp3" },
+    { word: "MEMBASUH", syllables: ["mem", "ba", "suh"], file: "sebutan/membasuh.mp3" },
+    { word: "MELIPAT", syllables: ["me", "li", "pat"], file: "sebutan/melipat.mp3" },
+    { word: "MENYUSUN", syllables: ["me", "nyu", "sun"], file: "sebutan/menyusun.mp3" },
+    { word: "BERMAIN", syllables: ["ber", "ma", "in"], file: "sebutan/bermain.mp3" },
+    { word: "MENUNGGANG", syllables: ["me", "nung", "gang"], file: "sebutan/menunggang.mp3" },
+    { word: "MELOMPAT", syllables: ["me", "lom", "pat"], file: "sebutan/melompat.mp3" },
+    { word: "MENCUCI", syllables: ["men", "cu", "ci"], file: "sebutan/mencuci.mp3" },
+    { word: "MEMOTONG", syllables: ["me", "mo", "tong"], file: "sebutan/memotong.mp3" },
+    { word: "KOMPUTER", syllables: ["kom", "pu", "ter"], file: "sebutan/komputer.mp3" },
+    { word: "LANTAI", syllables: ["lan", "tai"], file: "sebutan/lantai.mp3" },
+    { word: "PAKAIAN", syllables: ["pa", "kai", "an"], file: "sebutan/pakaian.mp3" },
+    { word: "BASIKAL", syllables: ["ba", "si", "kal"], file: "sebutan/basikal.mp3" }
+  ];
+
+  let currentWordIdx = 0;
+
+  function speakText(text) {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ms-MY';
+      utterance.rate = 0.75; // Sebutan perlahan untuk pemulihan
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
+  function playCustomAudio(filePath, fallbackText) {
+    const audio = new Audio(filePath);
+    audio.play().catch(() => {
+      // Guna Web Speech API jika fail mp3 tiada di folder sebutan/
+      speakText(fallbackText);
+    });
+  }
+
+  function loadSpellingCard() {
+    const item = spellingData[currentWordIdx];
+    
+    document.getElementById("exercise-title").innerText = `Latihan Sebutan ${currentWordIdx + 1}`;
+    document.getElementById("progress-info").innerText = `Perkataan ${currentWordIdx + 1} / ${spellingData.length}`;
+
+    // Muat Suku Kata
+    const sylBox = document.getElementById("syllable-box");
+    sylBox.innerHTML = "";
+    item.syllables.forEach((syl) => {
+      const btn = document.createElement("button");
+      btn.className = "syllable-btn";
+      btn.innerText = syl.toUpperCase();
+      btn.onclick = () => speakText(syl);
+      sylBox.appendChild(btn);
+    });
+
+    // Muat Huruf Individu Secara Otomatis
+    const letBox = document.getElementById("letter-box");
+    letBox.innerHTML = "";
+    const letters = item.word.split("");
+    letters.forEach((char) => {
+      const btn = document.createElement("button");
+      btn.className = "letter-btn";
+      btn.innerText = char.toUpperCase();
+      btn.onclick = () => speakText(char);
+      letBox.appendChild(btn);
+    });
+
+    document.getElementById("prev-btn").disabled = currentWordIdx === 0;
+    document.getElementById("next-btn").disabled = currentWordIdx === spellingData.length - 1;
+  }
+
+  function playFullWord() {
+    const item = spellingData[currentWordIdx];
+    playCustomAudio(item.file, item.word);
+  }
+
+  function nextWord() {
+    if (currentWordIdx < spellingData.length - 1) {
+      currentWordIdx++;
+      loadSpellingCard();
+    }
+  }
+
+  function prevWord() {
+    if (currentWordIdx > 0) {
+      currentWordIdx--;
+      loadSpellingCard();
+    }
+  }
+
+  loadSpellingCard();
+</script>
+</body>
+</html>
