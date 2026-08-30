@@ -1,5 +1,5 @@
-// TUKAR NAMA VERSI INI SETIAP KALI UPDATE (contoh: 'bm-pwa-v2', 'bm-pwa-v3')
-const CACHE_NAME = 'bm-pwa-v4'; 
+// TUKAR NAMA VERSI INI SETIAP KALI UPDATE (versi ke-5')
+const CACHE_NAME = 'bm-pwa-v5'; 
 
 const ASSETS_TO_CACHE = [
   './',
