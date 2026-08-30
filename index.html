@@ -2,19 +2,19 @@
 <html lang="ms">
 <head>
   <!-- Pautan ke Manifest PWA -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#3b82f6">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#3b82f6">
 
-<script>
-  // Mendaftarkan Service Worker PWA untuk Mod Offline
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('PWA Service Worker berjaya didaftarkan!'))
-        .catch(err => console.log('Gagal mendaftar PWA:', err));
-    });
-  }
-</script>
+  <script>
+    // Mendaftarkan Service Worker PWA untuk Mod Offline
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('PWA Service Worker berjaya didaftarkan!'))
+          .catch(err => console.log('Gagal mendaftar PWA:', err));
+      });
+    }
+  </script>
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,7 +36,7 @@
       padding: 15px;
     }
 
-    /* Outer Menu Bar (Di Luar Kad Permainan) */
+    /* External Menu Bar */
     .external-menu-bar {
       display: flex;
       justify-content: space-between;
@@ -250,6 +250,7 @@
       font-weight: bold;
       margin-top: 10px;
       min-height: 25px;
+      color: #0284c7;
     }
     .correct { color: #16a34a; }
     .incorrect { color: #dc2626; }
@@ -303,13 +304,11 @@
 
 <audio id="bgm-player" loop src="bgm.mp3"></audio>
 
-<!-- External Menu Bar (Susunan Menu di Luar Ruangan Latihan) -->
 <div class="external-menu-bar">
-  <a href="eja.html" class="nav-mode-btn">🔤 Mod Permaianan Mengeja</a>
+  <a href="eja.html" class="nav-mode-btn">🔤 Mod Permainan Mengeja</a>
   <button class="bgm-btn" id="bgm-toggle" onclick="toggleBGM()">🎵 Muzik</button>
 </div>
 
-<!-- Main Game Container -->
 <div class="game-container">
   <h1 class="main-title">Permainan Bina Ayat</h1>
   <p class="instruction-text">Sila baca dan lengkapkan ayat berdasarkan gambar.</p>
@@ -343,7 +342,6 @@
   <div class="feedback" id="feedback-text"></div>
 </div>
 
-<!-- Modal Mini Game -->
 <div class="modal" id="minigame-modal">
   <div class="modal-content">
     <h2 style="color: #d97706; margin-top: 0;">🎮 Mini Game: Kumpul Huruf!</h2>
@@ -359,7 +357,6 @@
   </div>
 </div>
 
-<!-- Modal Tahniah -->
 <div class="modal" id="congrats-modal">
   <div class="modal-content" style="border-color: #22c55e;">
     <h1 style="color: #16a34a; font-size: 2.2rem; margin-top: 0;">🌟 TAHNIAH! 🌟</h1>
@@ -370,49 +367,41 @@
 
 <script>
   const questions = [
-    // --- LEMBARAN 1 ---
     { sheet: 1, img: "images/lembaran1_1.png", words: [{ text: "Amir", type: "siapa" }, { text: "melintas", type: "kerja" }, { text: "jalan", type: "apa" }, { text: "di lintasan belang", type: "perluasan" }] },
     { sheet: 1, img: "images/lembaran1_2.png", words: [{ text: "Sara", type: "siapa" }, { text: "memakai", type: "kerja" }, { text: "topi keledar", type: "apa" }, { text: "untuk keselamatan", type: "perluasan" }] },
     { sheet: 1, img: "images/lembaran1_3.png", words: [{ text: "Hakim", type: "siapa" }, { text: "menunggu", type: "kerja" }, { text: "bas", type: "apa" }, { text: "di perhentian", type: "perluasan" }] },
     { sheet: 1, img: "images/lembaran1_4.png", words: [{ text: "Aina", type: "siapa" }, { text: "memakai", type: "kerja" }, { text: "tali pinggang keledar", type: "apa" }, { text: "di dalam kereta", type: "perluasan" }] },
 
-    // --- LEMBARAN 2 ---
     { sheet: 2, img: "images/lembaran2_1.png", words: [{ text: "Faris", type: "siapa" }, { text: "memakai", type: "kerja" }, { text: "baju Melayu", type: "apa" }, { text: "semasa sambutan Hari Raya", type: "perluasan" }] },
     { sheet: 2, img: "images/lembaran2_2.png", words: [{ text: "Mei Ling", type: "siapa" }, { text: "memakai", type: "kerja" }, { text: "cheongsam", type: "apa" }, { text: "ketika Tahun Baharu Cina", type: "perluasan" }] },
     { sheet: 2, img: "images/lembaran2_3.png", words: [{ text: "Kavin", type: "siapa" }, { text: "memakai", type: "kerja" }, { text: "sari", type: "apa" }, { text: "semasa Deepavali", type: "perluasan" }] },
     { sheet: 2, img: "images/lembaran2_4.png", words: [{ text: "Murid-murid", type: "siapa" }, { text: "menari", type: "kerja" }, { text: "tarian tradisional", type: "apa" }, { text: "dengan gembira", type: "perluasan" }] },
 
-    // --- LEMBARAN 3 ---
     { sheet: 3, img: "images/lembaran3_1.png", words: [{ text: "Petani", type: "siapa" }, { text: "menanam", type: "kerja" }, { text: "padi", type: "apa" }, { text: "di sawah", type: "perluasan" }] },
     { sheet: 3, img: "images/lembaran3_2.png", words: [{ text: "Amir", type: "siapa" }, { text: "menyiram", type: "kerja" }, { text: "pokok sayur", type: "apa" }, { text: "pada waktu petang", type: "perluasan" }] },
     { sheet: 3, img: "images/lembaran3_3.png", words: [{ text: "Pekebun", type: "siapa" }, { text: "memetik", type: "kerja" }, { text: "buah", type: "apa" }, { text: "dengan berhati-hati", type: "perluasan" }] },
     { sheet: 3, img: "images/lembaran3_4.png", words: [{ text: "Siti", type: "siapa" }, { text: "membaja", type: "kerja" }, { text: "tanaman", type: "apa" }, { text: "supaya subur", type: "perluasan" }] },
 
-    // --- LEMBARAN 4 ---
     { sheet: 4, img: "images/lembaran4_1.png", words: [{ text: "Amir", type: "siapa" }, { text: "menggunakan", type: "kerja" }, { text: "komputer", type: "apa" }, { text: "di makmal komputer", type: "perluasan" }] },
     { sheet: 4, img: "images/lembaran4_2.png", words: [{ text: "Sara", type: "siapa" }, { text: "menaip", type: "kerja" }, { text: "tugasan", type: "apa" }, { text: "dengan teliti", type: "perluasan" }] },
-    { sheet: 4, img: "images/lembaran4_3.png", words: [{ text: "Guru", type: "siapa" }, { text: "mengajar", type: "kerja" }, { text: "murid", type: "apa" }, { text: "menggunakan proyektor", type: "perluasan" }] },
+    { sheet: 4, img: "images/lembaran4_3.png", words: [{ text: "Guru", type: "siapa" }, { text: "mengajar", type: "kerja" }, { text: "murid", type: "apa" }, { text: "menggunakan projektor", type: "perluasan" }] },
     { sheet: 4, img: "images/lembaran4_4.png", words: [{ text: "Hakim", type: "siapa" }, { text: "mencari", type: "kerja" }, { text: "maklumat", type: "apa" }, { text: "di Internet", type: "perluasan" }] },
 
-    // --- LEMBARAN 5 ---
     { sheet: 5, img: "images/lembaran5_1.png", words: [{ text: "Faris", type: "siapa" }, { text: "menulis", type: "kerja" }, { text: "karangan", type: "apa" }] },
     { sheet: 5, img: "images/lembaran5_2.png", words: [{ text: "Aina", type: "siapa" }, { text: "menyapu", type: "kerja" }, { text: "lantai", type: "apa" }] },
     { sheet: 5, img: "images/lembaran5_3.png", words: [{ text: "Hakim", type: "siapa" }, { text: "membawa", type: "kerja" }, { text: "beg sekolah", type: "apa" }] },
     { sheet: 5, img: "images/lembaran5_4.png", words: [{ text: "Sara", type: "siapa" }, { text: "membaca", type: "kerja" }, { text: "buku", type: "apa" }] },
 
-    // --- LEMBARAN 6 ---
     { sheet: 6, img: "images/lembaran6_1.png", words: [{ text: "Ibu", type: "siapa" }, { text: "memasak", type: "kerja" }, { text: "nasi", type: "apa" }] },
     { sheet: 6, img: "images/lembaran6_2.png", words: [{ text: "Ayah", type: "siapa" }, { text: "membasuh", type: "kerja" }, { text: "kereta", type: "apa" }] },
     { sheet: 6, img: "images/lembaran6_3.png", words: [{ text: "Kakak", type: "siapa" }, { text: "melipat", type: "kerja" }, { text: "pakaian", type: "apa" }] },
     { sheet: 6, img: "images/lembaran6_4.png", words: [{ text: "Adik", type: "siapa" }, { text: "menyusun", type: "kerja" }, { text: "kasut", type: "apa" }] },
 
-    // --- LEMBARAN 7 ---
     { sheet: 7, img: "images/lembaran7_1.png", words: [{ text: "Rina", type: "siapa" }, { text: "bermain", type: "kerja" }, { text: "buaian", type: "apa" }] },
     { sheet: 7, img: "images/lembaran7_2.png", words: [{ text: "Amir", type: "siapa" }, { text: "menunggang", type: "kerja" }, { text: "basikal", type: "apa" }] },
     { sheet: 7, img: "images/lembaran7_3.png", words: [{ text: "Hana", type: "siapa" }, { text: "melompat", type: "kerja" }, { text: "tali", type: "apa" }] },
     { sheet: 7, img: "images/lembaran7_4.png", words: [{ text: "Danish", type: "siapa" }, { text: "bermain", type: "kerja" }, { text: "gelongsor", type: "apa" }] },
 
-    // --- LEMBARAN 8 ---
     { sheet: 8, img: "images/lembaran8_1.png", words: [{ text: "Ali", type: "siapa" }, { text: "mencuci", type: "kerja" }, { text: "tangan", type: "apa" }] },
     { sheet: 8, img: "images/lembaran8_2.png", words: [{ text: "Mira", type: "siapa" }, { text: "memotong", type: "kerja" }, { text: "kuku", type: "apa" }] },
     { sheet: 8, img: "images/lembaran8_3.png", words: [{ text: "Abu", type: "siapa" }, { text: "minum", type: "kerja" }, { text: "susu", type: "apa" }] },
@@ -433,6 +422,20 @@
   let currentIndex = 0;
   let selectedWords = [];
   let bgmPlaying = false;
+  let msVoice = null;
+  let checkTimer = null; // Pembolehubah untuk menguruskan jeda semakan
+
+  function loadVoices() {
+    if ('speechSynthesis' in window) {
+      const voices = window.speechSynthesis.getVoices();
+      msVoice = voices.find(v => v.lang === 'ms-MY' || v.lang === 'ms_MY' || v.lang.includes('ms'));
+    }
+  }
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    loadVoices();
+  }
 
   function toggleBGM() {
     const bgmPlayer = document.getElementById("bgm-player");
@@ -455,12 +458,15 @@
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'ms-MY';
+      if (msVoice) utterance.voice = msVoice;
       utterance.rate = 0.85;
       window.speechSynthesis.speak(utterance);
     }
   }
 
   function loadQuestion() {
+    if (checkTimer) clearTimeout(checkTimer);
+    
     const q = questions[currentIndex];
     selectedWords = [];
     document.getElementById("next-btn").disabled = true;
@@ -502,10 +508,26 @@
     wordSpan.onclick = () => undoWord(wordObj, btnElement, wordSpan);
     targetBox.appendChild(wordSpan);
 
-    checkAnswer();
+    // Pembatalan pemasa lama jika pengguna masih memilih perkataan
+    if (checkTimer) clearTimeout(checkTimer);
+
+    // Semak jika semua perkataan telah dipilih
+    const targetLength = questions[currentIndex].words.length;
+    if (selectedWords.length === targetLength) {
+      document.getElementById("feedback-text").className = "feedback";
+      document.getElementById("feedback-text").innerText = "Menyemak jawapan...";
+
+      // Tetapkan jeda 3 saat (3000 ms) sebelum menilai jawapan
+      checkTimer = setTimeout(() => {
+        checkAnswer();
+      }, 3000);
+    }
   }
 
   function undoWord(wordObj, originalBtn, builtBtn) {
+    // Batalkan pemasa semakan jika pelajar klik batal semasa tempoh jeda
+    if (checkTimer) clearTimeout(checkTimer);
+
     selectedWords = selectedWords.filter(w => w !== wordObj);
     builtBtn.remove();
     originalBtn.style.visibility = "visible";
@@ -518,21 +540,21 @@
   }
 
   function checkAnswer() {
-    const targetLength = questions[currentIndex].words.length;
-    if (selectedWords.length === targetLength) {
-      const isCorrect = selectedWords.every((w, index) => w === questions[currentIndex].words[index]);
-      const feedback = document.getElementById("feedback-text");
-      if (isCorrect) {
-        feedback.className = "feedback correct";
-        feedback.innerText = "Syabas! Ayat ini Betul! 🎉";
-        speakText("Syabas! " + selectedWords.map(w => w.text).join(" "));
-        document.getElementById("next-btn").disabled = false;
-      } else {
-        feedback.className = "feedback incorrect";
-        feedback.innerText = "Sila cuba lagi! ❌";
-        speakText("Sila cuba lagi!");
-        document.getElementById("next-btn").disabled = true;
-      }
+    const isCorrect = selectedWords.every((w, index) => w === questions[currentIndex].words[index]);
+    const feedback = document.getElementById("feedback-text");
+    
+    if (isCorrect) {
+      feedback.className = "feedback correct";
+      feedback.innerText = "Syabas! Ayat ini Betul! 🎉";
+      
+      const ayatPenuh = selectedWords.map(w => w.text).join(" ");
+      speakText("Syabas! " + ayatPenuh);
+      document.getElementById("next-btn").disabled = false;
+    } else {
+      feedback.className = "feedback incorrect";
+      feedback.innerText = "Sila cuba lagi! ❌";
+      speakText("Sila cuba lagi!");
+      document.getElementById("next-btn").disabled = true;
     }
   }
 
@@ -567,6 +589,7 @@
 
   let mgTargetWord = "";
   let mgCurrentArr = [];
+  let mgTimer = null; // Pemasa jeda khas untuk mini game
 
   function openMiniGame(sheetIdx) {
     const gameData = miniGameData[sheetIdx] || miniGameData[0];
@@ -577,6 +600,7 @@
   }
 
   function setupMiniGameLetters() {
+    if (mgTimer) clearTimeout(mgTimer); // Batalkan sebarang timer aktif
     mgCurrentArr = [];
     document.getElementById("minigame-target").innerHTML = "";
     document.getElementById("minigame-feedback").innerText = "";
@@ -594,17 +618,23 @@
         mgCurrentArr.push(char);
         box.style.visibility = "hidden";
         updateMiniGameUI();
-        speakText(char);
+        // Nota: Tiada sebutan speakText(char) di sini supaya senyap semasa klik
       };
       lettersContainer.appendChild(box);
     });
   }
 
-  function resetMiniGameSelection() { setupMiniGameLetters(); }
+  function resetMiniGameSelection() { 
+    if (mgTimer) clearTimeout(mgTimer);
+    setupMiniGameLetters(); 
+  }
 
   function updateMiniGameUI() {
+    if (mgTimer) clearTimeout(mgTimer);
+
     const targetDiv = document.getElementById("minigame-target");
     targetDiv.innerHTML = "";
+    
     mgCurrentArr.forEach((char, idx) => {
       const box = document.createElement("div");
       box.className = "letter-box";
@@ -617,16 +647,36 @@
       targetDiv.appendChild(box);
     });
 
+    // Apabila bilangan huruf yang dipilih sudah mencukupi
     if (mgCurrentArr.length === mgTargetWord.length) {
       if (mgCurrentArr.join('') === mgTargetWord) {
-        document.getElementById("minigame-feedback").innerText = "Tahniah! Perkataan Betul! 🎉";
-        document.getElementById("minigame-feedback").style.color = "#16a34a";
-        document.getElementById("minigame-continue").style.display = "inline-block";
-        speakText("Tahniah! " + mgTargetWord);
+        // Tunjukkan maklum balas sementara semasa jeda
+        document.getElementById("minigame-feedback").style.color = "#0284c7";
+        document.getElementById("minigame-feedback").innerText = "Menyemak...";
+
+        // JEDA 2 SAAT (2000ms)
+        mgTimer = setTimeout(() => {
+          // Paparkan teks perkataan sahaja
+          document.getElementById("minigame-feedback").style.color = "#16a34a";
+          document.getElementById("minigame-feedback").innerText = mgTargetWord + " 🎉";
+          
+          // SEBUTAN TEKS: HANYA sebut perkataan sasaran (contoh: "MELINTAS")
+          speakText(mgTargetWord);
+
+          // Tunjukkan butang meneruskan latihan
+          document.getElementById("minigame-continue").style.display = "inline-block";
+        }, 2000);
+
       } else {
-        document.getElementById("minigame-feedback").innerText = "Salah, sila tekan butang Semula dan cuba lagi! ❌";
-        document.getElementById("minigame-feedback").style.color = "#dc2626";
-        speakText("Sila cuba lagi!");
+        // Jika susunan huruf salah
+        document.getElementById("minigame-feedback").style.color = "#0284c7";
+        document.getElementById("minigame-feedback").innerText = "Menyemak...";
+
+        mgTimer = setTimeout(() => {
+          document.getElementById("minigame-feedback").style.color = "#dc2626";
+          document.getElementById("minigame-feedback").innerText = "Salah, sila tekan butang Semula dan cuba lagi! ❌";
+          speakText("sila tekan butang Semula dan cuba lagi!");
+        }, 1000);
       }
     } else {
       document.getElementById("minigame-feedback").innerText = "";
@@ -650,6 +700,7 @@
   }
 
   function closeMiniGame() {
+    if (mgTimer) clearTimeout(mgTimer);
     document.getElementById("minigame-modal").style.display = "none";
     currentIndex++;
     loadQuestion();

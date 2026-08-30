@@ -1,20 +1,19 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-  <!-- Pautan ke Manifest PWA -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#3b82f6">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#3b82f6">
 
-<script>
-  // Mendaftarkan Service Worker PWA untuk Mod Offline
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('PWA Service Worker berjaya didaftarkan!'))
-        .catch(err => console.log('Gagal mendaftar PWA:', err));
-    });
-  }
-</script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('PWA Service Worker berjaya didaftarkan!'))
+          .catch(err => console.log('Gagal mendaftar PWA:', err));
+      });
+    }
+  </script>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Permainan Mengeja & Sebutan - Bahasa Melayu</title>
@@ -190,7 +189,6 @@
 </head>
 <body>
 
-<!-- Menu Luar Bar Navigasi -->
 <div class="external-menu-bar">
   <a href="index.html" class="nav-mode-btn">⬅️ Mod Bina Ayat</a>
 </div>
@@ -220,7 +218,6 @@
 </div>
 
 <script>
-  // 20 Senarai Perkataan Latihan Mengeja & Sebutan
   const spellingData = [
     { word: "MELINTAS", syllables: ["me", "lin", "tas"], file: "sebutan/melintas.mp3" },
     { word: "MEMAKAI", syllables: ["me", "ma", "kai"], file: "sebutan/memakai.mp3" },
@@ -245,13 +242,40 @@
   ];
 
   let currentWordIdx = 0;
+  let msVoice = null;
+  let clickedLettersCount = 0; // Mengira berapa banyak huruf telah ditekan
+  let letterTimer = null;       // Pemasa jeda 1 saat
 
-  function speakText(text) {
+  function loadVoices() {
+    if ('speechSynthesis' in window) {
+      const voices = window.speechSynthesis.getVoices();
+      msVoice = voices.find(v => v.lang === 'ms-MY' || v.lang === 'ms_MY' || v.lang.toLowerCase().includes('melayu') || v.lang.toLowerCase().includes('malay'));
+    }
+  }
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    loadVoices();
+  }
+
+  function speakSyllable(text) {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
+      const utterance = new SpeechSynthesisUtterance(text.toLowerCase().trim());
       utterance.lang = 'ms-MY';
-      utterance.rate = 0.75; // Sebutan perlahan untuk pemulihan
+      if (msVoice) utterance.voice = msVoice;
+      utterance.rate = 0.7;
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
+  function speakLetter(char) {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(char.toLowerCase());
+      utterance.lang = 'ms-MY';
+      if (msVoice) utterance.voice = msVoice;
+      utterance.rate = 0.8;
       window.speechSynthesis.speak(utterance);
     }
   }
@@ -259,12 +283,37 @@
   function playCustomAudio(filePath, fallbackText) {
     const audio = new Audio(filePath);
     audio.play().catch(() => {
-      // Guna Web Speech API jika fail mp3 tiada di folder sebutan/
-      speakText(fallbackText);
+      speakSyllable(fallbackText);
     });
   }
 
+  function handleLetterClick(char, btnElement) {
+    if (letterTimer) clearTimeout(letterTimer);
+
+    // 1. Sebut huruf yang ditekan
+    speakLetter(char);
+
+    // 2. Tandakan butang huruf telah ditekan (visual feedback)
+    btnElement.style.backgroundColor = "#818cf8";
+    btnElement.style.color = "#ffffff";
+
+    clickedLettersCount++;
+
+    const totalLetters = spellingData[currentWordIdx].word.length;
+
+    // 3. Apabila huruf TERAKHIR selesai ditekan
+    if (clickedLettersCount >= totalLetters) {
+      // Set Jeda 1 Saat (1000ms) sebelum menyebut perkataan penuh
+      letterTimer = setTimeout(() => {
+        playFullWord();
+      }, 1000);
+    }
+  }
+
   function loadSpellingCard() {
+    if (letterTimer) clearTimeout(letterTimer);
+    clickedLettersCount = 0; // Reset kiraan huruf
+
     const item = spellingData[currentWordIdx];
     
     document.getElementById("exercise-title").innerText = `Latihan Sebutan ${currentWordIdx + 1}`;
@@ -277,11 +326,11 @@
       const btn = document.createElement("button");
       btn.className = "syllable-btn";
       btn.innerText = syl.toUpperCase();
-      btn.onclick = () => speakText(syl);
+      btn.onclick = () => speakSyllable(syl);
       sylBox.appendChild(btn);
     });
 
-    // Muat Huruf Individu Secara Otomatis
+    // Muat Huruf Individu
     const letBox = document.getElementById("letter-box");
     letBox.innerHTML = "";
     const letters = item.word.split("");
@@ -289,7 +338,9 @@
       const btn = document.createElement("button");
       btn.className = "letter-btn";
       btn.innerText = char.toUpperCase();
-      btn.onclick = () => speakText(char);
+      
+      // Dipautkan ke fungsi pengendali klik huruf
+      btn.onclick = () => handleLetterClick(char, btn);
       letBox.appendChild(btn);
     });
 
