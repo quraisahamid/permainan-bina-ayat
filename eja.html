@@ -4,15 +4,36 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#3b82f6">
 
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-          .then(reg => console.log('PWA Service Worker berjaya didaftarkan!'))
-          .catch(err => console.log('Gagal mendaftar PWA:', err));
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').then((reg) => {
+        console.log('PWA Service Worker berjaya didaftarkan!');
+
+        // 1. Semak jika ada kemaskini baharu di GitHub
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          newWorker.addEventListener('statechange', () => {
+            // Jika fail baharu selesai dimuat turun
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // Hantar mesej untuk paksa ganti Service Worker lama
+              newWorker.postMessage({ action: 'skipWaiting' });
+            }
+          });
+        });
+      }).catch(err => console.log('Gagal mendaftar PWA:', err));
+
+      // 2. Apabila Service Worker baharu mengambil alih, segar semula (reload) halaman serta-merta
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
       });
-    }
-  </script>
+    });
+  }
+</script>
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
