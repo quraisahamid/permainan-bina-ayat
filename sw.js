@@ -1,5 +1,5 @@
 // TUKAR NAMA VERSI INI (contoh: bm-pwa-v2) SETIAP KALI ANDA KEMASKINI KOD DI GITHUB
-const CACHE_NAME = 'bm-pwa-v2'; 
+const CACHE_NAME = 'bm-pwa-v3'; 
 
 const ASSETS_TO_CACHE = [
   './',
