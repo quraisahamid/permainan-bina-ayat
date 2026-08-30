@@ -1,5 +1,5 @@
-// TUKAR NAMA VERSI INI (contoh: bm-pwa-v2) SETIAP KALI ANDA KEMASKINI KOD DI GITHUB
-const CACHE_NAME = 'bm-pwa-v3'; 
+// TUKAR NAMA VERSI INI SETIAP KALI UPDATE (contoh: 'bm-pwa-v2', 'bm-pwa-v3')
+const CACHE_NAME = 'bm-pwa-v4'; 
 
 const ASSETS_TO_CACHE = [
   './',
@@ -7,7 +7,6 @@ const ASSETS_TO_CACHE = [
   './eja.html',
   './manifest.json',
   './bgm.mp3',
-  // Gambar Lembaran 1 hingga 8
   './images/lembaran1_1.png', './images/lembaran1_2.png', './images/lembaran1_3.png', './images/lembaran1_4.png',
   './images/lembaran2_1.png', './images/lembaran2_2.png', './images/lembaran2_3.png', './images/lembaran2_4.png',
   './images/lembaran3_1.png', './images/lembaran3_2.png', './images/lembaran3_3.png', './images/lembaran3_4.png',
@@ -16,7 +15,6 @@ const ASSETS_TO_CACHE = [
   './images/lembaran6_1.png', './images/lembaran6_2.png', './images/lembaran6_3.png', './images/lembaran6_4.png',
   './images/lembaran7_1.png', './images/lembaran7_2.png', './images/lembaran7_3.png', './images/lembaran7_4.png',
   './images/lembaran8_1.png', './images/lembaran8_2.png', './images/lembaran8_3.png', './images/lembaran8_4.png',
-  // Fail audio tempatan (jika ada tukar ke .ogg, pastikan nama sambungan di sini juga ditukar)
   './sebutan/melintas.mp3', './sebutan/memakai.mp3', './sebutan/menanam.mp3', './sebutan/membaca.mp3',
   './sebutan/menulis.mp3', './sebutan/menyapu.mp3', './sebutan/membantu.mp3', './sebutan/memasak.mp3',
   './sebutan/membasuh.mp3', './sebutan/melipat.mp3', './sebutan/menyusun.mp3', './sebutan/bermain.mp3',
@@ -24,35 +22,43 @@ const ASSETS_TO_CACHE = [
   './sebutan/komputer.mp3', './sebutan/lantai.mp3', './sebutan/pakaian.mp3', './sebutan/basikal.mp3'
 ];
 
-// 1. Pemasangan Service Worker & Simpan Cache
 self.addEventListener('install', (event) => {
-  self.skipWaiting(); // Paksa Service Worker baharu untuk aktif dengan segera
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Menyimpan fail ke dalam Cache PWA...');
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
 });
 
-// 2. Pembersihan Cache Lama & Ambil Alih Kawalan
+// AKTIVASI: Padam SEMUA cache lama di peranti pengguna tanpa syarat
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
+          // Jika nama cache tidak sama dengan CACHE_NAME semasa, PADAM TERUS
           if (cache !== CACHE_NAME) {
-            console.log('Memadam cache PWA lama:', cache);
+            console.log('Memadam cache lama secara paksa:', cache);
             return caches.delete(cache);
           }
         })
       );
-    }).then(() => self.clients.claim()) // Mengambil alih halaman tanpa tunggu refresh manual
+    }).then(() => self.clients.claim())
   );
 });
 
-// 3. Mengambil Fail daripada Cache (Offline First)
+// NETWORK FIRST STRATEGY untuk HTML (Pengguna iOS/Android sentiasa dapat versi terkini jika online)
 self.addEventListener('fetch', (event) => {
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return caches.match(event.request);
+      })
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       return cachedResponse || fetch(event.request);
@@ -60,7 +66,6 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// 4. Menerima Mesej daripada HTML untuk Aktivasi Pantas
 self.addEventListener('message', (event) => {
   if (event.data && event.data.action === 'skipWaiting') {
     self.skipWaiting();

@@ -8,23 +8,23 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').then((reg) => {
-        console.log('PWA Service Worker berjaya didaftarkan!');
+      // Tambah timestamp/query string supaya pelayar iOS/Android WAJIB muat turun sw.js baharu
+      navigator.serviceWorker.register('sw.js?v=' + Date.now()).then((reg) => {
+        
+        // Paksa semakan kemaskini ke server GitHub setiap kali PWA dibuka
+        reg.update();
 
-        // 1. Semak jika ada kemaskini baharu di GitHub
         reg.addEventListener('updatefound', () => {
           const newWorker = reg.installing;
           newWorker.addEventListener('statechange', () => {
-            // Jika fail baharu selesai dimuat turun
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // Hantar mesej untuk paksa ganti Service Worker lama
+              // Hantar arahan buang cache lama dan skip waiting
               newWorker.postMessage({ action: 'skipWaiting' });
             }
           });
         });
-      }).catch(err => console.log('Gagal mendaftar PWA:', err));
+      });
 
-      // 2. Apabila Service Worker baharu mengambil alih, segar semula (reload) halaman serta-merta
       let refreshing = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (!refreshing) {
