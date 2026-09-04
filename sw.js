@@ -1,10 +1,11 @@
-// TUKAR NAMA VERSI INI SETIAP KALI UPDATE (versi ke-5')
-const CACHE_NAME = 'bm-pwa-v5'; 
+// TUKAR NAMA VERSI INI SETIAP KALI UPDATE (versi ke-6')
+const CACHE_NAME = 'bm-pwa-v6'; 
 
 const ASSETS_TO_CACHE = [
   './',
-  './index.html',
-  './eja.html',
+  './index.html',   //master page
+  './eja.html',     //fasa 2
+  './bina_ayat.html', //fasa 3
   './manifest.json',
   './bgm.mp3',
   './images/lembaran1_1.png', './images/lembaran1_2.png', './images/lembaran1_3.png', './images/lembaran1_4.png',
