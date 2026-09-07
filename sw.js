@@ -1,26 +1,33 @@
-// TUKAR NAMA VERSI INI SETIAP KALI UPDATE (versi ke-6')
-const CACHE_NAME = 'bm-pwa-v6'; 
+// TUKAR NAMA VERSI INI SETIAP KALI UPDATE
+const CACHE_NAME = 'bm-pwa-v7'; 
 
 const ASSETS_TO_CACHE = [
   './',
-  './index.html',   //master page
-  './eja.html',     //fasa 2
-  './bina_ayat.html', //fasa 3
+  './index.html',
+  './eja.html',
+  './bina_ayat.html',
   './manifest.json',
   './bgm.mp3',
-  './images/lembaran1_1.png', './images/lembaran1_2.png', './images/lembaran1_3.png', './images/lembaran1_4.png',
-  './images/lembaran2_1.png', './images/lembaran2_2.png', './images/lembaran2_3.png', './images/lembaran2_4.png',
-  './images/lembaran3_1.png', './images/lembaran3_2.png', './images/lembaran3_3.png', './images/lembaran3_4.png',
-  './images/lembaran4_1.png', './images/lembaran4_2.png', './images/lembaran4_3.png', './images/lembaran4_4.png',
   './images/lembaran5_1.png', './images/lembaran5_2.png', './images/lembaran5_3.png', './images/lembaran5_4.png',
   './images/lembaran6_1.png', './images/lembaran6_2.png', './images/lembaran6_3.png', './images/lembaran6_4.png',
   './images/lembaran7_1.png', './images/lembaran7_2.png', './images/lembaran7_3.png', './images/lembaran7_4.png',
   './images/lembaran8_1.png', './images/lembaran8_2.png', './images/lembaran8_3.png', './images/lembaran8_4.png',
-  './sebutan/melintas.mp3', './sebutan/memakai.mp3', './sebutan/menanam.mp3', './sebutan/membaca.mp3',
-  './sebutan/menulis.mp3', './sebutan/menyapu.mp3', './sebutan/membantu.mp3', './sebutan/memasak.mp3',
-  './sebutan/membasuh.mp3', './sebutan/melipat.mp3', './sebutan/menyusun.mp3', './sebutan/bermain.mp3',
-  './sebutan/menunggang.mp3', './sebutan/melompat.mp3', './sebutan/mencuci.mp3', './sebutan/memotong.mp3',
-  './sebutan/komputer.mp3', './sebutan/lantai.mp3', './sebutan/pakaian.mp3', './sebutan/basikal.mp3'
+  './sebutan/faris_menulis_karangan.mp3',
+  './sebutan/aina_menyapu_lantai.mp3',
+  './sebutan/hakim_membawa_beg_sekolah.mp3',
+  './sebutan/sara_membaca_buku.mp3',
+  './sebutan/ibu_memasak_nasi.mp3',
+  './sebutan/ayah_membasuh_kereta.mp3',
+  './sebutan/kakak_melipat_pakaian.mp3',
+  './sebutan/adik_menyusun_kasut.mp3',
+  './sebutan/rina_bermain_buaian.mp3',
+  './sebutan/amir_menunggang_basikal.mp3',
+  './sebutan/hana_melompat_tali.mp3',
+  './sebutan/danish_bermain_gelongsor.mp3',
+  './sebutan/ali_mencuci_tangan.mp3',
+  './sebutan/mira_memotong_kuku.mp3',
+  './sebutan/abu_minum_susu.mp3',
+  './sebutan/siti_makan_buah.mp3'
 ];
 
 self.addEventListener('install', (event) => {
@@ -32,13 +39,12 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// AKTIVASI: Padam SEMUA cache lama di peranti pengguna tanpa syarat
+// AKTIVASI: Padam SEMUA cache lama di peranti pengguna
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
-          // Jika nama cache tidak sama dengan CACHE_NAME semasa, PADAM TERUS
           if (cache !== CACHE_NAME) {
             console.log('Memadam cache lama secara paksa:', cache);
             return caches.delete(cache);
@@ -49,7 +55,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// NETWORK FIRST STRATEGY untuk HTML (Pengguna iOS/Android sentiasa dapat versi terkini jika online)
+// NETWORK FIRST STRATEGY untuk navigasi HTML
 self.addEventListener('fetch', (event) => {
   if (event.request.mode === 'navigate') {
     event.respondWith(

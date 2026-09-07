@@ -2,7 +2,7 @@
 <html lang="ms" translate="no">
 <head>
 
-    <!-- BARIS TAMBAHAN UNTUK HALANG AUTOMATIK TRANSLATE -->
+  <!-- BARIS TAMBAHAN UNTUK HALANG AUTOMATIK TRANSLATE -->
   <meta name="google" content="notranslate">
   <meta name="chrome" content="notranslate">
 
@@ -340,7 +340,7 @@
 
   <div class="header-info">
     <span id="sheet-title">Latihan 1</span>
-    <span id="progress">Ayat 1 / 32</span>
+    <span id="progress">Ayat 1 / 16</span>
   </div>
 
   <div class="image-card">
@@ -385,52 +385,53 @@
 <div class="modal" id="congrats-modal">
   <div class="modal-content" style="border-color: #22c55e;">
     <h1 style="color: #16a34a; font-size: 2.2rem; margin-top: 0;">🌟 TAHNIAH! 🌟</h1>
-    <p style="font-size: 1.2rem; color: #1e3a8a; font-weight: bold;">Syabas! Anda telah berjaya menyelesaikan kesemua 32 latihan membina ayat! 🎉</p>
+    <p style="font-size: 1.2rem; color: #1e3a8a; font-weight: bold;">Syabas! Anda telah berjaya menyelesaikan kesemua latihan membina ayat! 🎉</p>
     <button class="action-btn btn-next" style="font-size: 1.1rem; padding: 12px 24px; margin-top: 15px;" onclick="restartWholeGame()">🔄 Main Semula dari Mula</button>
   </div>
 </div>
 
 <script>
-  // Latihan dipendekkan kepada 16 soalan (4 Lembaran x 4 Soalan)
+  // Senarai Soalan Latihan Bina Ayat
+  // Kunci "audio" mengandungi laluan fail .mp3 sebutan rakaman bagi ayat penuh
   const questions = [
-    // Lembaran 1 (Asal Sheet 5)
-    { sheet: 1, img: "images/lembaran5_1.png", words: [{ text: "Faris", type: "siapa" }, { text: "menulis", type: "kerja" }, { text: "karangan", type: "apa" }] },
-    { sheet: 1, img: "images/lembaran5_2.png", words: [{ text: "Aina", type: "siapa" }, { text: "menyapu", type: "kerja" }, { text: "lantai", type: "apa" }] },
-    { sheet: 1, img: "images/lembaran5_3.png", words: [{ text: "Hakim", type: "siapa" }, { text: "membawa", type: "kerja" }, { text: "beg sekolah", type: "apa" }] },
-    { sheet: 1, img: "images/lembaran5_4.png", words: [{ text: "Sara", type: "siapa" }, { text: "membaca", type: "kerja" }, { text: "buku", type: "apa" }] },
+    // Lembaran 1
+    { sheet: 1, img: "images/lembaran5_1.png", audio: "sebutan/faris_menulis_karangan.mp3", words: [{ text: "Faris", type: "siapa" }, { text: "menulis", type: "kerja" }, { text: "karangan", type: "apa" }] },
+    { sheet: 1, img: "images/lembaran5_2.png", audio: "sebutan/aina_menyapu_lantai.mp3", words: [{ text: "Aina", type: "siapa" }, { text: "menyapu", type: "kerja" }, { text: "lantai", type: "apa" }] },
+    { sheet: 1, img: "images/lembaran5_3.png", audio: "sebutan/hakim_membawa_beg_sekolah.mp3", words: [{ text: "Hakim", type: "siapa" }, { text: "membawa", type: "kerja" }, { text: "beg sekolah", type: "apa" }] },
+    { sheet: 1, img: "images/lembaran5_4.png", audio: "sebutan/sara_membaca_buku.mp3", words: [{ text: "Sara", type: "siapa" }, { text: "membaca", type: "kerja" }, { text: "buku", type: "apa" }] },
 
-    // Lembaran 2 (Asal Sheet 6)
-    { sheet: 2, img: "images/lembaran6_1.png", words: [{ text: "Ibu", type: "siapa" }, { text: "memasak", type: "kerja" }, { text: "nasi", type: "apa" }] },
-    { sheet: 2, img: "images/lembaran6_2.png", words: [{ text: "Ayah", type: "siapa" }, { text: "membasuh", type: "kerja" }, { text: "kereta", type: "apa" }] },
-    { sheet: 2, img: "images/lembaran6_3.png", words: [{ text: "Kakak", type: "siapa" }, { text: "melipat", type: "kerja" }, { text: "pakaian", type: "apa" }] },
-    { sheet: 2, img: "images/lembaran6_4.png", words: [{ text: "Adik", type: "siapa" }, { text: "menyusun", type: "kerja" }, { text: "kasut", type: "apa" }] },
+    // Lembaran 2
+    { sheet: 2, img: "images/lembaran6_1.png", audio: "sebutan/ibu_memasak_nasi.mp3", words: [{ text: "Ibu", type: "siapa" }, { text: "memasak", type: "kerja" }, { text: "nasi", type: "apa" }] },
+    { sheet: 2, img: "images/lembaran6_2.png", audio: "sebutan/ayah_membasuh_kereta.mp3", words: [{ text: "Ayah", type: "siapa" }, { text: "membasuh", type: "kerja" }, { text: "kereta", type: "apa" }] },
+    { sheet: 2, img: "images/lembaran6_3.png", audio: "sebutan/kakak_melipat_pakaian.mp3", words: [{ text: "Kakak", type: "siapa" }, { text: "melipat", type: "kerja" }, { text: "pakaian", type: "apa" }] },
+    { sheet: 2, img: "images/lembaran6_4.png", audio: "sebutan/adik_menyusun_kasut.mp3", words: [{ text: "Adik", type: "siapa" }, { text: "menyusun", type: "kerja" }, { text: "kasut", type: "apa" }] },
 
-    // Lembaran 3 (Asal Sheet 7)
-    { sheet: 3, img: "images/lembaran7_1.png", words: [{ text: "Rina", type: "siapa" }, { text: "bermain", type: "kerja" }, { text: "buaian", type: "apa" }] },
-    { sheet: 3, img: "images/lembaran7_2.png", words: [{ text: "Amir", type: "siapa" }, { text: "menunggang", type: "kerja" }, { text: "basikal", type: "apa" }] },
-    { sheet: 3, img: "images/lembaran7_3.png", words: [{ text: "Hana", type: "siapa" }, { text: "melompat", type: "kerja" }, { text: "tali", type: "apa" }] },
-    { sheet: 3, img: "images/lembaran7_4.png", words: [{ text: "Danish", type: "siapa" }, { text: "bermain", type: "gelongsor", type: "apa" }] },
+    // Lembaran 3
+    { sheet: 3, img: "images/lembaran7_1.png", audio: "sebutan/rina_bermain_buaian.mp3", words: [{ text: "Rina", type: "siapa" }, { text: "bermain", type: "kerja" }, { text: "buaian", type: "apa" }] },
+    { sheet: 3, img: "images/lembaran7_2.png", audio: "sebutan/amir_menunggang_basikal.mp3", words: [{ text: "Amir", type: "siapa" }, { text: "menunggang", type: "kerja" }, { text: "basikal", type: "apa" }] },
+    { sheet: 3, img: "images/lembaran7_3.png", audio: "sebutan/hana_melompat_tali.mp3", words: [{ text: "Hana", type: "siapa" }, { text: "melompat", type: "kerja" }, { text: "tali", type: "apa" }] },
+    { sheet: 3, img: "images/lembaran7_4.png", audio: "sebutan/danish_bermain_gelongsor.mp3", words: [{ text: "Danish", type: "siapa" }, { text: "bermain", type: "kerja" }, { text: "gelongsor", type: "apa" }] },
 
-    // Lembaran 4 (Asal Sheet 8)
-    { sheet: 4, img: "images/lembaran8_1.png", words: [{ text: "Ali", type: "siapa" }, { text: "mencuci", type: "kerja" }, { text: "tangan", type: "apa" }] },
-    { sheet: 4, img: "images/lembaran8_2.png", words: [{ text: "Mira", type: "siapa" }, { text: "memotong", type: "kerja" }, { text: "kuku", type: "apa" }] },
-    { sheet: 4, img: "images/lembaran8_3.png", words: [{ text: "Abu", type: "siapa" }, { text: "minum", type: "kerja" }, { text: "susu", type: "apa" }] },
-    { sheet: 4, img: "images/lembaran8_4.png", words: [{ text: "Siti", type: "siapa" }, { text: "makan", type: "kerja" }, { text: "buah", type: "apa" }] }
+    // Lembaran 4
+    { sheet: 4, img: "images/lembaran8_1.png", audio: "sebutan/ali_mencuci_tangan.mp3", words: [{ text: "Ali", type: "siapa" }, { text: "mencuci", type: "kerja" }, { text: "tangan", type: "apa" }] },
+    { sheet: 4, img: "images/lembaran8_2.png", audio: "sebutan/mira_memotong_kuku.mp3", words: [{ text: "Mira", type: "siapa" }, { text: "memotong", type: "kerja" }, { text: "kuku", type: "apa" }] },
+    { sheet: 4, img: "images/lembaran8_3.png", audio: "sebutan/abu_minum_susu.mp3", words: [{ text: "Abu", type: "siapa" }, { text: "minum", type: "kerja" }, { text: "susu", type: "apa" }] },
+    { sheet: 4, img: "images/lembaran8_4.png", audio: "sebutan/siti_makan_buah.mp3", words: [{ text: "Siti", type: "siapa" }, { text: "makan", type: "kerja" }, { text: "buah", type: "apa" }] }
   ];
 
-  // Data Mini Game disesuaikan khas dengan kosakata Lembaran 1 hingga 4 yang baharu
+  // Data Mini Game
   const miniGameData = [
-    { target: "KARANGAN", hint: "Mari eja KARANGAN." }, // Selepas Lembaran 1
-    { target: "PAKAIAN", hint: "Mari eja PAKAIAN." },   // Selepas Lembaran 2
-    { target: "BASIKAL", hint: "Mari eja BASIKAL." },   // Selepas Lembaran 3
-    { target: "MENCUCI", hint: "Mari eja MENCUCI." }    // Selepas Lembaran 4
+    { target: "KARANGAN", hint: "Mari eja KARANGAN." },
+    { target: "PAKAIAN", hint: "Mari eja PAKAIAN." },
+    { target: "BASIKAL", hint: "Mari eja BASIKAL." },
+    { target: "MENCUCI", hint: "Mari eja MENCUCI." }
   ];
 
   let currentIndex = 0;
   let selectedWords = [];
   let bgmPlaying = false;
   let msVoice = null;
-  let checkTimer = null; // Pembolehubah untuk menguruskan jeda semakan
+  let checkTimer = null;
 
   function loadVoices() {
     if ('speechSynthesis' in window) {
@@ -460,14 +461,39 @@
     }
   }
 
-  function speakText(text) {
+  // Fungsi khusus untuk memainkan fail MP3 rakaman sebutan. 
+  // Jika fail tiada/error, bertukar automatik ke Google Speech (speechSynthesis)
+  function playSentenceAudio(text, audioPath, callback) {
+    if (audioPath) {
+      const audio = new Audio(audioPath);
+      audio.play().then(() => {
+        if (callback) {
+          audio.onended = callback;
+        }
+      }).catch((err) => {
+        console.warn("Fail MP3 tidak dijumpai/gagal dimainkan. Guna Google Speech fallback:", err);
+        speakText(text, callback);
+      });
+    } else {
+      speakText(text, callback);
+    }
+  }
+
+  function speakText(text, callback) {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'ms-MY';
       if (msVoice) utterance.voice = msVoice;
       utterance.rate = 0.85;
+      
+      if (callback) {
+        utterance.onend = callback;
+      }
+      
       window.speechSynthesis.speak(utterance);
+    } else if (callback) {
+      callback();
     }
   }
 
@@ -515,16 +541,14 @@
     wordSpan.onclick = () => undoWord(wordObj, btnElement, wordSpan);
     targetBox.appendChild(wordSpan);
 
-    // Pembatalan pemasa lama jika pengguna masih memilih perkataan
     if (checkTimer) clearTimeout(checkTimer);
 
-    // Semak jika semua perkataan telah dipilih
     const targetLength = questions[currentIndex].words.length;
     if (selectedWords.length === targetLength) {
       document.getElementById("feedback-text").className = "feedback";
       document.getElementById("feedback-text").innerText = "Menyemak jawapan...";
 
-      // Tetapkan jeda 3 saat (3000 ms) sebelum menilai jawapan
+      // Jeda 3 saat sebelum menilai jawapan
       checkTimer = setTimeout(() => {
         checkAnswer();
       }, 3000);
@@ -532,7 +556,6 @@
   }
 
   function undoWord(wordObj, originalBtn, builtBtn) {
-    // Batalkan pemasa semakan jika pelajar klik batal semasa tempoh jeda
     if (checkTimer) clearTimeout(checkTimer);
 
     selectedWords = selectedWords.filter(w => w !== wordObj);
@@ -549,13 +572,16 @@
   function checkAnswer() {
     const isCorrect = selectedWords.every((w, index) => w === questions[currentIndex].words[index]);
     const feedback = document.getElementById("feedback-text");
+    const q = questions[currentIndex];
     
     if (isCorrect) {
       feedback.className = "feedback correct";
       feedback.innerText = "Syabas! Ayat ini Betul! 🎉";
       
       const ayatPenuh = selectedWords.map(w => w.text).join(" ");
-      speakText("Syabas! " + ayatPenuh);
+      
+      // Memainkan sebutan audio rakaman MP3 ayat penuh terus (tanpa kata ucapan "Syabas!")
+      playSentenceAudio(ayatPenuh, q.audio);
       document.getElementById("next-btn").disabled = false;
     } else {
       feedback.className = "feedback incorrect";
@@ -566,7 +592,9 @@
   }
 
   function playCurrentSentenceAudio() {
-    speakText(questions[currentIndex].words.map(w => w.text).join(" "));
+    const q = questions[currentIndex];
+    const ayatPenuh = questions[currentIndex].words.map(w => w.text).join(" ");
+    playSentenceAudio(ayatPenuh, q.audio);
   }
 
   function nextQuestion() {
@@ -596,7 +624,7 @@
 
   let mgTargetWord = "";
   let mgCurrentArr = [];
-  let mgTimer = null; // Pemasa jeda khas untuk mini game
+  let mgTimer = null;
 
   function openMiniGame(sheetIdx) {
     const gameData = miniGameData[sheetIdx] || miniGameData[0];
@@ -607,7 +635,7 @@
   }
 
   function setupMiniGameLetters() {
-    if (mgTimer) clearTimeout(mgTimer); // Batalkan sebarang timer aktif
+    if (mgTimer) clearTimeout(mgTimer);
     mgCurrentArr = [];
     document.getElementById("minigame-target").innerHTML = "";
     document.getElementById("minigame-feedback").innerText = "";
@@ -625,7 +653,6 @@
         mgCurrentArr.push(char);
         box.style.visibility = "hidden";
         updateMiniGameUI();
-        // Nota: Tiada sebutan speakText(char) di sini supaya senyap semasa klik
       };
       lettersContainer.appendChild(box);
     });
@@ -654,28 +681,20 @@
       targetDiv.appendChild(box);
     });
 
-    // Apabila bilangan huruf yang dipilih sudah mencukupi
     if (mgCurrentArr.length === mgTargetWord.length) {
       if (mgCurrentArr.join('') === mgTargetWord) {
-        // Tunjukkan maklum balas sementara semasa jeda
         document.getElementById("minigame-feedback").style.color = "#0284c7";
         document.getElementById("minigame-feedback").innerText = "Menyemak...";
 
-        // JEDA 2 SAAT (2000ms)
         mgTimer = setTimeout(() => {
-          // Paparkan teks perkataan sahaja
           document.getElementById("minigame-feedback").style.color = "#16a34a";
           document.getElementById("minigame-feedback").innerText = mgTargetWord + " 🎉";
           
-          // SEBUTAN TEKS: HANYA sebut perkataan sasaran (contoh: "MELINTAS")
           speakText(mgTargetWord);
-
-          // Tunjukkan butang meneruskan latihan
           document.getElementById("minigame-continue").style.display = "inline-block";
         }, 2000);
 
       } else {
-        // Jika susunan huruf salah
         document.getElementById("minigame-feedback").style.color = "#0284c7";
         document.getElementById("minigame-feedback").innerText = "Menyemak...";
 
