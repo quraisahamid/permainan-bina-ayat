@@ -16,6 +16,22 @@
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js?v=' + Date.now()).then((reg) => {
           reg.update();
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                newWorker.postMessage({ action: 'skipWaiting' });
+              }
+            });
+          });
+        });
+
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+          }
         });
       });
     }
@@ -34,17 +50,17 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
+      min-height: 100dvh;
       margin: 0;
-      padding: 16px;
+      padding: clamp(10px, 2.5vw, 24px);
     }
 
     .main-card {
       background: #ffffff;
       border: 5px solid #3b82f6;
       border-radius: 28px;
-      padding: 24px 20px;
-      max-width: 900px;
-      width: 100%;
+      padding: clamp(16px, 3vw, 30px);
+      width: clamp(300px, 92vw, 900px);
       text-align: center;
       box-shadow: 0 16px 35px rgba(0, 0, 0, 0.15);
     }
@@ -52,29 +68,29 @@
     .title-banner {
       background-color: #3b82f6;
       color: white;
-      padding: 16px;
+      padding: clamp(10px, 2vw, 16px);
       border-radius: 18px;
-      font-size: 1.8rem;
+      font-size: clamp(1.3rem, 3.5vw, 1.8rem);
       font-weight: bold;
-      margin-bottom: 20px;
+      margin-bottom: clamp(14px, 2.5vw, 20px);
       text-transform: uppercase;
       box-shadow: 0 5px 0 #1d4ed8;
       text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
     }
 
-    /* Group Container Grid Layout */
+    /* Grouped Grid Dashboard */
     .dashboard-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-      margin-top: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: clamp(12px, 2vw, 20px);
+      margin-top: 5px;
     }
 
     .section-group {
       background: #f8fafc;
       border: 3px solid #cbd5e1;
       border-radius: 20px;
-      padding: 18px 14px;
+      padding: clamp(12px, 2vw, 18px);
       display: flex;
       flex-direction: column;
       gap: 12px;
@@ -92,13 +108,13 @@
     }
 
     .group-header {
-      font-size: 1.25rem;
+      font-size: clamp(1.05rem, 2.5vw, 1.25rem);
       font-weight: bold;
       padding: 8px 12px;
       border-radius: 12px;
       color: white;
       text-transform: uppercase;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
       box-shadow: 0 3px 0 rgba(0,0,0,0.15);
     }
 
@@ -107,8 +123,8 @@
 
     .phase-btn {
       width: 100%;
-      padding: 14px 16px;
-      font-size: 1.05rem;
+      padding: clamp(12px, 2vw, 16px);
+      font-size: clamp(0.95rem, 2vw, 1.15rem);
       font-weight: bold;
       border-radius: 16px;
       border: none;
@@ -141,14 +157,14 @@
     .btn-memorygame { background-color: #ec4899; box-shadow: 0 5px 0 #be185d; }
 
     .success-badge {
-      margin-top: 24px;
+      margin-top: clamp(14px, 2.5vw, 24px);
       background-color: #dcfce7;
       border: 3px dashed #22c55e;
-      padding: 12px;
+      padding: 10px;
       border-radius: 16px;
       color: #15803d;
       font-weight: bold;
-      font-size: 1.1rem;
+      font-size: clamp(0.95rem, 2vw, 1.1rem);
     }
 
     /* Modal Styling */
@@ -160,14 +176,16 @@
       justify-content: center;
       align-items: center;
       z-index: 100;
+      padding: 10px;
     }
 
     .modal-content {
       background: white;
-      padding: 25px;
+      padding: clamp(15px, 3vw, 25px);
       border-radius: 20px;
-      max-width: 500px;
-      width: 90%;
+      width: clamp(290px, 90vw, 520px);
+      max-height: 90vh;
+      overflow-y: auto;
       text-align: center;
       border: 4px solid #f59e0b;
       box-shadow: 0 10px 25px rgba(0,0,0,0.3);
@@ -180,7 +198,7 @@
       padding: 12px 15px;
       border-radius: 12px;
       font-weight: bold;
-      font-size: 1rem;
+      font-size: clamp(0.85rem, 2vw, 1rem);
       border: none;
       cursor: pointer;
       display: flex;
@@ -219,13 +237,13 @@
 
     .letter-box {
       display: inline-block;
-      width: 42px;
-      height: 42px;
-      line-height: 42px;
+      width: clamp(34px, 8vw, 42px);
+      height: clamp(34px, 8vw, 42px);
+      line-height: clamp(34px, 8vw, 42px);
       margin: 3px;
       border: 2px solid #3b82f6;
       border-radius: 8px;
-      font-size: 1.2rem;
+      font-size: clamp(1rem, 2.5vw, 1.2rem);
       font-weight: bold;
       background: #e0f2fe;
       cursor: pointer;
@@ -248,7 +266,7 @@
 
     .action-btn {
       padding: 8px 16px;
-      font-size: 0.95rem;
+      font-size: clamp(0.85rem, 2vw, 0.95rem);
       font-weight: bold;
       border-radius: 10px;
       border: none;
@@ -260,18 +278,18 @@
     .mole-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin: 15px 0;
+      gap: clamp(6px, 1.5vw, 10px);
+      margin: 12px 0;
     }
 
     .hole {
-      height: 90px;
+      height: clamp(65px, 15vh, 90px);
       background: #78350f;
       border-radius: 15px;
       position: relative;
       overflow: hidden;
       border: 3px solid #451a03;
-      box-shadow: inset 0 10px 0 #290e05;
+      box-shadow: inset 0 8px 0 #290e05;
     }
 
     .mole {
@@ -298,21 +316,21 @@
     .mole-word {
       background: #ffffff;
       color: #1e293b;
-      padding: 3px 6px;
+      padding: 2px 5px;
       border-radius: 6px;
-      font-size: 0.85rem;
-      margin-top: 4px;
+      font-size: clamp(0.75rem, 2vw, 0.85rem);
+      margin-top: 2px;
       box-shadow: 0 2px 0 rgba(0,0,0,0.2);
     }
 
     #memory-canvas-holder {
       width: 100%;
-      height: 360px;
+      height: clamp(260px, 45vh, 360px);
       position: relative;
       display: flex;
       justify-content: center;
       align-items: center;
-      margin: 10px 0;
+      margin: 8px 0;
     }
 
     #memoryCanvas {
@@ -328,10 +346,10 @@
       text-align: left;
       background: #fff1f2;
       border: 2px dashed #fda4af;
-      padding: 12px;
+      padding: 10px;
       border-radius: 16px;
-      margin: 12px 0;
-      font-size: 0.95rem;
+      margin: 10px 0;
+      font-size: clamp(0.85rem, 2vw, 0.95rem);
       color: #881337;
     }
 
@@ -339,7 +357,32 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
+    }
+
+    /* Landscape Mode Optimizations */
+    @media (orientation: landscape) and (max-height: 550px) {
+      body {
+        padding: 4px;
+      }
+      .main-card {
+        padding: 12px;
+      }
+      .title-banner {
+        padding: 8px;
+        margin-bottom: 8px;
+      }
+      .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+      .section-group {
+        padding: 8px;
+        gap: 6px;
+      }
+      .phase-btn {
+        padding: 8px 12px;
+      }
     }
   </style>
 </head>
@@ -371,9 +414,9 @@
         </a>
       </div>
 
-      <!-- GROUP 2: PUSAT MINI GAME -->
+      <!-- GROUP 2: MINI GAME -->
       <div class="section-group group-games">
-        <div class="group-header header-games">🎮 Pusat Mini Game</div>
+        <div class="group-header header-games">🎮 Mini Game</div>
 
         <button class="phase-btn btn-minigame" onclick="startStandaloneMiniGame()" title="📌 Klik untuk bermain Mini Game Ejaan">
           <span>🧩 Game 1: Kumpul Huruf</span>
@@ -394,7 +437,7 @@
     </div>
 
     <div class="success-badge">
-      🎉 BERJAYA MEMBINA AYAT! 🙋‍♂️
+      🎉 BELAJAR SAMBIL BERMAIN 🙋‍♂️
     </div>
   </div>
 
@@ -443,20 +486,20 @@
     <div class="modal-content" style="border-color: #8b5cf6;">
       <h2 style="color: #6d28d9; margin-top: 0;">🎮 Mini Game 1: Kumpul Huruf!</h2>
       
-      <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.1rem; color: #334155; padding: 0 10px; margin-bottom: 10px;">
+      <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1rem; color: #334155; padding: 0 5px; margin-bottom: 8px;">
         <span>⭐ Markah: <span id="mg1-score" style="color: #2563eb;">0</span></span>
         <span>⏳ Masa: <span id="mg1-timer" style="color: #dc2626;">30</span>s</span>
       </div>
 
-      <div style="background-color: #f3e8ff; border: 2px dashed #8b5cf6; color: #581c87; padding: 8px 12px; border-radius: 10px; font-size: 0.9rem; margin-bottom: 12px; font-weight: bold;">
+      <div style="background-color: #f3e8ff; border: 2px dashed #8b5cf6; color: #581c87; padding: 8px 12px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 10px; font-weight: bold;">
         📌 <strong>Arahan:</strong> Tekan huruf di bawah mengikut urutan yang betul sebelum masa tamat!
       </div>
-      <h3 id="minigame-hint" style="color: #0284c7; margin: 8px 0;">--</h3>
-      <div id="minigame-target" style="min-height: 50px; margin-bottom: 10px;"></div>
+      <h3 id="minigame-hint" style="color: #0284c7; margin: 6px 0;">--</h3>
+      <div id="minigame-target" style="min-height: 45px; margin-bottom: 10px;"></div>
       <div id="minigame-letters"></div>
-      <div id="minigame-feedback" style="margin-top: 10px; font-weight: bold; min-height: 24px;"></div>
+      <div id="minigame-feedback" style="margin-top: 8px; font-weight: bold; min-height: 24px;"></div>
       
-      <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+      <div style="margin-top: 12px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
         <button class="action-btn" style="background-color: #ef4444;" onclick="setupMiniGameLetters()">🔄 Semula</button>
         <button class="action-btn" id="mg-next-btn" style="background-color: #22c55e; display: none;" onclick="nextMiniGameWord()">Soalan Seterusnya ➡️</button>
         <button class="action-btn" style="background-color: #64748b;" onclick="closeMiniGame()">Tutup ✖️</button>
@@ -469,11 +512,11 @@
     <div class="modal-content" style="border-color: #ef4444;">
       <h2 style="color: #b91c1c; margin-top: 0;">🔨 Ketuk Tikus Tanah Bahasa Melayu</h2>
       
-      <div id="wam-instruction" style="background-color: #fee2e2; border: 2px dashed #ef4444; color: #991b1b; padding: 8px 12px; border-radius: 10px; font-size: 0.95rem; margin-bottom: 10px; font-weight: bold;">
+      <div id="wam-instruction" style="background-color: #fee2e2; border: 2px dashed #ef4444; color: #991b1b; padding: 6px 10px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 8px; font-weight: bold;">
         🎯 Ketuk perkataan jenis: <span id="wam-target-category" style="text-decoration: underline;">--</span>!
       </div>
 
-      <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.1rem; color: #334155; padding: 0 10px;">
+      <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1rem; color: #334155; padding: 0 5px;">
         <span>⭐ Markah: <span id="wam-score" style="color: #2563eb;">0</span></span>
         <span>⏳ Masa: <span id="wam-timer" style="color: #dc2626;">20</span>s</span>
       </div>
@@ -490,9 +533,9 @@
         <div class="hole"><div class="mole" onclick="whackMole(8)">🐭<span class="mole-word" id="mw8">-</span></div></div>
       </div>
 
-      <div id="wam-feedback" style="font-weight: bold; min-height: 24px; font-size: 1rem;"></div>
+      <div id="wam-feedback" style="font-weight: bold; min-height: 24px; font-size: 0.95rem;"></div>
 
-      <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+      <div style="margin-top: 10px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
         <button class="action-btn" style="background-color: #22c55e;" onclick="startWhackAMoleGame()">🔄 Mula Semula</button>
         <button class="action-btn" style="background-color: #64748b;" onclick="closeWhackAMole()">Tutup ✖️</button>
       </div>
@@ -501,22 +544,22 @@
 
   <!-- MODAL MAIN GAME 3: CARI PASANGAN HURUF -->
   <div class="modal" id="memory-modal">
-    <div class="modal-content" style="border-color: #ec4899; max-width: 550px;">
+    <div class="modal-content" style="border-color: #ec4899;">
       <h2 style="color: #be185d; margin-top: 0;">🃏 Cari Pasangan Huruf</h2>
       
-      <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1rem; color: #334155; padding: 0 5px; margin-bottom: 5px;">
+      <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 0.95rem; color: #334155; padding: 0 5px; margin-bottom: 5px;">
         <span>⭐ Markah: <span id="mem-score" style="color: #2563eb;">0</span></span>
         <span>🔄 Cubaan: <span id="mem-flips" style="color: #db2777;">0</span></span>
-        <button class="action-btn" style="background-color: #f472b6; padding: 4px 10px;" onclick="showMemoryHelp()">❓ Cara Bermain</button>
+        <button class="action-btn" style="background-color: #f472b6; padding: 3px 8px; font-size: 0.8rem;" onclick="showMemoryHelp()">❓ Cara Bermain</button>
       </div>
 
       <div id="memory-canvas-holder">
         <canvas id="memoryCanvas"></canvas>
       </div>
 
-      <div id="mem-feedback" style="font-weight: bold; min-height: 24px; font-size: 1rem;"></div>
+      <div id="mem-feedback" style="font-weight: bold; min-height: 22px; font-size: 0.95rem;"></div>
 
-      <div style="margin-top: 10px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+      <div style="margin-top: 8px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
         <button class="action-btn" style="background-color: #22c55e;" onclick="initMemoryGame()">🔄 Mula Semula</button>
         <button class="action-btn" style="background-color: #64748b;" onclick="closeMemoryGame()">Tutup ✖️</button>
       </div>
@@ -525,7 +568,7 @@
 
   <!-- SUB-MODAL 1: CARA BERMAIN GAME 3 -->
   <div class="modal" id="mem-help-modal" style="z-index: 120;">
-    <div class="modal-content" style="border-color: #f472b6; max-width: 420px;">
+    <div class="modal-content" style="border-color: #f472b6;">
       <h2 style="color: #9d174d; margin-top: 0;">📖 Cara Bermain</h2>
       <p style="font-weight: bold; color: #be123c; margin-bottom: 8px;">
         🎯 Padankan semua huruf konsonan dengan gambarnya!
@@ -533,15 +576,15 @@
 
       <div class="kid-instruction-box">
         <div class="kid-instruction-item">
-          <span style="font-size: 1.4rem;">👆</span>
+          <span style="font-size: 1.3rem;">👆</span>
           <span>Ketik kad untuk membukanya.</span>
         </div>
         <div class="kid-instruction-item">
-          <span style="font-size: 1.4rem;">🔁</span>
+          <span style="font-size: 1.3rem;">🔁</span>
           <span>Padankan huruf dengan gambar (cth. <b>b</b> ↔️ <b>⚽ bola</b>).</span>
         </div>
         <div class="kid-instruction-item">
-          <span style="font-size: 1.4rem;">✨</span>
+          <span style="font-size: 1.3rem;">✨</span>
           <span>Ingat kedudukan kad untuk kumpul markah kombo!</span>
         </div>
       </div>
@@ -550,24 +593,28 @@
         💡 Tip: Padankan dengan cubaan paling sedikit untuk dapat 3 bintang!
       </p>
 
-      <button class="action-btn" style="background-color: #22c55e; width: 100%; font-size: 1.1rem; padding: 12px; margin-top: 10px;" onclick="closeMemoryHelp()">Mula Main! 🚀</button>
+            <div style="margin-top: 8px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
+         <button class="action-btn" style="background-color: #22c55e; width: 100%; font-size: 1rem; padding: 10px; margin-top: 8px;" onclick="closeMemoryHelp()">Mula Main! 🚀</button>
+        <button class="action-btn" style="background-color: #64748b;" onclick="closeMemoryGame()">Tutup ✖️</button>
+      </div>
+      
     </div>
   </div>
 
   <!-- SUB-MODAL 2: TAHNIAH / KEMENANGAN GAME 3 -->
   <div class="modal" id="mem-win-modal" style="z-index: 120;">
-    <div class="modal-content" style="border-color: #22c55e; max-width: 420px;">
+    <div class="modal-content" style="border-color: #22c55e;">
       <h2 style="color: #15803d; margin-top: 0;">🎉 SYABAS & TAHNIAH!</h2>
       <p style="color: #334155; font-weight: bold;">Anda berjaya mencari kesemua pasangan!</p>
       
-      <div id="mem-win-stars" style="font-size: 3rem; margin: 10px 0;">⭐⭐⭐</div>
+      <div id="mem-win-stars" style="font-size: 2.5rem; margin: 8px 0;">⭐⭐⭐</div>
       
       <div class="kid-instruction-box" style="text-align: center; justify-content: center;">
-        <div>Jumlah Markah: <b id="mem-final-score" style="color: #2563eb; font-size: 1.2rem;">0</b></div>
-        <div>Jumlah Cubaan: <b id="mem-final-flips" style="color: #db2777; font-size: 1.2rem;">0</b></div>
+        <div>Jumlah Markah: <b id="mem-final-score" style="color: #2563eb; font-size: 1.1rem;">0</b></div>
+        <div>Jumlah Cubaan: <b id="mem-final-flips" style="color: #db2777; font-size: 1.1rem;">0</b></div>
       </div>
 
-      <button class="action-btn" style="background-color: #22c55e; width: 100%; font-size: 1.1rem; padding: 12px; margin-top: 10px;" onclick="closeWinModalAndRestart()">Main Semula 🔄</button>
+      <button class="action-btn" style="background-color: #22c55e; width: 100%; font-size: 1rem; padding: 10px; margin-top: 8px;" onclick="closeWinModalAndRestart()">Main Semula 🔄</button>
     </div>
   </div>
 
@@ -1008,6 +1055,8 @@
     memOffsetX = padding;
     memOffsetY = padding;
   }
+
+  window.addEventListener('resize', resizeMemoryCanvas);
 
   function createMemSparkles(x, y, color) {
     for (let i = 0; i < 12; i++) {
