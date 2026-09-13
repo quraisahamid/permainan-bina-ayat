@@ -1,5 +1,5 @@
-// TUKAR NAMA VERSI INI SETIAP KALI UPDATE
-const CACHE_NAME = 'bm-pwa-v7'; 
+// TUKAR NAMA VERSI INI SETIAP KALI UPDATE terkini adalah v8
+const CACHE_NAME = 'bm-pwa-v8'; 
 
 const ASSETS_TO_CACHE = [
   './',
