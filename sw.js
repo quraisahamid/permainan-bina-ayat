@@ -1,6 +1,6 @@
-const CACHE_NAME = 'iska-app-v7';
+const CACHE_NAME = 'iska-app-v8';
 
-// Senarai fail tempatan yang disimpan untuk mod 100% offline
+// Senarai fail tempatan yang disimpan ke dalam cache peranti
 const LOCAL_ASSETS = [
   '/',
   'index.html',
@@ -56,18 +56,18 @@ const EXTERNAL_CDN = [
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
 ];
 
-// 1. Install Event: Memuat turun dan menyimpan aset baharu
+// 1. Install Event: Memuat turun dan menyimpan aset baharu versi v8
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      console.log('[Service Worker v7] Mengemas kini fail offline...');
+      console.log('[Service Worker v8] Mengemas kini dan menyimpan aset offline...');
       
       // Simpan fail tempatan
       for (const asset of LOCAL_ASSETS) {
         try {
           await cache.add(new Request(asset, { cache: 'reload' }));
         } catch (e) {
-          console.error('[SW] Gagal menyimpan aset:', asset, e);
+          console.error('[SW] Gagal menyimpan aset tempatan:', asset, e);
         }
       }
 
@@ -76,21 +76,21 @@ self.addEventListener('install', (event) => {
         try {
           await cache.add(url);
         } catch (e) {
-          console.log('[SW] CDN tiada capaian internet:', url);
+          console.log('[SW] Pustaka CDN tiada sambungan internet:', url);
         }
       }
     }).then(() => self.skipWaiting())
   );
 });
 
-// 2. Activate Event: Membersihkan Cache Versi Lama (v6 dan sebelumnya)
+// 2. Activate Event: Pembersihan automatik cache versi lama (v7 dan sebelumnya)
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
           if (cache !== CACHE_NAME) {
-            console.log('[Service Worker] Memadamkan cache versi lama:', cache);
+            console.log('[Service Worker] Membersihkan cache lama:', cache);
             return caches.delete(cache);
           }
         })
@@ -99,14 +99,14 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 3. Fetch Event: Pengendalian Offline & Audio Range Requests
+// 3. Fetch Event: Menyokong mod offline dan penyiapan Range Requests untuk iOS WebKit / Android Audio
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
     caches.match(event.request, { ignoreSearch: true }).then(async (cachedResponse) => {
       if (cachedResponse) {
-        // Pengendalian Audio Range Request untuk Safari & Chrome (Offline Audio)
+        // Pengendalian Khas Audio Range Request (Wajib untuk Safari iOS & Chrome Mobile)
         if (event.request.headers.has('range')) {
           const blob = await cachedResponse.blob();
           const bytes = event.request.headers.get('range').replace(/bytes=/, "").split("-");
@@ -128,7 +128,7 @@ self.addEventListener('fetch', (event) => {
         return cachedResponse;
       }
 
-      // Ambil dari rangkaian jika tiada dalam cache
+      // Ambil dari rangkaian sekiranya tiada dalam cache tempatan
       return fetch(event.request).then((networkResponse) => {
         if (!networkResponse || networkResponse.status !== 200) {
           return networkResponse;
@@ -149,7 +149,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// 4. Mesej skipWaiting untuk muat semula automatik
+// 4. Pengendalian Mesej Pemasangan Automatik
 self.addEventListener('message', (event) => {
   if (event.data && event.data.action === 'skipWaiting') {
     self.skipWaiting();

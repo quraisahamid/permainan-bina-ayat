@@ -457,18 +457,19 @@
     document.getElementById('ska-info-display').style.display = 'none';
   }
 
-  /* Fungsi Keluar / Kill Application */
+  /* Fungsi Keluar / Friendly Exit (Mesra iOS / Android / Chrome) */
   function exitApplication() {
     speakText("Terima kasih! Jumpa lagi!");
 
     setTimeout(() => {
       if (confirm("Adakah anda pasti mahu keluar daripada aplikasi ini?")) {
+        // Stop audio BGM
         if (bgmAudio) bgmAudio.pause();
 
-        // 1. Cuba tutup tetingkap PWA / Window
+        // 1. Cuba tutup tetingkap PWA / Web Window jika peranti benarkan (Android Chrome / PC Standalone)
         window.close();
 
-        // 2. Jika pelayar menyekat window.close(), paparkan Skrin "Closed/Kill"
+        // 2. Paparkan Skrin UI Penutupan Khas (Mengelakkan Skrin Putih Blank pada iPhone / iPad iOS)
         setTimeout(() => {
           document.body.innerHTML = `
             <div style="
@@ -477,34 +478,40 @@
               align-items: center; 
               justify-content: center; 
               height: 100vh; 
+              height: 100dvh;
               background: #1e1b4b; 
               color: white; 
               text-align: center; 
-              font-family: sans-serif;
-              padding: 20px;">
-              <h1 style="font-size: 3rem; margin-bottom: 10px;">👋</h1>
-              <h2 style="color: #f59e0b; margin-bottom: 5px;">Aplikasi Telah Ditutup</h2>
-              <p style="color: #cbd5e1; max-width: 400px; font-size: 0.95rem;">
-                Sesi pembelajaran telah tamat. Anda boleh menutup tab atau mengendalikan tetingkap pelayar anda sekarang.
+              font-family: 'Comic Sans MS', sans-serif; 
+              padding: 24px;">
+              
+              <div style="font-size: 4rem; margin-bottom: 15px;" class="animate-bounce">👋</div>
+              
+              <h2 style="color: #f59e0b; font-size: 1.8rem; margin: 0 0 10px 0; font-weight: bold;">
+                Sesi Pembelajaran Tamat!
+              </h2>
+              
+              <p style="color: #cbd5e1; max-width: 380px; font-size: 1rem; line-height: 1.5; margin-bottom: 25px;">
+                Syabas kerana telah belajar hari ini. Anda boleh menutup tab ini atau swipe up untuk keluar dari aplikasi.
               </p>
+              
               <button onclick="window.location.reload()" style="
-                margin-top: 20px; 
-                padding: 10px 20px; 
-                background: #3b82f6; 
+                padding: 12px 28px; 
+                background-color: #3b82f6; 
                 color: white; 
                 border: none; 
-                border-radius: 10px; 
+                border-radius: 14px; 
+                font-size: 1.1rem; 
                 font-weight: bold; 
+                box-shadow: 0 4px 0 #1d4ed8; 
                 cursor: pointer;">
                 🔄 Buka Semula Aplikasi
               </button>
             </div>
           `;
-          
-          try { window.location.href = "about:blank"; } catch(e) {}
-        }, 200);
+        }, 150);
       }
-    }, 300);
+    }, 250);
   }
 </script>
 </body>
