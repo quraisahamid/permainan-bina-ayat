@@ -1,6 +1,6 @@
-const CACHE_NAME = 'iska-app-v20';
+const CACHE_NAME = 'iska-app-v21';
 
-// Senarai lengkap fail tempatan & audio .m4a berhuruf besar di depan untuk 100% Offline
+// Senarai lengkap fail tempatan & audio .m4a berhuruf besar di depan
 const LOCAL_ASSETS = [
   '/',
   'index.html',
@@ -66,16 +66,21 @@ const EXTERNAL_CDN = [
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
 ];
 
+// 1. Pemasangan & Muat Turun Paksa
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      console.log('[Service Worker v20] Menyimpan aset & fail .m4a berhuruf besar offline...');
+      console.log('[Service Worker v21] Memuat turun semula kesemua aset & .m4a...');
       for (const asset of LOCAL_ASSETS) {
         try {
           const response = await fetch(asset, { cache: 'reload' });
-          if (response.ok) await cache.put(asset, response);
+          if (response.ok) {
+            await cache.put(asset, response);
+          } else {
+            console.warn('[SW Warning] Fail tidak dijumpai di pelayan:', asset);
+          }
         } catch (e) {
-          console.error('[SW Error] Gagal simpan:', asset, e);
+          console.error('[SW Error] Gagal fetch:', asset, e);
         }
       }
       for (const url of EXTERNAL_CDN) {
@@ -85,18 +90,30 @@ self.addEventListener('install', (event) => {
   );
 });
 
+// 2. Pengaktifan & Pemadaman Agresif Cache Lama
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) return caches.delete(cache);
+          if (cache !== CACHE_NAME) {
+            console.log('[Service Worker] Memadam cache lama yang tersangkut:', cache);
+            return caches.delete(cache);
+          }
         })
       );
-    }).then(() => self.clients.claim())
+    }).then(() => {
+      return self.clients.claim().then(() => {
+        // Hantar arahan kepada semua tab pelayar untuk reload automatik
+        self.clients.matchAll({ type: 'window' }).then(clients => {
+          clients.forEach(client => client.postMessage({ action: 'forceReload' }));
+        });
+      });
+    })
   );
 });
 
+// 3. Kawalan Fetch & Range Requests
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
