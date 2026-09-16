@@ -13,7 +13,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=17').catch((err) => console.log('SW Error:', err));
+        navigator.serviceWorker.register('sw.js?v=19').catch((err) => console.log('SW Error:', err));
       });
     }
   </script>
@@ -107,40 +107,13 @@
       text-transform: uppercase;
     }
 
-    .mode-switch-bar {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-
-    .mode-tab-btn {
-      padding: 8px 16px;
-      border-radius: 12px;
-      border: 2px solid #f472b6;
-      background: #fce7f3;
-      color: #9d174d;
-      font-weight: bold;
-      font-size: clamp(0.85rem, 2vw, 1rem);
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .mode-tab-btn.active {
-      background: #ec4899;
-      color: white;
-      border-color: #be185d;
-      box-shadow: 0 3px 0 #9d174d;
-    }
-
-    /* Kad Rujukan Perkataan Penuh */
     .reference-word-card {
       background: #e0f2fe;
       border: 2px solid #3b82f6;
       border-radius: 14px;
       padding: 8px 16px;
       display: inline-block;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
 
     .reference-word-title {
@@ -183,7 +156,7 @@
       flex-wrap: wrap;
     }
 
-    /* Kod Warna Suku Kata BM (Suku Kata 1 = Gelap, Suku Kata 2 = Merah) */
+    /* Standard Kod Warna BM i-SKA (Suku Kata 1 = Gelap, Suku Kata 2 = Merah) */
     .syllable-part-1 { color: #1e293b; }
     .syllable-part-2 { color: #dc2626; }
 
@@ -264,31 +237,22 @@
 </div>
 
 <div class="main-card">
-  <div class="title-banner">🔤 Fasa 2: Mengeja i-SKA</div>
-
-  <!-- Butang Pemilihan Mod Ejaan -->
-  <div class="mode-switch-bar">
-    <button class="mode-tab-btn" id="mode-letter-btn" onclick="switchMode('letter')">🔤 Sebutan Huruf</button>
-    <button class="mode-tab-btn active" id="mode-syllable-btn" onclick="switchMode('syllable')">🗣️ Sebutan Suku Kata</button>
-  </div>
+  <div class="title-banner">🗣️ Fasa 2: Mengeja Suku Kata i-SKA</div>
 
   <div style="font-size: 1.1rem; font-weight: bold; color: #475569; margin-bottom: 8px;" id="progress-text">
     Perkataan 1 / 10
   </div>
 
-  <!-- Kad Perkataan Rujukan Pelajar -->
   <div class="reference-word-card">
     <div class="reference-word-title">Perkataan Untuk Dieja:</div>
     <div class="reference-word-text" id="reference-word-display">-</div>
   </div>
 
   <div class="word-display-box">
-    <div style="font-size: 0.95rem; color: #881337; font-weight: bold;" id="mode-instruction-text">
+    <div style="font-size: 0.95rem; color: #881337; font-weight: bold;">
       Tekan suku kata mengikut warna untuk mengeja perkataan:
     </div>
-    <!-- Kotak Tempat Meletak Kepingan Ditekan -->
     <div class="spelling-box" id="built-spelling-box"></div>
-    <!-- Kotak Pilihan Kepingan (Huruf atau Suku Kata) -->
     <div class="pool-box" id="tile-pool-box"></div>
   </div>
 
@@ -365,102 +329,63 @@
     }
   }
 
-  /* Speech Synthesis Engine */
-  let msVoice = null;
-  let synthUnlocked = false;
-
-  function loadVoices() {
-    if ('speechSynthesis' in window) {
-      const voices = window.speechSynthesis.getVoices();
-      if (voices && voices.length > 0) {
-        msVoice = voices.find(v => v.lang === 'ms-MY' || v.lang === 'ms_MY' || v.lang.toLowerCase().includes('melayu') || v.lang.toLowerCase().includes('id'));
-      }
-    }
-  }
-
-  function unlockSpeechSynthesis() {
-    if (!synthUnlocked && 'speechSynthesis' in window) {
-      window.speechSynthesis.resume();
-      loadVoices();
-      const dummy = new SpeechSynthesisUtterance(" ");
-      dummy.volume = 0.01;
-      window.speechSynthesis.speak(dummy);
-      synthUnlocked = true;
-    }
-  }
-
-  document.addEventListener('touchstart', unlockSpeechSynthesis, { passive: true });
-  document.addEventListener('click', unlockSpeechSynthesis, { passive: true });
-
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-    loadVoices();
-  }
-
+  /* 🎵 ENJIN AUDIO HTML5 M4A (Blob Cache Offline) */
+  const audioMemoryCache = {};
   let isProcessing = false;
-  let speechQueue = [];
+  let audioQueue = [];
   let isQueueRunning = false;
 
-  function clearSpeechQueue() {
-    speechQueue = [];
+  function preloadAudioFile(soundKey) {
+    const audioUrl = `sebutan/${soundKey.toLowerCase()}.m4a`;
+    fetch(audioUrl)
+      .then(res => res.blob())
+      .then(blob => {
+        audioMemoryCache[soundKey.toLowerCase()] = URL.createObjectURL(blob);
+      })
+      .catch(() => {});
+  }
+
+  function clearAudioQueue() {
+    audioQueue = [];
     isQueueRunning = false;
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
   }
 
-  function queueSpeech(text, delayMs = 0, callback = null) {
-    speechQueue.push({ text, delayMs, callback });
+  function queueAudio(soundKey, delayMs = 0, callback = null) {
+    audioQueue.push({ soundKey, delayMs, callback });
     if (!isQueueRunning) {
-      processSpeechQueue();
+      processAudioQueue();
     }
   }
 
-  function processSpeechQueue() {
-    if (speechQueue.length === 0) {
+  function processAudioQueue() {
+    if (audioQueue.length === 0) {
       isQueueRunning = false;
       return;
     }
 
     isQueueRunning = true;
-    const currentItem = speechQueue.shift();
+    const currentItem = audioQueue.shift();
 
     setTimeout(() => {
-      if ('speechSynthesis' in window) {
-        try {
-          window.speechSynthesis.cancel();
-          window.speechSynthesis.resume();
+      const soundKey = currentItem.soundKey.toLowerCase();
+      const audioSource = audioMemoryCache[soundKey] || `sebutan/${soundKey}.m4a`;
+      const audio = new Audio(audioSource);
 
-          const utterance = new SpeechSynthesisUtterance(currentItem.text.toLowerCase());
-          utterance.lang = msVoice ? msVoice.lang : 'ms-MY';
-          if (msVoice) utterance.voice = msVoice;
-          utterance.rate = 0.85;
+      if (!bgmAudio.paused) bgmAudio.volume = 0.03;
 
-          let done = false;
-          const finish = () => {
-            if (!done) {
-              done = true;
-              if (currentItem.callback) currentItem.callback();
-              processSpeechQueue();
-            }
-          };
-
-          utterance.onend = finish;
-          utterance.onerror = finish;
-
-          setTimeout(() => {
-            window.speechSynthesis.speak(utterance);
-          }, 50);
-
-          setTimeout(finish, 2500);
-        } catch (e) {
+      audio.play().then(() => {
+        audio.onended = () => {
+          if (!bgmAudio.paused) bgmAudio.volume = 0.12;
           if (currentItem.callback) currentItem.callback();
-          processSpeechQueue();
-        }
-      } else {
+          processAudioQueue();
+        };
+      }).catch((err) => {
+        console.warn(`Fail audio ${soundKey}.m4a tiada:`, err);
+        if (!bgmAudio.paused) bgmAudio.volume = 0.12;
         if (currentItem.callback) currentItem.callback();
-        processSpeechQueue();
-      }
+        processAudioQueue();
+      });
+
     }, currentItem.delayMs);
   }
 
@@ -498,113 +423,36 @@
 
   window.addEventListener("DOMContentLoaded", tryAutoplayBGM);
 
-  /* Data Kata Kerja i-SKA */
+  /* Data Kata Kerja Suku Kata i-SKA (Termasuk "lintas") */
   const wordList = [
-    { 
-      word: "cuci", 
-      syllables: [{ text: "cu", part: 1 }, { text: "ci", part: 2 }],
-      letters: [
-        { text: "c", part: 1 }, { text: "u", part: 1 },
-        { text: "c", part: 2 }, { text: "i", part: 2 }
-      ]
-    },
-    { 
-      word: "masak", 
-      syllables: [{ text: "ma", part: 1 }, { text: "sak", part: 2 }],
-      letters: [
-        { text: "m", part: 1 }, { text: "a", part: 1 },
-        { text: "s", part: 2 }, { text: "a", part: 2 }, { text: "k", part: 2 }
-      ]
-    },
-    { 
-      word: "lintas", 
-      syllables: [{ text: "lin", part: 1 }, { text: "tas", part: 2 }],
-      letters: [
-        { text: "l", part: 1 }, { text: "i", part: 1 }, { text: "n", part: 1 },
-        { text: "t", part: 2 }, { text: "a", part: 2 }, { text: "s", part: 2 }
-      ]
-    },
-    { 
-      word: "sapu", 
-      syllables: [{ text: "sa", part: 1 }, { text: "pu", part: 2 }],
-      letters: [
-        { text: "s", part: 1 }, { text: "a", part: 1 },
-        { text: "p", part: 2 }, { text: "u", part: 2 }
-      ]
-    },
-    { 
-      word: "minum", 
-      syllables: [{ text: "mi", part: 1 }, { text: "num", part: 2 }],
-      letters: [
-        { text: "m", part: 1 }, { text: "i", part: 1 },
-        { text: "n", part: 2 }, { text: "u", part: 2 }, { text: "m", part: 2 }
-      ]
-    },
-    { 
-      word: "lipat", 
-      syllables: [{ text: "li", part: 1 }, { text: "pat", part: 2 }],
-      letters: [
-        { text: "l", part: 1 }, { text: "i", part: 1 },
-        { text: "p", part: 2 }, { text: "a", part: 2 }, { text: "t", part: 2 }
-      ]
-    },
-    { 
-      word: "basuh", 
-      syllables: [{ text: "ba", part: 1 }, { text: "suh", part: 2 }],
-      letters: [
-        { text: "b", part: 1 }, { text: "a", part: 1 },
-        { text: "s", part: 2 }, { text: "u", part: 2 }, { text: "h", part: 2 }
-      ]
-    },
-    { 
-      word: "potong", 
-      syllables: [{ text: "po", part: 1 }, { text: "tong", part: 2 }],
-      letters: [
-        { text: "p", part: 1 }, { text: "o", part: 1 },
-        { text: "t", part: 2 }, { text: "o", part: 2 }, { text: "n", part: 2 }, { text: "g", part: 2 }
-      ]
-    },
-    { 
-      word: "susun", 
-      syllables: [{ text: "su", part: 1 }, { text: "sun", part: 2 }],
-      letters: [
-        { text: "s", part: 1 }, { text: "u", part: 1 },
-        { text: "s", part: 2 }, { text: "u", part: 2 }, { text: "n", part: 2 }
-      ]
-    },
-    { 
-      word: "tulis", 
-      syllables: [{ text: "tu", part: 1 }, { text: "lis", part: 2 }],
-      letters: [
-        { text: "t", part: 1 }, { text: "u", part: 1 },
-        { text: "l", part: 2 }, { text: "i", part: 2 }, { text: "s", part: 2 }
-      ]
-    }
+    { word: "cuci", syllables: [{ text: "cu", part: 1 }, { text: "ci", part: 2 }] },
+    { word: "masak", syllables: [{ text: "ma", part: 1 }, { text: "sak", part: 2 }] },
+    { word: "lintas", syllables: [{ text: "lin", part: 1 }, { text: "tas", part: 2 }] },
+    { word: "sapu", syllables: [{ text: "sa", part: 1 }, { text: "pu", part: 2 }] },
+    { word: "minum", syllables: [{ text: "mi", part: 1 }, { text: "num", part: 2 }] },
+    { word: "lipat", syllables: [{ text: "li", part: 1 }, { text: "pat", part: 2 }] },
+    { word: "basuh", syllables: [{ text: "ba", part: 1 }, { text: "suh", part: 2 }] },
+    { word: "potong", syllables: [{ text: "po", part: 1 }, { text: "tong", part: 2 }] },
+    { word: "susun", syllables: [{ text: "su", part: 1 }, { text: "sun", part: 2 }] },
+    { word: "tulis", syllables: [{ text: "tu", part: 1 }, { text: "lis", part: 2 }] }
   ];
 
+  // Preload semua audio suku kata dan perkataan penuh .m4a
+  window.addEventListener('load', () => {
+    wordList.forEach(w => {
+      preloadAudioFile(w.word);
+      w.syllables.forEach(s => preloadAudioFile(s.text));
+    });
+    preloadAudioFile("cuba_lagi");
+  });
+
   let currentIndex = 0;
-  let currentMode = 'syllable';
-  let selectedTiles = [];
-
-  function switchMode(mode) {
-    clearSpeechQueue();
-    currentMode = mode;
-    document.getElementById("mode-syllable-btn").classList.toggle("active", mode === 'syllable');
-    document.getElementById("mode-letter-btn").classList.toggle("active", mode === 'letter');
-
-    if (mode === 'syllable') {
-      document.getElementById("mode-instruction-text").innerText = "Tekan suku kata mengikut warna untuk mengeja perkataan:";
-    } else {
-      document.getElementById("mode-instruction-text").innerText = "Tekan setiap huruf mengikut warna untuk mengeja perkataan:";
-    }
-
-    loadWord();
-  }
+  let selectedSyllables = [];
 
   function loadWord() {
-    clearSpeechQueue();
+    clearAudioQueue();
     isProcessing = false;
-    selectedTiles = [];
+    selectedSyllables = [];
     
     const item = wordList[currentIndex];
     
@@ -622,70 +470,66 @@
     const poolBox = document.getElementById("tile-pool-box");
     poolBox.innerHTML = "";
 
-    const targetItems = currentMode === 'syllable' ? item.syllables : item.letters;
-    const shuffled = [...targetItems].sort(() => Math.random() - 0.5);
+    const shuffled = [...item.syllables].sort(() => Math.random() - 0.5);
 
-    shuffled.forEach((tileObj) => {
+    shuffled.forEach((sylObj) => {
       const btn = document.createElement("button");
       btn.className = "tile-btn";
       
-      const colorClass = tileObj.part === 1 ? "syllable-part-1" : "syllable-part-2";
-      btn.innerHTML = `<span class="${colorClass}">${tileObj.text}</span>`;
+      const colorClass = sylObj.part === 1 ? "syllable-part-1" : "syllable-part-2";
+      btn.innerHTML = `<span class="${colorClass}">${sylObj.text}</span>`;
 
       btn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        selectTile(tileObj, btn);
+        selectSyllable(sylObj, btn);
       }, { passive: false });
 
       btn.onclick = (e) => {
-        if (e.pointerType !== 'touch') selectTile(tileObj, btn);
+        if (e.pointerType !== 'touch') selectSyllable(sylObj, btn);
       };
 
       poolBox.appendChild(btn);
     });
   }
 
-  function selectTile(tileObj, originalBtn) {
+  function selectSyllable(sylObj, originalBtn) {
     if (isProcessing) return;
 
-    selectedTiles.push(tileObj);
+    selectedSyllables.push(sylObj);
     originalBtn.style.visibility = "hidden";
 
-    // Setiap suku kata dimasukkan ke dalam giliran dengan delay 3000ms (3 saat)
-    const delayDuration = currentMode === 'syllable' ? 3000 : 0;
-    queueSpeech(tileObj.text, delayDuration);
+    // Delay 3 saat (3000ms) untuk setiap suku kata yang ditekan
+    queueAudio(sylObj.text, 3000);
 
     const builtBox = document.getElementById("built-spelling-box");
     const tileSpan = document.createElement("button");
     tileSpan.className = "tile-btn";
     
-    const colorClass = tileObj.part === 1 ? "syllable-part-1" : "syllable-part-2";
-    tileSpan.innerHTML = `<span class="${colorClass}">${tileObj.text}</span>`;
+    const colorClass = sylObj.part === 1 ? "syllable-part-1" : "syllable-part-2";
+    tileSpan.innerHTML = `<span class="${colorClass}">${sylObj.text}</span>`;
 
     tileSpan.addEventListener('touchstart', (e) => {
       e.preventDefault();
-      undoTile(tileObj, originalBtn, tileSpan);
+      undoSyllable(sylObj, originalBtn, tileSpan);
     }, { passive: false });
 
     tileSpan.onclick = (e) => {
-      if (e.pointerType !== 'touch') undoTile(tileObj, originalBtn, tileSpan);
+      if (e.pointerType !== 'touch') undoSyllable(sylObj, originalBtn, tileSpan);
     };
 
     builtBox.appendChild(tileSpan);
 
     const currentItem = wordList[currentIndex];
-    const targetLength = currentMode === 'syllable' ? currentItem.syllables.length : currentItem.letters.length;
-
-    if (selectedTiles.length === targetLength) {
+    if (selectedSyllables.length === currentItem.syllables.length) {
       checkSpelling();
     }
   }
 
-  function undoTile(tileObj, originalBtn, builtTile) {
-    clearSpeechQueue();
+  function undoSyllable(sylObj, originalBtn, builtTile) {
+    clearAudioQueue();
     if (isProcessing) return;
 
-    selectedTiles = selectedTiles.filter(t => t !== tileObj);
+    selectedSyllables = selectedSyllables.filter(s => s !== sylObj);
     builtTile.remove();
     originalBtn.style.visibility = "visible";
     document.getElementById("feedback-msg").innerText = "";
@@ -693,24 +537,23 @@
 
   function checkSpelling() {
     const currentItem = wordList[currentIndex];
-    const userWord = selectedTiles.map(t => t.text).join("");
+    const userWord = selectedSyllables.map(s => s.text).join("");
     const targetWord = currentItem.word;
 
     if (userWord === targetWord) {
       isProcessing = true;
-      const fullWordDelay = currentMode === 'syllable' ? 1000 : 300;
 
-      // Masukkan sebutan penuh ke giliran, dan lancarkan Confetti + Teks Tahniah HANYA SELEPAS sebutan penuh selesai
-      queueSpeech(targetWord, fullWordDelay, () => {
+      // Sebutan penuh dimainkan selepas sela masa, kemudian teks Tahniah & Confetti keluar
+      queueAudio(targetWord, 1000, () => {
         document.getElementById("feedback-msg").innerHTML = "<span style='color: #16a34a;'>Tahniah! Ejaan Betul! 🎉</span>";
         triggerConfetti();
         isProcessing = false;
       });
 
     } else {
-      clearSpeechQueue();
+      clearAudioQueue();
       document.getElementById("feedback-msg").innerHTML = "<span style='color: #dc2626;'>Cuba lagi! ❌</span>";
-      queueSpeech("Cuba lagi!", 0);
+      queueAudio("cuba_lagi", 0);
     }
   }
 
