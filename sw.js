@@ -1,6 +1,6 @@
-const CACHE_NAME = 'iska-app-v6';
+const CACHE_NAME = 'iska-app-v7';
 
-// Senarai lengkap fail tempatan untuk disimpan ke dalam cache peranti
+// Senarai fail tempatan yang disimpan untuk mod 100% offline
 const LOCAL_ASSETS = [
   '/',
   'index.html',
@@ -56,11 +56,11 @@ const EXTERNAL_CDN = [
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
 ];
 
-// 1. Peringkat Pemasangan (Install Event)
+// 1. Install Event: Memuat turun dan menyimpan aset baharu
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      console.log('[Service Worker v6] Memuat turun dan menyalin fail offline...');
+      console.log('[Service Worker v7] Mengemas kini fail offline...');
       
       // Simpan fail tempatan
       for (const asset of LOCAL_ASSETS) {
@@ -76,21 +76,21 @@ self.addEventListener('install', (event) => {
         try {
           await cache.add(url);
         } catch (e) {
-          console.log('[SW] Pustaka CDN tiada capaian:', url);
+          console.log('[SW] CDN tiada capaian internet:', url);
         }
       }
     }).then(() => self.skipWaiting())
   );
 });
 
-// 2. Peringkat Pengaktifan (Activate Event) - Membersihkan Cache Versi Lama
+// 2. Activate Event: Membersihkan Cache Versi Lama (v6 dan sebelumnya)
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
           if (cache !== CACHE_NAME) {
-            console.log('[Service Worker] Membersihkan cache lama:', cache);
+            console.log('[Service Worker] Memadamkan cache versi lama:', cache);
             return caches.delete(cache);
           }
         })
@@ -99,14 +99,14 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 3. Peringkat Pengambilan Data (Fetch Event) - Menyokong Audio Range Requests secara Offline
+// 3. Fetch Event: Pengendalian Offline & Audio Range Requests
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
     caches.match(event.request, { ignoreSearch: true }).then(async (cachedResponse) => {
       if (cachedResponse) {
-        // Pengendalian Audio Range Request untuk Safari/Chrome Offline Audio
+        // Pengendalian Audio Range Request untuk Safari & Chrome (Offline Audio)
         if (event.request.headers.has('range')) {
           const blob = await cachedResponse.blob();
           const bytes = event.request.headers.get('range').replace(/bytes=/, "").split("-");
@@ -128,7 +128,7 @@ self.addEventListener('fetch', (event) => {
         return cachedResponse;
       }
 
-      // Ambil dari rangkaian internet jika tiada dalam cache
+      // Ambil dari rangkaian jika tiada dalam cache
       return fetch(event.request).then((networkResponse) => {
         if (!networkResponse || networkResponse.status !== 200) {
           return networkResponse;
@@ -149,7 +149,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// 4. Menerima Mesej Kemaskini Automatik
+// 4. Mesej skipWaiting untuk muat semula automatik
 self.addEventListener('message', (event) => {
   if (event.data && event.data.action === 'skipWaiting') {
     self.skipWaiting();
