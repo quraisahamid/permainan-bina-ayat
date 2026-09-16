@@ -132,6 +132,7 @@
     .btn-fasa1 { background-color: #f59e0b; box-shadow: 0 5px 0 #d97706; }
     .btn-fasa2 { background-color: #ec4899; box-shadow: 0 5px 0 #be185d; }
     .btn-fasa3 { background-color: #10b981; box-shadow: 0 5px 0 #047857; }
+    .btn-exit { background-color: #ef4444; box-shadow: 0 5px 0 #b91c1c; margin-top: 5px; }
 
     .success-badge {
       margin-top: clamp(14px, 2.5vw, 24px);
@@ -228,7 +229,6 @@
       box-shadow: 0 4px 0 #b91c1c;
     }
 
-    /* Floating BGM Control Button */
     .bgm-toggle-floating {
       position: fixed;
       bottom: 18px;
@@ -256,10 +256,8 @@
 </head>
 <body class="notranslate">
 
-  <!-- Audio Player dengan loop berterusan -->
   <audio id="bgm-player" loop autoplay src="bgm.mp3"></audio>
 
-  <!-- Butang Kawalan Muzik Kekal untuk Guru/Pelajar -->
   <button class="bgm-toggle-floating" id="bgm-btn" onclick="toggleBGM(event)">🔊 Muzik: ON</button>
 
   <div class="main-card">
@@ -278,10 +276,16 @@
         <span>➡️</span>
       </a>
 
-      <a href="bina_ayat.html" class="phase-btn btn-fasa3" title="📌 Klik di sini untuk paparan membina ayat">
+      <a href="bina_ayat.html" class="phase-btn btn-fasa3" title="📌 Klik di sini mebina ayat">
         <span>✍️ Fasa 3: Membina Ayat</span>
         <span>➡️</span>
       </a>
+
+      <!-- Butang Keluar Aplikasi -->
+      <button class="phase-btn btn-exit" onclick="exitApplication()" title="📌 Klik untuk keluar dari aplikasi">
+        <span>🚪 Keluar Aplikasi</span>
+        <span>✖️</span>
+      </button>
     </div>
 
     <div class="success-badge">
@@ -336,23 +340,39 @@
   </div>
 
 <script>
-  /* ==========================================
-     AUTOMATIK AUTOPLAY & LOOPING BGM LOGIC
-     ========================================== */
+  let msVoice = null;
+  function loadVoices() {
+    if ('speechSynthesis' in window) {
+      const voices = window.speechSynthesis.getVoices();
+      msVoice = voices.find(v => v.lang === 'ms-MY' || v.lang === 'ms_MY' || v.lang.toLowerCase().includes('melayu'));
+    }
+  }
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    loadVoices();
+  }
+
+  function speakText(text) {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text.toLowerCase());
+      utterance.lang = 'ms-MY';
+      if (msVoice) utterance.voice = msVoice;
+      utterance.rate = 0.85;
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
   const bgmAudio = document.getElementById("bgm-player");
   const bgmBtn = document.getElementById("bgm-btn");
-  let isPlaying = false;
 
   function tryAutoplayBGM() {
-    bgmAudio.volume = 0.15; // Set kelantangan rendah
+    bgmAudio.volume = 0.12;
     bgmAudio.play().then(() => {
-      isPlaying = true;
       bgmBtn.innerText = "🔊 Muzik: ON";
     }).catch(() => {
-      // Sekiranya sekat oleh dasar autoplay pelayar, aktifkan pada sebarang sentuhan pertama skrin
       const enableOnGesture = () => {
         bgmAudio.play().then(() => {
-          isPlaying = true;
           bgmBtn.innerText = "🔊 Muzik: ON";
         });
         document.removeEventListener('click', enableOnGesture);
@@ -363,28 +383,21 @@
     });
   }
 
-  // Butang manual untuk guru/pelajar pause atau play semula
   function toggleBGM(e) {
     if (e) e.stopPropagation();
     if (bgmAudio.paused) {
-      bgmAudio.volume = 0.15;
+      bgmAudio.volume = 0.12;
       bgmAudio.play();
-      isPlaying = true;
       bgmBtn.innerText = "🔊 Muzik: ON";
     } else {
       bgmAudio.pause();
-      isPlaying = false;
       bgmBtn.innerText = "🔇 Muzik: OFF";
     }
   }
 
-  // Cuba autoplay sebaik sahaja skrin dimuatkan
   window.addEventListener("DOMContentLoaded", tryAutoplayBGM);
   window.addEventListener("load", tryAutoplayBGM);
 
-  /* ==========================================
-     FASA 1 DATA
-     ========================================== */
   const skaData = {
     subjek: {
       title: "🔵 S - SUBJEK (Siapa / Pelaku)",
@@ -406,7 +419,7 @@
     },
     perluasan: {
       title: "🟡 P - PENERANGAN / PERLUASAN (Keterangan)",
-      desc: "Penerangan/Perluasan memberikan maklumat tambahan seperti cara, tempat, atau alatan (Contoh: di mana, dengan apa, bila).",
+      desc: "Penerangan/Perluasan memberikan maklumat tambahan seperti cara, tempat, atau alatan.",
       bg: "#fefce8", borderColor: "#eab308",
       examples: ["dengan sabun", "di dapur", "di bilik", "sehingga bersih", "pada waktu pagi"]
     }
@@ -421,6 +434,8 @@
 
     document.getElementById("info-title").innerText = data.title;
     document.getElementById("info-desc").innerText = data.desc;
+
+    speakText(data.title);
 
     const examplesDiv = document.getElementById("info-examples");
     examplesDiv.innerHTML = "<small style='width:100%; color:#64748b; font-weight:bold;'>Contoh perkataan:</small>";
@@ -440,6 +455,18 @@
   function closeFasa1() {
     document.getElementById('modal-fasa1').style.display = 'none';
     document.getElementById('ska-info-display').style.display = 'none';
+  }
+
+  /* Fungsi Keluar Aplikasi */
+  function exitApplication() {
+    speakText("Terima kasih! Jumpa lagi!");
+    setTimeout(() => {
+      if (confirm("Adakah anda pasti mahu keluar dari aplikasi ini?")) {
+        window.close();
+        // Tindakan ganti sekiranya peranti menyekat window.close()
+        window.location.href = "about:blank";
+      }
+    }, 300);
   }
 </script>
 </body>

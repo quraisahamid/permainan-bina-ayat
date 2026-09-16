@@ -1,6 +1,6 @@
-const CACHE_NAME = 'iska-app-v5';
+const CACHE_NAME = 'iska-app-v6';
 
-// Senarai fail tempatan (Format diselaraskan tanpa './' untuk padanan offline)
+// Senarai lengkap fail tempatan untuk disimpan ke dalam cache peranti
 const LOCAL_ASSETS = [
   '/',
   'index.html',
@@ -13,7 +13,7 @@ const LOCAL_ASSETS = [
   'manifest.json',
   'bgm.mp3',
 
-  // Gambar Lembaran
+  // Gambar Lembaran Latihan (Set 1 - 4)
   'images/lembaran5_1.png',
   'images/lembaran5_2.png',
   'images/lembaran5_3.png',
@@ -31,7 +31,7 @@ const LOCAL_ASSETS = [
   'images/lembaran8_3.png',
   'images/lembaran8_4.png',
 
-  // Audio Sebutan Rakaman .mp3
+  // Fail Audio Sebutan Rakaman .mp3
   'sebutan/faris_menulis_karangan.mp3',
   'sebutan/aina_menyapu_lantai.mp3',
   'sebutan/hakim_membawa_beg_sekolah.mp3',
@@ -50,23 +50,24 @@ const LOCAL_ASSETS = [
   'sebutan/siti_makan_buah.mp3'
 ];
 
+// Pustaka CDN Luaran
 const EXTERNAL_CDN = [
   'https://cdn.tailwindcss.com',
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
 ];
 
-// 1. Install & Cache All Assets
+// 1. Peringkat Pemasangan (Install Event)
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      console.log('[SW] Memuat turun & menyimpan fail offline...');
+      console.log('[Service Worker v6] Memuat turun dan menyalin fail offline...');
       
-      // Simpan aset tempatan
+      // Simpan fail tempatan
       for (const asset of LOCAL_ASSETS) {
         try {
           await cache.add(new Request(asset, { cache: 'reload' }));
         } catch (e) {
-          console.error('[SW] Gagal Simpan Asset:', asset, e);
+          console.error('[SW] Gagal menyimpan aset:', asset, e);
         }
       }
 
@@ -75,21 +76,21 @@ self.addEventListener('install', (event) => {
         try {
           await cache.add(url);
         } catch (e) {
-          console.log('[SW] CDN tiada capaian:', url);
+          console.log('[SW] Pustaka CDN tiada capaian:', url);
         }
       }
     }).then(() => self.skipWaiting())
   );
 });
 
-// 2. Activate & Clean Old Cache
+// 2. Peringkat Pengaktifan (Activate Event) - Membersihkan Cache Versi Lama
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
           if (cache !== CACHE_NAME) {
-            console.log('[SW] Membersihkan cache versi lama:', cache);
+            console.log('[Service Worker] Membersihkan cache lama:', cache);
             return caches.delete(cache);
           }
         })
@@ -98,15 +99,14 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 3. Fetch Event Handling (Menyokong Audio Range Requests secara Offline)
+// 3. Peringkat Pengambilan Data (Fetch Event) - Menyokong Audio Range Requests secara Offline
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
     caches.match(event.request, { ignoreSearch: true }).then(async (cachedResponse) => {
-      // Jika fail ditemui dalam Cache
       if (cachedResponse) {
-        // Pengendalian Khas untuk Audio Range Request (Dikehendaki oleh Safari & Chrome Offline Audio)
+        // Pengendalian Audio Range Request untuk Safari/Chrome Offline Audio
         if (event.request.headers.has('range')) {
           const blob = await cachedResponse.blob();
           const bytes = event.request.headers.get('range').replace(/bytes=/, "").split("-");
@@ -128,7 +128,7 @@ self.addEventListener('fetch', (event) => {
         return cachedResponse;
       }
 
-      // Jika tiada dalam cache, ambil dari internet
+      // Ambil dari rangkaian internet jika tiada dalam cache
       return fetch(event.request).then((networkResponse) => {
         if (!networkResponse || networkResponse.status !== 200) {
           return networkResponse;
@@ -149,6 +149,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
+// 4. Menerima Mesej Kemaskini Automatik
 self.addEventListener('message', (event) => {
   if (event.data && event.data.action === 'skipWaiting') {
     self.skipWaiting();

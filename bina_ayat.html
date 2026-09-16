@@ -57,7 +57,6 @@
       padding: clamp(8px, 2vw, 20px);
     }
 
-    /* Canvas Confetti Layer */
     #confetti-canvas {
       position: fixed;
       top: 0;
@@ -152,14 +151,6 @@
       text-transform: uppercase;
     }
 
-    .instruction-text {
-      color: #475569;
-      font-size: clamp(0.85rem, 2vw, 1rem);
-      margin-top: 0;
-      margin-bottom: 15px;
-      font-style: italic;
-    }
-
     .header-info {
       display: flex;
       justify-content: space-between;
@@ -229,7 +220,6 @@
       transition: border-color 0.3s, background-color 0.3s;
     }
 
-    /* Kesan Bergegar (Shake Error) */
     .shake-error {
       animation: shake 0.4s ease-in-out;
       border-color: #ef4444 !important;
@@ -334,9 +324,7 @@
 </head>
 <body>
 
-<!-- Canvas Confetti Layer -->
 <canvas id="confetti-canvas"></canvas>
-
 <audio id="bgm-player" loop autoplay src="bgm.mp3"></audio>
 
 <div class="external-menu-bar">
@@ -382,7 +370,6 @@
   <div class="feedback" id="feedback-text"></div>
 </div>
 
-<!-- Modal Intermission Mini Game -->
 <div class="modal" id="game-intermission-modal">
   <div class="modal-content" style="border-color: #8b5cf6;">
     <h2 style="color: #6d28d9; margin-top: 0;" id="intermission-title">🎮 MASA UNTUK MINI GAME!</h2>
@@ -530,7 +517,6 @@
     }
   }
 
-  /* Logik Hibrid Sebutan Audio Tempat Offline dengan Callback */
   function playSentenceAudio(text, audioPath, callback) {
     if (audioPath) {
       if (!bgmPlayer.paused) bgmPlayer.volume = 0.03;
@@ -551,7 +537,6 @@
     }
   }
 
-  /* Data Soalan Membina Ayat */
   const questions = [
     { sheet: 1, img: "images/lembaran5_1.png", audio: "sebutan/faris_menulis_karangan.mp3", words: [{ text: "Faris", s1: "Fa", s2: "ris", type: "siapa" }, { text: "tulis", s1: "tu", s2: "lis", type: "kerja" }, { text: "karangan", s1: "ka", s2: "rangan", type: "apa" }] },
     { sheet: 1, img: "images/lembaran5_2.png", audio: "sebutan/aina_menyapu_lantai.mp3", words: [{ text: "Aina", s1: "Ai", s2: "na", type: "siapa" }, { text: "sapu", s1: "sa", s2: "pu", type: "kerja" }, { text: "lantai", s1: "lan", s2: "tai", type: "apa" }] },
@@ -577,6 +562,7 @@
   let currentIndex = 0;
   let selectedWords = [];
   let checkTimer = null;
+  let isChecking = false;
 
   function updateSheetTabs() {
     const currentSheet = questions[currentIndex].sheet;
@@ -588,7 +574,12 @@
   }
 
   function loadQuestion() {
-    if (checkTimer) clearTimeout(checkTimer);
+    // Bersihkan sebarang pemasa sedia ada
+    if (checkTimer) {
+      clearTimeout(checkTimer);
+      checkTimer = null;
+    }
+    isChecking = false;
     
     const q = questions[currentIndex];
     selectedWords = [];
@@ -606,6 +597,7 @@
     sentenceBox.innerHTML = "";
     sentenceBox.classList.remove("shake-error");
 
+    // Acak perkataan sekali sahaja semasa soalan baru dimuatkan
     const shuffled = [...q.words].sort(() => Math.random() - 0.5);
     const poolContainer = document.getElementById("word-pool");
     poolContainer.innerHTML = "";
@@ -621,6 +613,8 @@
   }
 
   function selectWord(wordObj, btnElement) {
+    if (isChecking) return; // Alang-alang sedang menyemak, kunci pilihan
+
     selectedWords.push(wordObj);
     btnElement.style.visibility = "hidden";
     
@@ -636,20 +630,24 @@
     wordSpan.onclick = () => undoWord(wordObj, btnElement, wordSpan);
     targetBox.appendChild(wordSpan);
 
-    if (checkTimer) clearTimeout(checkTimer);
-
     if (selectedWords.length === questions[currentIndex].words.length) {
+      isChecking = true;
       document.getElementById("feedback-text").className = "feedback";
       document.getElementById("feedback-text").innerText = "Menyemak jawapan...";
 
+      if (checkTimer) clearTimeout(checkTimer);
       checkTimer = setTimeout(() => {
         checkAnswer();
-      }, 1500);
+      }, 1000);
     }
   }
 
   function undoWord(wordObj, originalBtn, builtBtn) {
-    if (checkTimer) clearTimeout(checkTimer);
+    if (isChecking) return;
+    if (checkTimer) {
+      clearTimeout(checkTimer);
+      checkTimer = null;
+    }
 
     selectedWords = selectedWords.filter(w => w !== wordObj);
     builtBtn.remove();
@@ -662,7 +660,6 @@
     document.getElementById("next-btn").disabled = true;
   }
 
-  /* KEMASKINI: Butang Next Hanya Diaktifkan Selepas Sebutan Ayat Penuh Tamat */
   function checkAnswer() {
     const isCorrect = selectedWords.every((w, index) => w === questions[currentIndex].words[index]);
     const feedback = document.getElementById("feedback-text");
@@ -677,14 +674,12 @@
       
       triggerConfetti();
 
-      // Pastikan butang next kekal terikat (disabled) sehingga sebutan ayat tamat
       nextBtn.disabled = true;
-
       const ayatPenuh = selectedWords.map(w => w.text).join(" ");
 
-      // Butang 'Ayat Seterusnya' diaktifkan HANYA selepas sebutan ayat selesai (melalui callback)
       playSentenceAudio(ayatPenuh, q.audio, () => {
         nextBtn.disabled = false;
+        isChecking = false;
       });
 
     } else {
@@ -696,6 +691,7 @@
       feedback.innerText = "Sila cuba lagi! ❌";
       speakText("Sila cuba lagi!");
       nextBtn.disabled = true;
+      isChecking = false;
     }
   }
 
@@ -705,7 +701,6 @@
     playSentenceAudio(ayatPenuh, q.audio);
   }
 
-  /* Modul Intermission Mini Game */
   const setGames = [
     { gameLink: "ular_huruf_vokal_aeiou.html", name: "🐍 Game Ular Huruf Vokal" },
     { gameLink: "game_2_ketuk_tikus_tanah.html", name: "🔨 Game Ketuk Tikus Tanah" },
