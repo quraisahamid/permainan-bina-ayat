@@ -1,7 +1,6 @@
-const CACHE_NAME = 'iska-app-v3';
+const CACHE_NAME = 'iska-app-v4';
 
-// Senarai fail yang disimpan untuk mod offline
-const ASSETS_TO_CACHE = [
+const LOCAL_ASSETS = [
   './',
   './index.html',
   './eja.html',
@@ -13,13 +12,7 @@ const ASSETS_TO_CACHE = [
   './manifest.json',
   './bgm.mp3',
 
-  // Pustaka Luaran (CDN Cache untuk Akses Offline 3D & Styling)
-  'https://cdn.tailwindcss.com',
-  'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
-  'https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Mali:wght@600;700&display=swap',
-  'https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Poppins:wght@600;700;800&display=swap',
-
-  // Fail Imej Lembaran Latihan
+  // Gambar Lembaran
   './images/lembaran5_1.png',
   './images/lembaran5_2.png',
   './images/lembaran5_3.png',
@@ -37,7 +30,7 @@ const ASSETS_TO_CACHE = [
   './images/lembaran8_3.png',
   './images/lembaran8_4.png',
 
-  // Fail Audio Sebutan Rakaman
+  // Audio Sebutan Rakaman .mp3
   './sebutan/faris_menulis_karangan.mp3',
   './sebutan/aina_menyapu_lantai.mp3',
   './sebutan/hakim_membawa_beg_sekolah.mp3',
@@ -56,17 +49,32 @@ const ASSETS_TO_CACHE = [
   './sebutan/siti_makan_buah.mp3'
 ];
 
-// 1. Peringkat Pemasangan (Install Event): Memasukkan fail ke dalam Storan Cache
+// Pustaka Luaran CDN
+const EXTERNAL_CDN = [
+  'https://cdn.tailwindcss.com',
+  'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
+];
+
+// 1. Install & Cache All Assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Memuat turun dan menyimpan aset...');
-      return cache.addAll(ASSETS_TO_CACHE);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      console.log('[Service Worker] Memuat turun fail tempatan & audio...');
+      await cache.addAll(LOCAL_ASSETS);
+      
+      // Ambil pustaka CDN berasingan
+      for (const url of EXTERNAL_CDN) {
+        try {
+          await cache.add(url);
+        } catch (e) {
+          console.log('[SW] Gagal cache CDN:', url);
+        }
+      }
     }).then(() => self.skipWaiting())
   );
 });
 
-// 2. Peringkat Pengaktifan (Activate Event): Membersihkan cache versi lama jika ada
+// 2. Activate & Clean Old Cache
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -82,21 +90,18 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 3. Peringkat Pengambilan Data (Fetch Event): Menggunakan Cache Dulu (Cache First Strategy)
+// 3. Fetch Event Handling (Menyokong Mainan Audio Offline & Range Requests)
 self.addEventListener('fetch', (event) => {
-  // Abaikan permintaan bukan GET
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
+    caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
       if (cachedResponse) {
-        // Kembalikan maklumat dari storan cache jika wujud
         return cachedResponse;
       }
 
-      // Jika tiada dalam cache, ambil dari rangkaian internet dan simpan ke cache secara dinamik
       return fetch(event.request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+        if (!networkResponse || networkResponse.status !== 200) {
           return networkResponse;
         }
 
@@ -107,8 +112,7 @@ self.addEventListener('fetch', (event) => {
 
         return networkResponse;
       }).catch(() => {
-        // Paparan ganti jika luput rangkaian internet untuk HTML
-        if (event.request.headers.get('accept').includes('text/html')) {
+        if (event.request.headers.get('accept')?.includes('text/html')) {
           return caches.match('./index.html');
         }
       });
@@ -116,7 +120,6 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// 4. Menerima mesej untuk kemaskini automatik (skipWaiting)
 self.addEventListener('message', (event) => {
   if (event.data && event.data.action === 'skipWaiting') {
     self.skipWaiting();

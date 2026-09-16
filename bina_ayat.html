@@ -229,7 +229,7 @@
       transition: border-color 0.3s, background-color 0.3s;
     }
 
-    /* Kesan Bergegar untuk Jawapan Salah */
+    /* Kesan Bergegar (Shake Error) */
     .shake-error {
       animation: shake 0.4s ease-in-out;
       border-color: #ef4444 !important;
@@ -473,7 +473,7 @@
   const bgmBtn = document.getElementById("bgm-toggle");
 
   function startAutoplayBGM() {
-    bgmPlayer.volume = 0.15;
+    bgmPlayer.volume = 0.12;
     bgmPlayer.play().then(() => {
       bgmBtn.innerText = "🔊 Muzik: ON";
     }).catch(() => {
@@ -491,7 +491,7 @@
 
   function toggleBGM() {
     if (bgmPlayer.paused) {
-      bgmPlayer.volume = 0.15;
+      bgmPlayer.volume = 0.12;
       bgmPlayer.play();
       bgmBtn.innerText = "🔊 Muzik: ON";
     } else {
@@ -508,7 +508,7 @@
   function loadVoices() {
     if ('speechSynthesis' in window) {
       const voices = window.speechSynthesis.getVoices();
-      msVoice = voices.find(v => v.lang === 'ms-MY' || v.lang === 'ms_MY' || v.lang.toLowerCase().includes('melayu') || v.lang.toLowerCase().includes('malay'));
+      msVoice = voices.find(v => v.lang === 'ms-MY' || v.lang === 'ms_MY' || v.lang.toLowerCase().includes('melayu'));
     }
   }
   if ('speechSynthesis' in window) {
@@ -530,12 +530,20 @@
     }
   }
 
+  /* Logik Hibrid Sebutan Audio Tempat Offline dengan Callback */
   function playSentenceAudio(text, audioPath, callback) {
     if (audioPath) {
+      if (!bgmPlayer.paused) bgmPlayer.volume = 0.03;
+
       const audio = new Audio(audioPath);
+      
       audio.play().then(() => {
-        if (callback) audio.onended = callback;
-      }).catch(() => {
+        audio.onended = () => {
+          if (!bgmPlayer.paused) bgmPlayer.volume = 0.12;
+          if (callback) callback();
+        };
+      }).catch((err) => {
+        if (!bgmPlayer.paused) bgmPlayer.volume = 0.12;
         speakText(text, callback);
       });
     } else {
@@ -654,11 +662,12 @@
     document.getElementById("next-btn").disabled = true;
   }
 
-  /* KEMASKINI: Kesan Bergegar (Shake Error Effect) Apabila Jawapan Salah */
+  /* KEMASKINI: Butang Next Hanya Diaktifkan Selepas Sebutan Ayat Penuh Tamat */
   function checkAnswer() {
     const isCorrect = selectedWords.every((w, index) => w === questions[currentIndex].words[index]);
     const feedback = document.getElementById("feedback-text");
     const sentenceBox = document.getElementById("sentence-box");
+    const nextBtn = document.getElementById("next-btn");
     const q = questions[currentIndex];
     
     if (isCorrect) {
@@ -668,20 +677,25 @@
       
       triggerConfetti();
 
-      const ayatPenuh = selectedWords.map(w => w.text).join(" ");
-      playSentenceAudio(ayatPenuh, q.audio);
+      // Pastikan butang next kekal terikat (disabled) sehingga sebutan ayat tamat
+      nextBtn.disabled = true;
 
-      document.getElementById("next-btn").disabled = false;
+      const ayatPenuh = selectedWords.map(w => w.text).join(" ");
+
+      // Butang 'Ayat Seterusnya' diaktifkan HANYA selepas sebutan ayat selesai (melalui callback)
+      playSentenceAudio(ayatPenuh, q.audio, () => {
+        nextBtn.disabled = false;
+      });
+
     } else {
-      // Aktifkan Kesan Bergegar pada Kotak Ayat
       sentenceBox.classList.remove("shake-error");
-      void sentenceBox.offsetWidth; // Trigger reflow animation
+      void sentenceBox.offsetWidth;
       sentenceBox.classList.add("shake-error");
 
       feedback.className = "feedback incorrect";
       feedback.innerText = "Sila cuba lagi! ❌";
       speakText("Sila cuba lagi!");
-      document.getElementById("next-btn").disabled = true;
+      nextBtn.disabled = true;
     }
   }
 
