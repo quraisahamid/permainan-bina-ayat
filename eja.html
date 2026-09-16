@@ -13,7 +13,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=16').catch((err) => console.log('SW Error:', err));
+        navigator.serviceWorker.register('sw.js?v=17').catch((err) => console.log('SW Error:', err));
       });
     }
   </script>
@@ -52,7 +52,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      width: clamp(300px, 90vw, 700px);
+      width: clamp(300px, 90vw, 720px);
       margin-bottom: 12px;
       gap: 10px;
     }
@@ -90,7 +90,7 @@
       border: 4px solid #ec4899;
       border-radius: 24px;
       padding: clamp(14px, 3vw, 24px);
-      width: clamp(300px, 90vw, 700px);
+      width: clamp(300px, 90vw, 720px);
       text-align: center;
       box-shadow: 0 12px 28px rgba(0,0,0,0.1);
     }
@@ -102,9 +102,59 @@
       border-radius: 14px;
       font-size: clamp(1.2rem, 3vw, 1.6rem);
       font-weight: bold;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
       box-shadow: 0 4px 0 #be185d;
       text-transform: uppercase;
+    }
+
+    .mode-switch-bar {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .mode-tab-btn {
+      padding: 8px 16px;
+      border-radius: 12px;
+      border: 2px solid #f472b6;
+      background: #fce7f3;
+      color: #9d174d;
+      font-weight: bold;
+      font-size: clamp(0.85rem, 2vw, 1rem);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .mode-tab-btn.active {
+      background: #ec4899;
+      color: white;
+      border-color: #be185d;
+      box-shadow: 0 3px 0 #9d174d;
+    }
+
+    /* Kad Rujukan Perkataan Penuh */
+    .reference-word-card {
+      background: #e0f2fe;
+      border: 2px solid #3b82f6;
+      border-radius: 14px;
+      padding: 8px 16px;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+
+    .reference-word-title {
+      font-size: 0.8rem;
+      color: #1d4ed8;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .reference-word-text {
+      font-size: clamp(1.4rem, 4vw, 2.2rem);
+      font-weight: bold;
+      letter-spacing: 2px;
     }
 
     .word-display-box {
@@ -116,40 +166,62 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
-    .target-word {
-      font-size: clamp(2rem, 6vw, 3.2rem);
+    .spelling-box {
+      min-height: 65px;
+      width: 100%;
+      border: 3px dashed #f472b6;
+      border-radius: 14px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Kod Warna Suku Kata BM (Suku Kata 1 = Gelap, Suku Kata 2 = Merah) */
+    .syllable-part-1 { color: #1e293b; }
+    .syllable-part-2 { color: #dc2626; }
+
+    .tile-btn {
+      background: #ffffff;
+      border: 3px solid #ec4899;
+      padding: clamp(8px, 2vw, 12px) clamp(14px, 3vw, 20px);
+      border-radius: 14px;
+      font-size: clamp(1.4rem, 4.5vw, 2.3rem);
       font-weight: bold;
-      letter-spacing: 2px;
-      color: #be185d;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #be185d;
+      transition: transform 0.1s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    .syllable-container {
+    .tile-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #be185d;
+    }
+
+    .pool-box {
       display: flex;
       gap: 10px;
       justify-content: center;
       flex-wrap: wrap;
-      margin-top: 5px;
+      margin-top: 10px;
+      min-height: 60px;
     }
 
-    .syllable-btn {
-      background: #fce7f3;
-      border: 3px solid #f472b6;
-      color: #9d174d;
-      padding: 10px 20px;
-      border-radius: 14px;
-      font-size: clamp(1.3rem, 4vw, 2rem);
+    .feedback-text {
+      font-size: clamp(1rem, 2.5vw, 1.3rem);
       font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 4px 0 #db2777;
-      transition: transform 0.1s;
-    }
-
-    .syllable-btn:active {
-      transform: translateY(3px);
-      box-shadow: 0 1px 0 #db2777;
+      margin-top: 10px;
+      min-height: 30px;
+      color: #be185d;
     }
 
     .controls-bar {
@@ -171,6 +243,7 @@
     }
 
     .btn-prev { background-color: #64748b; }
+    .btn-reset { background-color: #ef4444; }
     .btn-next { background-color: #10b981; }
 
     .action-btn:disabled {
@@ -193,23 +266,106 @@
 <div class="main-card">
   <div class="title-banner">🔤 Fasa 2: Mengeja i-SKA</div>
 
-  <div style="font-size: 1.1rem; font-weight: bold; color: #475569; margin-bottom: 10px;" id="progress-text">
+  <!-- Butang Pemilihan Mod Ejaan -->
+  <div class="mode-switch-bar">
+    <button class="mode-tab-btn" id="mode-letter-btn" onclick="switchMode('letter')">🔤 Sebutan Huruf</button>
+    <button class="mode-tab-btn active" id="mode-syllable-btn" onclick="switchMode('syllable')">🗣️ Sebutan Suku Kata</button>
+  </div>
+
+  <div style="font-size: 1.1rem; font-weight: bold; color: #475569; margin-bottom: 8px;" id="progress-text">
     Perkataan 1 / 10
   </div>
 
-  <div class="word-display-box">
-    <div class="target-word" id="full-word-display">-</div>
-    <div class="syllable-container" id="syllables-box"></div>
+  <!-- Kad Perkataan Rujukan Pelajar -->
+  <div class="reference-word-card">
+    <div class="reference-word-title">Perkataan Untuk Dieja:</div>
+    <div class="reference-word-text" id="reference-word-display">-</div>
   </div>
+
+  <div class="word-display-box">
+    <div style="font-size: 0.95rem; color: #881337; font-weight: bold;" id="mode-instruction-text">
+      Tekan suku kata mengikut warna untuk mengeja perkataan:
+    </div>
+    <!-- Kotak Tempat Meletak Kepingan Ditekan -->
+    <div class="spelling-box" id="built-spelling-box"></div>
+    <!-- Kotak Pilihan Kepingan (Huruf atau Suku Kata) -->
+    <div class="pool-box" id="tile-pool-box"></div>
+  </div>
+
+  <div class="feedback-text" id="feedback-msg"></div>
 
   <div class="controls-bar">
     <button class="action-btn btn-prev" id="prev-btn" onclick="prevWord()">⬅️ Sebelum</button>
+    <button class="action-btn btn-reset" onclick="resetCurrentWord()">🔄 Semula</button>
     <button class="action-btn btn-next" id="next-btn" onclick="nextWord()">Seterusnya ➡️</button>
   </div>
 </div>
 
 <script>
-  /* Enjin Speech Synthesis Kalis Reset iOS/Android */
+  /* Confetti System */
+  const confettiCanvas = document.getElementById('confetti-canvas');
+  const cCtx = confettiCanvas.getContext('2d');
+  let confettiParticles = [];
+  let confettiAnimFrame = null;
+
+  function resizeConfettiCanvas() {
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resizeConfettiCanvas);
+  resizeConfettiCanvas();
+
+  function triggerConfetti() {
+    confettiParticles = [];
+    const colors = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+    for (let i = 0; i < 70; i++) {
+      confettiParticles.push({
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2 - 50,
+        vx: (Math.random() - 0.5) * 16,
+        vy: (Math.random() - 0.7) * 16,
+        size: Math.random() * 8 + 6,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rotation: Math.random() * 360,
+        rSpeed: (Math.random() - 0.5) * 10,
+        opacity: 1
+      });
+    }
+    if (!confettiAnimFrame) animateConfetti();
+  }
+
+  function animateConfetti() {
+    cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    for (let i = confettiParticles.length - 1; i >= 0; i--) {
+      let p = confettiParticles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.35;
+      p.rotation += p.rSpeed;
+      p.opacity -= 0.012;
+
+      if (p.opacity <= 0) {
+        confettiParticles.splice(i, 1);
+        continue;
+      }
+
+      cCtx.save();
+      cCtx.globalAlpha = p.opacity;
+      cCtx.translate(p.x, p.y);
+      cCtx.rotate((p.rotation * Math.PI) / 180);
+      cCtx.fillStyle = p.color;
+      cCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+      cCtx.restore();
+    }
+
+    if (confettiParticles.length > 0) {
+      confettiAnimFrame = requestAnimationFrame(animateConfetti);
+    } else {
+      confettiAnimFrame = null;
+    }
+  }
+
+  /* Speech Synthesis Engine */
   let msVoice = null;
   let synthUnlocked = false;
 
@@ -241,45 +397,71 @@
     loadVoices();
   }
 
-  let isProcessing = false; // Kunci mengelakkan reset semasa menekan huruf
+  let isProcessing = false;
+  let speechQueue = [];
+  let isQueueRunning = false;
 
-  function speakText(text, callback) {
+  function clearSpeechQueue() {
+    speechQueue = [];
+    isQueueRunning = false;
     if ('speechSynthesis' in window) {
-      try {
-        window.speechSynthesis.cancel();
-        window.speechSynthesis.resume();
-
-        const utterance = new SpeechSynthesisUtterance(text.toLowerCase());
-        utterance.lang = msVoice ? msVoice.lang : 'ms-MY';
-        if (msVoice) utterance.voice = msVoice;
-        utterance.rate = 0.8;
-
-        let done = false;
-        const finish = () => {
-          if (!done) {
-            done = true;
-            isProcessing = false;
-            if (callback) callback();
-          }
-        };
-
-        utterance.onend = finish;
-        utterance.onerror = finish;
-
-        setTimeout(() => {
-          window.speechSynthesis.speak(utterance);
-        }, 50);
-
-        // Safety timeout sekiranya iOS/Android tidak memicu onend
-        setTimeout(finish, 2500);
-      } catch (e) {
-        isProcessing = false;
-        if (callback) callback();
-      }
-    } else {
-      isProcessing = false;
-      if (callback) callback();
+      window.speechSynthesis.cancel();
     }
+  }
+
+  function queueSpeech(text, delayMs = 0, callback = null) {
+    speechQueue.push({ text, delayMs, callback });
+    if (!isQueueRunning) {
+      processSpeechQueue();
+    }
+  }
+
+  function processSpeechQueue() {
+    if (speechQueue.length === 0) {
+      isQueueRunning = false;
+      return;
+    }
+
+    isQueueRunning = true;
+    const currentItem = speechQueue.shift();
+
+    setTimeout(() => {
+      if ('speechSynthesis' in window) {
+        try {
+          window.speechSynthesis.cancel();
+          window.speechSynthesis.resume();
+
+          const utterance = new SpeechSynthesisUtterance(currentItem.text.toLowerCase());
+          utterance.lang = msVoice ? msVoice.lang : 'ms-MY';
+          if (msVoice) utterance.voice = msVoice;
+          utterance.rate = 0.85;
+
+          let done = false;
+          const finish = () => {
+            if (!done) {
+              done = true;
+              if (currentItem.callback) currentItem.callback();
+              processSpeechQueue();
+            }
+          };
+
+          utterance.onend = finish;
+          utterance.onerror = finish;
+
+          setTimeout(() => {
+            window.speechSynthesis.speak(utterance);
+          }, 50);
+
+          setTimeout(finish, 2500);
+        } catch (e) {
+          if (currentItem.callback) currentItem.callback();
+          processSpeechQueue();
+        }
+      } else {
+        if (currentItem.callback) currentItem.callback();
+        processSpeechQueue();
+      }
+    }, currentItem.delayMs);
   }
 
   /* Kawalan Audio BGM */
@@ -316,62 +498,224 @@
 
   window.addEventListener("DOMContentLoaded", tryAutoplayBGM);
 
-  /* Data Perkataan Fasa 2 */
+  /* Data Kata Kerja i-SKA */
   const wordList = [
-    { word: "cuci", syllables: ["cu", "ci"] },
-    { word: "masak", syllables: ["ma", "sak"] },
-    { word: "baca", syllables: ["ba", "ca"] },
-    { word: "sapu", syllables: ["sa", "pu"] },
-    { word: "minum", syllables: ["mi", "num"] },
-    { word: "lipat", syllables: ["li", "pat"] },
-    { word: "basuh", syllables: ["ba", "suh"] },
-    { word: "potong", syllables: ["po", "tong"] },
-    { word: "susun", syllables: ["su", "sun"] },
-    { word: "tulis", syllables: ["tu", "lis"] }
+    { 
+      word: "cuci", 
+      syllables: [{ text: "cu", part: 1 }, { text: "ci", part: 2 }],
+      letters: [
+        { text: "c", part: 1 }, { text: "u", part: 1 },
+        { text: "c", part: 2 }, { text: "i", part: 2 }
+      ]
+    },
+    { 
+      word: "masak", 
+      syllables: [{ text: "ma", part: 1 }, { text: "sak", part: 2 }],
+      letters: [
+        { text: "m", part: 1 }, { text: "a", part: 1 },
+        { text: "s", part: 2 }, { text: "a", part: 2 }, { text: "k", part: 2 }
+      ]
+    },
+    { 
+      word: "lintas", 
+      syllables: [{ text: "lin", part: 1 }, { text: "tas", part: 2 }],
+      letters: [
+        { text: "l", part: 1 }, { text: "i", part: 1 }, { text: "n", part: 1 },
+        { text: "t", part: 2 }, { text: "a", part: 2 }, { text: "s", part: 2 }
+      ]
+    },
+    { 
+      word: "sapu", 
+      syllables: [{ text: "sa", part: 1 }, { text: "pu", part: 2 }],
+      letters: [
+        { text: "s", part: 1 }, { text: "a", part: 1 },
+        { text: "p", part: 2 }, { text: "u", part: 2 }
+      ]
+    },
+    { 
+      word: "minum", 
+      syllables: [{ text: "mi", part: 1 }, { text: "num", part: 2 }],
+      letters: [
+        { text: "m", part: 1 }, { text: "i", part: 1 },
+        { text: "n", part: 2 }, { text: "u", part: 2 }, { text: "m", part: 2 }
+      ]
+    },
+    { 
+      word: "lipat", 
+      syllables: [{ text: "li", part: 1 }, { text: "pat", part: 2 }],
+      letters: [
+        { text: "l", part: 1 }, { text: "i", part: 1 },
+        { text: "p", part: 2 }, { text: "a", part: 2 }, { text: "t", part: 2 }
+      ]
+    },
+    { 
+      word: "basuh", 
+      syllables: [{ text: "ba", part: 1 }, { text: "suh", part: 2 }],
+      letters: [
+        { text: "b", part: 1 }, { text: "a", part: 1 },
+        { text: "s", part: 2 }, { text: "u", part: 2 }, { text: "h", part: 2 }
+      ]
+    },
+    { 
+      word: "potong", 
+      syllables: [{ text: "po", part: 1 }, { text: "tong", part: 2 }],
+      letters: [
+        { text: "p", part: 1 }, { text: "o", part: 1 },
+        { text: "t", part: 2 }, { text: "o", part: 2 }, { text: "n", part: 2 }, { text: "g", part: 2 }
+      ]
+    },
+    { 
+      word: "susun", 
+      syllables: [{ text: "su", part: 1 }, { text: "sun", part: 2 }],
+      letters: [
+        { text: "s", part: 1 }, { text: "u", part: 1 },
+        { text: "s", part: 2 }, { text: "u", part: 2 }, { text: "n", part: 2 }
+      ]
+    },
+    { 
+      word: "tulis", 
+      syllables: [{ text: "tu", part: 1 }, { text: "lis", part: 2 }],
+      letters: [
+        { text: "t", part: 1 }, { text: "u", part: 1 },
+        { text: "l", part: 2 }, { text: "i", part: 2 }, { text: "s", part: 2 }
+      ]
+    }
   ];
 
   let currentIndex = 0;
+  let currentMode = 'syllable';
+  let selectedTiles = [];
+
+  function switchMode(mode) {
+    clearSpeechQueue();
+    currentMode = mode;
+    document.getElementById("mode-syllable-btn").classList.toggle("active", mode === 'syllable');
+    document.getElementById("mode-letter-btn").classList.toggle("active", mode === 'letter');
+
+    if (mode === 'syllable') {
+      document.getElementById("mode-instruction-text").innerText = "Tekan suku kata mengikut warna untuk mengeja perkataan:";
+    } else {
+      document.getElementById("mode-instruction-text").innerText = "Tekan setiap huruf mengikut warna untuk mengeja perkataan:";
+    }
+
+    loadWord();
+  }
 
   function loadWord() {
+    clearSpeechQueue();
     isProcessing = false;
+    selectedTiles = [];
+    
     const item = wordList[currentIndex];
     
     document.getElementById("progress-text").innerText = `Perkataan ${currentIndex + 1} / ${wordList.length}`;
-    document.getElementById("full-word-display").innerText = item.word;
+    
+    const refDisplay = document.getElementById("reference-word-display");
+    refDisplay.innerHTML = `<span class="syllable-part-1">${item.syllables[0].text}</span><span class="syllable-part-2">${item.syllables[1].text}</span>`;
+
+    document.getElementById("feedback-msg").innerText = "";
     document.getElementById("prev-btn").disabled = currentIndex === 0;
     document.getElementById("next-btn").disabled = currentIndex === wordList.length - 1;
 
-    const box = document.getElementById("syllables-box");
-    box.innerHTML = "";
+    document.getElementById("built-spelling-box").innerHTML = "";
 
-    item.syllables.forEach((syl) => {
+    const poolBox = document.getElementById("tile-pool-box");
+    poolBox.innerHTML = "";
+
+    const targetItems = currentMode === 'syllable' ? item.syllables : item.letters;
+    const shuffled = [...targetItems].sort(() => Math.random() - 0.5);
+
+    shuffled.forEach((tileObj) => {
       const btn = document.createElement("button");
-      btn.className = "syllable-btn";
-      btn.innerText = syl;
+      btn.className = "tile-btn";
+      
+      const colorClass = tileObj.part === 1 ? "syllable-part-1" : "syllable-part-2";
+      btn.innerHTML = `<span class="${colorClass}">${tileObj.text}</span>`;
 
-      // Hentikan Touch Ghosting dan Double-Tap Reset
       btn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        playSyllable(syl);
+        selectTile(tileObj, btn);
       }, { passive: false });
 
       btn.onclick = (e) => {
-        if (e.pointerType !== 'touch') playSyllable(syl);
+        if (e.pointerType !== 'touch') selectTile(tileObj, btn);
       };
 
-      box.appendChild(btn);
+      poolBox.appendChild(btn);
     });
   }
 
-  function playSyllable(syl) {
-    if (isProcessing) return; // Sekat sentuhan serentak yang memicu reset
-    isProcessing = true;
+  function selectTile(tileObj, originalBtn) {
+    if (isProcessing) return;
 
-    if (!bgmAudio.paused) bgmAudio.volume = 0.03;
+    selectedTiles.push(tileObj);
+    originalBtn.style.visibility = "hidden";
 
-    speakText(syl, () => {
-      if (!bgmAudio.paused) bgmAudio.volume = 0.12;
-    });
+    // Setiap suku kata dimasukkan ke dalam giliran dengan delay 3000ms (3 saat)
+    const delayDuration = currentMode === 'syllable' ? 3000 : 0;
+    queueSpeech(tileObj.text, delayDuration);
+
+    const builtBox = document.getElementById("built-spelling-box");
+    const tileSpan = document.createElement("button");
+    tileSpan.className = "tile-btn";
+    
+    const colorClass = tileObj.part === 1 ? "syllable-part-1" : "syllable-part-2";
+    tileSpan.innerHTML = `<span class="${colorClass}">${tileObj.text}</span>`;
+
+    tileSpan.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      undoTile(tileObj, originalBtn, tileSpan);
+    }, { passive: false });
+
+    tileSpan.onclick = (e) => {
+      if (e.pointerType !== 'touch') undoTile(tileObj, originalBtn, tileSpan);
+    };
+
+    builtBox.appendChild(tileSpan);
+
+    const currentItem = wordList[currentIndex];
+    const targetLength = currentMode === 'syllable' ? currentItem.syllables.length : currentItem.letters.length;
+
+    if (selectedTiles.length === targetLength) {
+      checkSpelling();
+    }
+  }
+
+  function undoTile(tileObj, originalBtn, builtTile) {
+    clearSpeechQueue();
+    if (isProcessing) return;
+
+    selectedTiles = selectedTiles.filter(t => t !== tileObj);
+    builtTile.remove();
+    originalBtn.style.visibility = "visible";
+    document.getElementById("feedback-msg").innerText = "";
+  }
+
+  function checkSpelling() {
+    const currentItem = wordList[currentIndex];
+    const userWord = selectedTiles.map(t => t.text).join("");
+    const targetWord = currentItem.word;
+
+    if (userWord === targetWord) {
+      isProcessing = true;
+      const fullWordDelay = currentMode === 'syllable' ? 1000 : 300;
+
+      // Masukkan sebutan penuh ke giliran, dan lancarkan Confetti + Teks Tahniah HANYA SELEPAS sebutan penuh selesai
+      queueSpeech(targetWord, fullWordDelay, () => {
+        document.getElementById("feedback-msg").innerHTML = "<span style='color: #16a34a;'>Tahniah! Ejaan Betul! 🎉</span>";
+        triggerConfetti();
+        isProcessing = false;
+      });
+
+    } else {
+      clearSpeechQueue();
+      document.getElementById("feedback-msg").innerHTML = "<span style='color: #dc2626;'>Cuba lagi! ❌</span>";
+      queueSpeech("Cuba lagi!", 0);
+    }
+  }
+
+  function resetCurrentWord() {
+    loadWord();
   }
 
   function prevWord() {

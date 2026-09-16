@@ -1,4 +1,4 @@
-const CACHE_NAME = 'iska-app-v17';
+const CACHE_NAME = 'iska-app-v18';
 
 // Senarai lengkap fail tempatan untuk disimpan ke dalam cache peranti (100% Offline)
 const LOCAL_ASSETS = [
@@ -56,11 +56,11 @@ const EXTERNAL_CDN = [
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
 ];
 
-// 1. Install Event - Force fetch versi baharu dengan cache reload
+// 1. Install Event - Force fetch versi v18 baharu dengan reload cache
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      console.log('[Service Worker v17] Mengemas kini aset offline & audio...');
+      console.log('[Service Worker v18] Mengemas kini aset offline & eja.html...');
       
       for (const asset of LOCAL_ASSETS) {
         try {
@@ -84,7 +84,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// 2. Activate Event - Memadam semua cache lama (v16 dan ke bawah) secara serta-merta
+// 2. Activate Event - Memadamkan cache versi lama (v17 dan ke bawah) secara serta-merta
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -100,14 +100,14 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 3. Fetch Event - Menyokong Audio Range Requests (Khas iOS Safari & Android Chrome)
+// 3. Fetch Event - Menyokong Audio Range Requests untuk Safari iOS & Chrome Mobile
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
     caches.match(event.request, { ignoreSearch: true }).then(async (cachedResponse) => {
       if (cachedResponse) {
-        // Range Requests untuk Audio mp3 di iOS/Android
+        // Range Requests bagi fail Audio .mp3 pada peranti iOS & Android
         if (event.request.headers.has('range')) {
           const blob = await cachedResponse.blob();
           const bytes = event.request.headers.get('range').replace(/bytes=/, "").split("-");
@@ -129,7 +129,7 @@ self.addEventListener('fetch', (event) => {
         return cachedResponse;
       }
 
-      // Jika tiada dalam cache tempatan, ambil dari rangkaian
+      // Ambil dari rangkaian sekiranya tiada dalam cache tempatan
       return fetch(event.request).then((networkResponse) => {
         if (!networkResponse || networkResponse.status !== 200) {
           return networkResponse;
@@ -150,7 +150,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// 4. Mesej skipWaiting untuk memuat semula automatik
+// 4. Menerima arahan skipWaiting untuk pengemaskinian pantas
 self.addEventListener('message', (event) => {
   if (event.data && event.data.action === 'skipWaiting') {
     self.skipWaiting();
