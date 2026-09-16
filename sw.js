@@ -1,4 +1,4 @@
-const CACHE_NAME = 'iska-app-v13';
+const CACHE_NAME = 'iska-app-v14';
 
 // Senarai lengkap fail tempatan untuk disimpan ke dalam cache peranti (100% Offline)
 const LOCAL_ASSETS = [
@@ -31,7 +31,7 @@ const LOCAL_ASSETS = [
   'images/lembaran8_3.png',
   'images/lembaran8_4.png',
 
-  // Audio Sebutan Rakaman .mp3
+  // Fail Audio Sebutan Rakaman .mp3
   'sebutan/faris_menulis_karangan.mp3',
   'sebutan/aina_menyapu_lantai.mp3',
   'sebutan/hakim_membawa_beg_sekolah.mp3',
@@ -50,17 +50,19 @@ const LOCAL_ASSETS = [
   'sebutan/siti_makan_buah.mp3'
 ];
 
+// Pustaka CDN Luaran
 const EXTERNAL_CDN = [
   'https://cdn.tailwindcss.com',
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
 ];
 
-// 1. Install Event: Memaksa muat turun fail tempatan satu per satu
+// 1. Peringkat Pemasangan (Install Event) - Muat turun & simpan fail tempatan secara berasingan
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      console.log('[SW v13] Menyimpan fail tempatan & audio secara offline...');
+      console.log('[Service Worker v14] Mengemas kini aset offline & audio...');
       
+      // Simpan fail tempatan secara individu untuk mengelakkan ralat berantai
       for (const asset of LOCAL_ASSETS) {
         try {
           const response = await fetch(asset, { cache: 'reload' });
@@ -68,25 +70,30 @@ self.addEventListener('install', (event) => {
             await cache.put(asset, response);
           }
         } catch (e) {
-          console.error('[SW Error] Gagal simpan:', asset, e);
+          console.error('[SW Error] Gagal menyimpan aset:', asset, e);
         }
       }
 
+      // Simpan Pustaka CDN
       for (const url of EXTERNAL_CDN) {
-        try { await cache.add(url); } catch (e) {}
+        try { 
+          await cache.add(url); 
+        } catch (e) {
+          console.log('[SW] CDN tiada capaian internet:', url);
+        }
       }
     }).then(() => self.skipWaiting())
   );
 });
 
-// 2. Activate Event: Pembersihan cache lama (v12 dan sebelumnya)
+// 2. Peringkat Pengaktifan (Activate Event) - Membersihkan cache versi lama (v13 dan ke bawah)
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
           if (cache !== CACHE_NAME) {
-            console.log('[SW] Membersihkan cache lama:', cache);
+            console.log('[Service Worker] Membersihkan cache lama:', cache);
             return caches.delete(cache);
           }
         })
@@ -95,13 +102,14 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 3. Fetch Event: Pengendalian Offline & Audio Range Requests (Khas Safari iOS & Chrome Mobile)
+// 3. Peringkat Pengambilan Data (Fetch Event) - Kawalan Range Request Khas Audio iOS & Android
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
     caches.match(event.request, { ignoreSearch: true }).then(async (cachedResponse) => {
       if (cachedResponse) {
+        // Pengendalian Audio Range Request khas untuk WebKit Safari & Chrome Mobile
         if (event.request.headers.has('range')) {
           const blob = await cachedResponse.blob();
           const bytes = event.request.headers.get('range').replace(/bytes=/, "").split("-");
@@ -123,14 +131,17 @@ self.addEventListener('fetch', (event) => {
         return cachedResponse;
       }
 
+      // Ambil dari rangkaian sekiranya tiada dalam cache tempatan
       return fetch(event.request).then((networkResponse) => {
         if (!networkResponse || networkResponse.status !== 200) {
           return networkResponse;
         }
+
         const responseToCache = networkResponse.clone();
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, responseToCache);
         });
+
         return networkResponse;
       }).catch(() => {
         if (event.request.headers.get('accept')?.includes('text/html')) {
@@ -141,6 +152,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
+// 4. Menerima Mesej Kemaskini Automatik
 self.addEventListener('message', (event) => {
   if (event.data && event.data.action === 'skipWaiting') {
     self.skipWaiting();

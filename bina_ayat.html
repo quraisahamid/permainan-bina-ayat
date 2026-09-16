@@ -10,7 +10,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=12').catch((err) => console.log('SW Error:', err));
+        navigator.serviceWorker.register('sw.js?v=13').catch((err) => console.log('SW Error:', err));
       });
     }
   </script>
@@ -473,30 +473,34 @@
   window.addEventListener("DOMContentLoaded", startAutoplayBGM);
   window.addEventListener("load", startAutoplayBGM);
 
-  /* Speech Synthesis Engine tempatan (Mesra iOS & Android) */
+  /* Speech Synthesis Engine tempatan (Enjin Kalis Ralat iOS Safari) */
   let msVoice = null;
   let synthUnlocked = false;
 
   function loadVoices() {
     if ('speechSynthesis' in window) {
       const voices = window.speechSynthesis.getVoices();
-      msVoice = voices.find(v => v.lang === 'ms-MY' || v.lang === 'ms_MY' || v.lang.toLowerCase().includes('melayu'));
+      if (voices && voices.length > 0) {
+        msVoice = voices.find(v => v.lang === 'ms-MY' || v.lang === 'ms_MY' || v.lang.toLowerCase().includes('melayu') || v.lang.toLowerCase().includes('id'));
+      }
     }
   }
 
-  // Nyahkunci (Unlock) Speech Synthesis pada iOS Safari pada sentuhan pertama
+  // Nyahkunci (Unlock & Warmup) Enjin iOS Safari pada sentuhan pertama pengguna
   function unlockSpeechSynthesisIOS() {
     if (!synthUnlocked && 'speechSynthesis' in window) {
       window.speechSynthesis.resume();
-      const dummyUtterance = new SpeechSynthesisUtterance("");
-      dummyUtterance.volume = 0;
+      loadVoices();
+      const dummyUtterance = new SpeechSynthesisUtterance(" ");
+      dummyUtterance.volume = 0.01;
+      dummyUtterance.rate = 2.0;
       window.speechSynthesis.speak(dummyUtterance);
       synthUnlocked = true;
     }
   }
 
-  document.addEventListener('touchstart', unlockSpeechSynthesisIOS, { once: true });
-  document.addEventListener('click', unlockSpeechSynthesisIOS, { once: true });
+  document.addEventListener('touchstart', unlockSpeechSynthesisIOS, { passive: true });
+  document.addEventListener('click', unlockSpeechSynthesisIOS, { passive: true });
 
   if ('speechSynthesis' in window) {
     window.speechSynthesis.onvoiceschanged = loadVoices;
@@ -505,21 +509,42 @@
 
   function speakText(text, callback) {
     if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.resume();
+      try {
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.resume();
 
-      const utterance = new SpeechSynthesisUtterance(text.toLowerCase());
-      utterance.lang = 'ms-MY';
-      if (msVoice) utterance.voice = msVoice;
-      utterance.rate = 0.85;
+        const utterance = new SpeechSynthesisUtterance(text.toLowerCase());
+        
+        // Tetapkan voice jika wujud, jika tiada di iOS, biarkan fallback kepada lang 'ms-MY' / 'id-ID'
+        utterance.lang = msVoice ? msVoice.lang : 'ms-MY';
+        if (msVoice) utterance.voice = msVoice;
+        
+        utterance.rate = 0.85;
 
-      if (callback) utterance.onend = callback;
+        let hasCalledCallback = false;
+        const safeCallback = () => {
+          if (!hasCalledCallback && callback) {
+            hasCalledCallback = true;
+            callback();
+          }
+        };
 
-      // Jalankan sebutan dengan perlindungan timeout untuk iOS
-      setTimeout(() => {
-        window.speechSynthesis.speak(utterance);
-      }, 50);
+        utterance.onend = safeCallback;
+        utterance.onerror = safeCallback;
 
+        // Panggilan sebutan yang selamat bagi elak pembekuan WebKit iOS
+        setTimeout(() => {
+          window.speechSynthesis.speak(utterance);
+        }, 60);
+
+        // Fallback sekiranya event onend tidak dipicu oleh Safari iOS
+        setTimeout(() => {
+          safeCallback();
+        }, 3500);
+
+      } catch (e) {
+        if (callback) callback();
+      }
     } else if (callback) {
       callback();
     }
@@ -551,10 +576,19 @@
       const targetSrc = audioMemoryCache[audioPath] || audioPath;
       const audio = new Audio(targetSrc);
       
-      audio.play().then(() => {
-        audio.onended = () => {
+      let hasEnded = false;
+      const finishAudio = () => {
+        if (!hasEnded) {
+          hasEnded = true;
           if (!bgmPlayer.paused) bgmPlayer.volume = 0.12;
           if (callback) callback();
+        }
+      };
+
+      audio.play().then(() => {
+        audio.onended = finishAudio;
+        audio.onerror = () => {
+          speakText(text, callback);
         };
       }).catch(() => {
         if (!bgmPlayer.paused) bgmPlayer.volume = 0.12;
