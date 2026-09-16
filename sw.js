@@ -1,6 +1,5 @@
-const CACHE_NAME = 'iska-app-v11';
+const CACHE_NAME = 'iska-app-v12';
 
-// Senarai fail tempatan untuk disimpan ke dalam cache peranti
 const LOCAL_ASSETS = [
   '/',
   'index.html',
@@ -13,7 +12,7 @@ const LOCAL_ASSETS = [
   'manifest.json',
   'bgm.mp3',
 
-  // Gambar Lembaran Latihan
+  // Gambar Lembaran
   'images/lembaran5_1.png',
   'images/lembaran5_2.png',
   'images/lembaran5_3.png',
@@ -31,7 +30,7 @@ const LOCAL_ASSETS = [
   'images/lembaran8_3.png',
   'images/lembaran8_4.png',
 
-  // Senarai Penuh Audio Sebutan Rakaman .mp3
+  // Audio Sebutan Rakaman .mp3
   'sebutan/faris_menulis_karangan.mp3',
   'sebutan/aina_menyapu_lantai.mp3',
   'sebutan/hakim_membawa_beg_sekolah.mp3',
@@ -55,48 +54,38 @@ const EXTERNAL_CDN = [
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
 ];
 
-// 1. Install Event: Memaksa muat turun setiap fail audio satu per satu
+// 1. Install Event: Memaksa muat turun audio secara BLOB mentah
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      console.log('[Service Worker v11] Menyimpan semua fail audio & aset offline...');
+      console.log('[SW v12] Memaksa simpanan Audio Blob Offline...');
       
-      // Muat turun fail tempatan secara berasingan untuk elak kegagalan berantai
-      await Promise.all(
-        LOCAL_ASSETS.map(async (asset) => {
-          try {
-            const response = await fetch(asset, { cache: 'reload' });
-            if (response.ok) {
-              await cache.put(asset, response);
-            } else {
-              console.warn('[SW Warning] Fail tidak dijumpai:', asset);
-            }
-          } catch (e) {
-            console.error('[SW Error] Gagal simpan audio/aset:', asset, e);
-          }
-        })
-      );
-
-      // Muat turun CDN
-      for (const url of EXTERNAL_CDN) {
+      for (const asset of LOCAL_ASSETS) {
         try {
-          await cache.add(url);
+          // Guna fetch dengan mode cors & cache reload
+          const response = await fetch(asset, { cache: 'reload' });
+          if (response.ok) {
+            await cache.put(asset, response);
+          }
         } catch (e) {
-          console.log('[SW] CDN tiada capaian internet:', url);
+          console.error('[SW Error] Fail gagal di-cache:', asset, e);
         }
+      }
+
+      for (const url of EXTERNAL_CDN) {
+        try { await cache.add(url); } catch (e) {}
       }
     }).then(() => self.skipWaiting())
   );
 });
 
-// 2. Activate Event: Padam Cache Versi Lama
+// 2. Activate Event: Bersihkan Cache Lama
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
           if (cache !== CACHE_NAME) {
-            console.log('[Service Worker] Membersihkan cache lama:', cache);
             return caches.delete(cache);
           }
         })
@@ -105,14 +94,14 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 3. Fetch Event: Menyokong Offline Audio & Range Requests (Khas iOS Safari & Chrome Mobile)
+// 3. Fetch Event: Pengendalian Audio Range & Offline Response
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
     caches.match(event.request, { ignoreSearch: true }).then(async (cachedResponse) => {
       if (cachedResponse) {
-        // Sokongan Range Request untuk audio .mp3
+        // Pengendalian Audio Range Request khas iOS & Chrome Mobile
         if (event.request.headers.has('range')) {
           const blob = await cachedResponse.blob();
           const bytes = event.request.headers.get('range').replace(/bytes=/, "").split("-");
@@ -134,17 +123,14 @@ self.addEventListener('fetch', (event) => {
         return cachedResponse;
       }
 
-      // Ambil dari rangkaian dan simpan terus jika tiada dalam cache
       return fetch(event.request).then((networkResponse) => {
         if (!networkResponse || networkResponse.status !== 200) {
           return networkResponse;
         }
-
         const responseToCache = networkResponse.clone();
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, responseToCache);
         });
-
         return networkResponse;
       }).catch(() => {
         if (event.request.headers.get('accept')?.includes('text/html')) {

@@ -10,7 +10,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=9').catch((err) => console.log('SW Error:', err));
+        navigator.serviceWorker.register('sw.js?v=12').catch((err) => console.log('SW Error:', err));
       });
     }
   </script>
@@ -500,18 +500,38 @@
     }
   }
 
+  /* Force Preloader Audio & Memory Cache untuk Kegunaan Offline 100% */
+  const audioMemoryCache = {};
+
+  function forcePreloadAllAudio() {
+    questions.forEach(q => {
+      if (q.audio) {
+        fetch(q.audio)
+          .then(res => res.blob())
+          .then(blob => {
+            const blobUrl = URL.createObjectURL(blob);
+            audioMemoryCache[q.audio] = blobUrl;
+          })
+          .catch(() => {});
+      }
+    });
+  }
+
+  window.addEventListener('load', forcePreloadAllAudio);
+
   function playSentenceAudio(text, audioPath, callback) {
     if (audioPath) {
       if (!bgmPlayer.paused) bgmPlayer.volume = 0.03;
 
-      const audio = new Audio(audioPath);
+      const targetSrc = audioMemoryCache[audioPath] || audioPath;
+      const audio = new Audio(targetSrc);
       
       audio.play().then(() => {
         audio.onended = () => {
           if (!bgmPlayer.paused) bgmPlayer.volume = 0.12;
           if (callback) callback();
         };
-      }).catch((err) => {
+      }).catch(() => {
         if (!bgmPlayer.paused) bgmPlayer.volume = 0.12;
         speakText(text, callback);
       });
@@ -547,7 +567,7 @@
   let checkTimer = null;
   let loadDebounceTimer = null;
   let isChecking = false;
-  let isBuildingUI = false; // Kunci mengelakkan sentuhan serentak semasa UI sedang dibina
+  let isBuildingUI = false;
 
   function updateSheetTabs() {
     const currentSheet = questions[currentIndex].sheet;
@@ -559,7 +579,6 @@
   }
 
   function loadQuestion() {
-    // 1. Debounce 300ms untuk sekat pemanggilan semula secara berturut-turut pada iOS/Android
     if (loadDebounceTimer) clearTimeout(loadDebounceTimer);
     
     loadDebounceTimer = setTimeout(() => {
@@ -590,7 +609,6 @@
       const poolContainer = document.getElementById("word-pool");
       poolContainer.innerHTML = "";
 
-      // Pengacakan yang stabil
       const shuffled = [...q.words].sort(() => Math.random() - 0.5);
 
       shuffled.forEach((w) => {
@@ -599,7 +617,6 @@
         btn.innerHTML = `<span class="word-syllable-1">${w.s1}</span><span class="word-syllable-2">${w.s2}</span>`;
         btn.dataset.type = w.type;
 
-        // Sekat Touch Ghosting & Double Tap
         btn.addEventListener('touchstart', (e) => {
           e.preventDefault();
           selectWord(w, btn);
@@ -612,7 +629,6 @@
         poolContainer.appendChild(btn);
       });
 
-      // Buka semula kunci UI selepas 200ms
       setTimeout(() => { isBuildingUI = false; }, 200);
     }, 300);
   }
