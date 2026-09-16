@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ms" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="google" content="notranslate">
+  <meta name="chrome" content="notranslate">
+  <title>Game 2: Ketuk Tikus Tanah</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Chalkboard SE', 'Comic Sans MS', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #e0f2fe 0%, #fef3c7 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0;
+      padding: clamp(10px, 2.5vw, 24px);
+    }
+
+    .game-card {
+      background: white;
+      padding: clamp(15px, 3vw, 25px);
+      border-radius: 20px;
+      width: clamp(290px, 90vw, 520px);
+      text-align: center;
+      border: 4px solid #ef4444;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      position: relative;
+    }
+
+    .mole-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: clamp(6px, 1.5vw, 10px);
+      margin: 12px 0;
+    }
+
+    .hole {
+      height: clamp(75px, 16vh, 100px);
+      background: #78350f;
+      border-radius: 15px;
+      position: relative;
+      overflow: hidden;
+      border: 3px solid #451a03;
+      box-shadow: inset 0 8px 0 #290e05;
+    }
+
+    .mole {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: #b45309;
+      border-radius: 12px 12px 0 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      /* Kelajuan pergerakan tikus dinaikkan perlahan (0.5s) */
+      transition: top 0.5s ease-out, background-color 0.3s ease;
+      user-select: none;
+    }
+
+    .mole.up { top: 0%; }
+
+    .mole-word {
+      background: #ffffff;
+      color: #1e293b;
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: clamp(0.85rem, 2.2vw, 1rem);
+      margin-top: 4px;
+      box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+      font-weight: bold;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    /* Gaya Kotak Hijau Apabila Jawapan Betul Diketuk */
+    .mole.correct-hit {
+      background: #15803d !important;
+    }
+
+    .mole.correct-hit .mole-word {
+      background: #22c55e !important;
+      color: #ffffff !important;
+      border: 2px solid #ffffff;
+    }
+
+    /* Gaya Kotak Merah Apabila Jawapan Salah Diketuk */
+    .mole.wrong-hit {
+      background: #b91c1c !important;
+    }
+
+    .mole.wrong-hit .mole-word {
+      background: #ef4444 !important;
+      color: #ffffff !important;
+    }
+
+    .action-btn {
+      padding: 8px 16px;
+      font-size: clamp(0.85rem, 2vw, 0.95rem);
+      font-weight: bold;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .back-btn {
+      background-color: #ef4444;
+      box-shadow: 0 4px 0 #b91c1c;
+    }
+  </style>
+</head>
+<body class="notranslate">
+
+  <div class="game-card">
+    <h2 style="color: #b91c1c; margin-top: 0;">🔨 Game 2: Ketuk Tikus Tanah</h2>
+    
+    <div id="wam-instruction" style="background-color: #fee2e2; border: 2px dashed #ef4444; color: #991b1b; padding: 8px 12px; border-radius: 12px; font-size: 0.95rem; margin-bottom: 10px; font-weight: bold;">
+      🎯 Ketuk perkataan jenis: <span id="wam-target-category" style="text-decoration: underline; font-size: 1.05rem;">--</span>!
+    </div>
+
+    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.05rem; color: #334155; padding: 0 5px;">
+      <span>⭐ Markah: <span id="wam-score" style="color: #2563eb;">0</span></span>
+      <span>⏳ Masa: <span id="wam-timer" style="color: #dc2626;">40</span>s</span>
+    </div>
+
+    <div class="mole-grid">
+      <div class="hole"><div class="mole" id="mole0" onclick="whackMole(0)">🐭<span class="mole-word" id="mw0">-</span></div></div>
+      <div class="hole"><div class="mole" id="mole1" onclick="whackMole(1)">🐭<span class="mole-word" id="mw1">-</span></div></div>
+      <div class="hole"><div class="mole" id="mole2" onclick="whackMole(2)">🐭<span class="mole-word" id="mw2">-</span></div></div>
+      <div class="hole"><div class="mole" id="mole3" onclick="whackMole(3)">🐭<span class="mole-word" id="mw3">-</span></div></div>
+      <div class="hole"><div class="mole" id="mole4" onclick="whackMole(4)">🐭<span class="mole-word" id="mw4">-</span></div></div>
+      <div class="hole"><div class="mole" id="mole5" onclick="whackMole(5)">🐭<span class="mole-word" id="mw5">-</span></div></div>
+      <div class="hole"><div class="mole" id="mole6" onclick="whackMole(6)">🐭<span class="mole-word" id="mw6">-</span></div></div>
+      <div class="hole"><div class="mole" id="mole7" onclick="whackMole(7)">🐭<span class="mole-word" id="mw7">-</span></div></div>
+      <div class="hole"><div class="mole" id="mole8" onclick="whackMole(8)">🐭<span class="mole-word" id="mw8">-</span></div></div>
+    </div>
+
+    <div id="wam-feedback" style="font-weight: bold; min-height: 28px; font-size: 1rem; margin-top: 6px;"></div>
+
+    <div style="margin-top: 10px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
+      <button class="action-btn" style="background-color: #22c55e;" onclick="startWhackAMoleGame()">🔄 Mula Semula</button>
+      <a href="bina_ayat.html" class="action-btn back-btn">🏠 Keluar Ke Latihan</a>
+    </div>
+  </div>
+
+<script>
+  let msVoice = null;
+
+  function loadVoices() {
+    if ('speechSynthesis' in window) {
+      const voices = window.speechSynthesis.getVoices();
+      msVoice = voices.find(v => v.lang === 'ms-MY' || v.lang === 'ms_MY' || v.lang.toLowerCase().includes('melayu') || v.lang.toLowerCase().includes('malay'));
+    }
+  }
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    loadVoices();
+  }
+
+  function speakText(text) {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text.toLowerCase());
+      utterance.lang = 'ms-MY';
+      if (msVoice) utterance.voice = msVoice;
+      utterance.rate = 0.8; // Sebutan lebih perlahan untuk slow learner
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
+  const wordCategories = {
+    "SUBJEK (Siapa)": {
+      targets: ["Ali", "Ibu", "Kakak", "Kucing", "Ayah", "Cikgu", "Abang", "Murid"],
+      others: ["cuci", "masak", "baca", "lantai", "nasi", "buku", "minum", "tangan"]
+    },
+    "KATA KERJA (Perbuatan)": {
+      targets: ["cuci", "masak", "baca", "sapu", "minum", "lipat", "basuh", "potong"],
+      others: ["Ali", "Ibu", "Kakak", "Lantai", "Nasi", "Buku", "Ayah", "Tangan"]
+    }
+  };
+
+  let wamScore = 0;
+  let wamTimeLeft = 40; // Masa ditambah kepada 40s untuk murid slow learner
+  let wamGameInterval = null;
+  let wamMoleTimeout = null;
+  let currentTargetCat = "";
+  let moleData = Array(9).fill(null);
+  let isWaitingDelay = false; // Penanda sela masa 5 saat
+
+  function startWhackAMoleGame() {
+    clearTimeout(wamMoleTimeout);
+    clearInterval(wamGameInterval);
+
+    wamScore = 0;
+    wamTimeLeft = 40;
+    isWaitingDelay = false;
+
+    document.getElementById("wam-score").innerText = wamScore;
+    document.getElementById("wam-timer").innerText = wamTimeLeft;
+    document.getElementById("wam-feedback").innerText = "";
+    
+    const categories = Object.keys(wordCategories);
+    currentTargetCat = categories[Math.floor(Math.random() * categories.length)];
+    document.getElementById("wam-target-category").innerText = currentTargetCat;
+
+    resetAllMoles();
+    scheduleNextMole();
+
+    wamGameInterval = setInterval(() => {
+      if (!isWaitingDelay) {
+        wamTimeLeft--;
+        document.getElementById("wam-timer").innerText = wamTimeLeft;
+        if (wamTimeLeft <= 0) {
+          endWhackAMoleGame();
+        }
+      }
+    }, 1000);
+  }
+
+  function resetAllMoles() {
+    const moles = document.querySelectorAll('.mole');
+    moles.forEach(mole => {
+      mole.classList.remove('up', 'correct-hit', 'wrong-hit');
+    });
+  }
+
+  function scheduleNextMole() {
+    if (wamTimeLeft <= 0) return;
+
+    resetAllMoles();
+
+    // Pilih 1 tikus sahaja pada satu masa supaya tidak mengelirukan murid
+    const idx = Math.floor(Math.random() * 9);
+    const categoryInfo = wordCategories[currentTargetCat];
+
+    const isTarget = Math.random() > 0.3; // Kebanyakan sasaran betul
+    const wordList = isTarget ? categoryInfo.targets : categoryInfo.others;
+    const chosenWord = wordList[Math.floor(Math.random() * wordList.length)];
+
+    moleData[idx] = { word: chosenWord, isCorrect: isTarget, clicked: false };
+
+    document.getElementById(`mw${idx}`).innerText = chosenWord;
+    const moleElem = document.getElementById(`mole${idx}`);
+    moleElem.classList.add('up');
+
+    // Kelajuan kemunculan diperlahankan (tikus kekal di atas selama 3.5 saat)
+    wamMoleTimeout = setTimeout(() => {
+      if (!isWaitingDelay) {
+        moleElem.classList.remove('up');
+        // Selepas tikus turun, munculkan tikus seterusnya selepas 1.5 saat
+        wamMoleTimeout = setTimeout(scheduleNextMole, 1500);
+      }
+    }, 3500);
+  }
+
+  function whackMole(index) {
+    if (isWaitingDelay) return; // Kunci jika sedang dalam sela masa 5 saat
+
+    const moleElem = document.getElementById(`mole${index}`);
+    if (!moleElem.classList.contains('up')) return;
+
+    const data = moleData[index];
+    if (data && !data.clicked) {
+      data.clicked = true;
+      clearTimeout(wamMoleTimeout);
+
+      // 1. Sebut perkataan secara automatik
+      speakText(data.word);
+
+      const feedback = document.getElementById("wam-feedback");
+
+      if (data.isCorrect) {
+        // Kotak Berwarna Hijau untuk Jawapan Betul
+        moleElem.classList.add('correct-hit');
+        document.getElementById(`mw${index}`).innerText = `✓ ${data.word}`;
+
+        wamScore += 10;
+        feedback.style.color = "#16a34a";
+        feedback.innerText = `🎉 Syabas! Perkataan Betul: "${data.word}" (+10)`;
+      } else {
+        // Kotak Berwarna Merah untuk Jawapan Salah
+        moleElem.classList.add('wrong-hit');
+        wamScore = Math.max(0, wamScore - 5);
+        feedback.style.color = "#dc2626";
+        feedback.innerText = `❌ Cuba Lagi! "${data.word}" bukan ${currentTargetCat}`;
+      }
+
+      document.getElementById("wam-score").innerText = wamScore;
+
+      // 2. Sela Masa (Delay) 5 Saat sebelum soalan seterusnya muncul
+      isWaitingDelay = true;
+      let delayCountdown = 5;
+
+      const delayInterval = setInterval(() => {
+        delayCountdown--;
+        if (delayCountdown > 0 && data.isCorrect) {
+          feedback.innerText = `🎉 Syabas! Perkataan Betul: "${data.word}" (Soalan seterusnya dalam ${delayCountdown}s)`;
+        }
+      }, 1000);
+
+      setTimeout(() => {
+        clearInterval(delayInterval);
+        isWaitingDelay = false;
+        scheduleNextMole();
+      }, 5000);
+    }
+  }
+
+  function endWhackAMoleGame() {
+    clearTimeout(wamMoleTimeout);
+    clearInterval(wamGameInterval);
+    resetAllMoles();
+    
+    document.getElementById("wam-feedback").style.color = "#6d28d9";
+    document.getElementById("wam-feedback").innerText = `🎉 Tamat Masa! Jumlah Markah Akhir: ${wamScore}`;
+    speakText(`Tamat Masa! Jumlah markah anda ialah ${wamScore}`);
+  }
+
+  window.onload = startWhackAMoleGame;
+</script>
+</body>
+</html>

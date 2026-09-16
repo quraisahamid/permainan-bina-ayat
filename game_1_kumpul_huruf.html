@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ms" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="google" content="notranslate">
+  <meta name="chrome" content="notranslate">
+  <title>Game 1: Kumpul Huruf</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Chalkboard SE', 'Comic Sans MS', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #e0f2fe 0%, #fef3c7 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0;
+      padding: clamp(10px, 2.5vw, 24px);
+    }
+
+    .game-card {
+      background: white;
+      padding: clamp(15px, 3vw, 25px);
+      border-radius: 20px;
+      width: clamp(290px, 90vw, 520px);
+      text-align: center;
+      border: 4px solid #8b5cf6;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      position: relative;
+    }
+
+    .letter-box {
+      display: inline-block;
+      width: clamp(34px, 8vw, 42px);
+      height: clamp(34px, 8vw, 42px);
+      line-height: clamp(34px, 8vw, 42px);
+      margin: 3px;
+      border: 2px solid #3b82f6;
+      border-radius: 8px;
+      font-size: clamp(1rem, 2.5vw, 1.2rem);
+      font-weight: bold;
+      background: #e0f2fe;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .action-btn {
+      padding: 8px 16px;
+      font-size: clamp(0.85rem, 2vw, 0.95rem);
+      font-weight: bold;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .back-btn {
+      background-color: #ef4444;
+      box-shadow: 0 4px 0 #b91c1c;
+    }
+  </style>
+</head>
+<body class="notranslate">
+
+  <div class="game-card">
+    <h2 style="color: #6d28d9; margin-top: 0;">🎮 Game 1: Kumpul Huruf!</h2>
+    
+    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1rem; color: #334155; padding: 0 5px; margin-bottom: 8px;">
+      <span>⭐ Markah: <span id="mg1-score" style="color: #2563eb;">0</span></span>
+      <span>⏳ Masa: <span id="mg1-timer" style="color: #dc2626;">30</span>s</span>
+    </div>
+
+    <div style="background-color: #f3e8ff; border: 2px dashed #8b5cf6; color: #581c87; padding: 8px 12px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 10px; font-weight: bold;">
+      📌 <strong>Arahan:</strong> Tekan huruf di bawah mengikut urutan yang betul sebelum masa tamat!
+    </div>
+    <h3 id="minigame-hint" style="color: #0284c7; margin: 6px 0;">--</h3>
+    <div id="minigame-target" style="min-height: 45px; margin-bottom: 10px;"></div>
+    <div id="minigame-letters"></div>
+    <div id="minigame-feedback" style="margin-top: 8px; font-weight: bold; min-height: 24px;"></div>
+    
+    <div style="margin-top: 12px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
+      <button class="action-btn" style="background-color: #ef4444;" onclick="setupMiniGameLetters()">🔄 Semula</button>
+      <button class="action-btn" id="mg-next-btn" style="background-color: #22c55e; display: none;" onclick="nextMiniGameWord()">Soalan Seterusnya ➡️</button>
+      <a href="bina_ayat.html" class="action-btn back-btn">🏠 Keluar Ke Latihan</a>
+    </div>
+  </div>
+
+<script>
+  let msVoice = null;
+  function loadVoices() {
+    if ('speechSynthesis' in window) {
+      const voices = window.speechSynthesis.getVoices();
+      msVoice = voices.find(v => v.lang === 'ms-MY' || v.lang === 'ms_MY' || v.lang.toLowerCase().includes('melayu') || v.lang.toLowerCase().includes('malay'));
+    }
+  }
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    loadVoices();
+  }
+
+  function speakText(text) {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text.toLowerCase());
+      utterance.lang = 'ms-MY';
+      if (msVoice) utterance.voice = msVoice;
+      utterance.rate = 0.85;
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
+  const standaloneMiniGameData = [
+    { target: "KARANGAN", hint: "Mari eja KARANGAN." },
+    { target: "PAKAIAN", hint: "Mari eja PAKAIAN." },
+    { target: "BASIKAL", hint: "Mari eja BASIKAL." },
+    { target: "MENCUCI", hint: "Mari eja MENCUCI." }
+  ];
+
+  let mgIndex = 0;
+  let mgTargetWord = "";
+  let mgCurrentArr = [];
+  let mgTimer = null;
+  let mgScore = 0;
+  let mgTimeLeft = 30;
+  let mgCountdownInterval = null;
+  let isWordCompleted = false;
+
+  function startStandaloneMiniGame() {
+    mgIndex = 0;
+    mgScore = 0;
+    document.getElementById("mg1-score").innerText = mgScore;
+    loadMiniGameQuestion();
+  }
+
+  function loadMiniGameQuestion() {
+    stopTimers();
+    isWordCompleted = false;
+    mgTimeLeft = 30;
+    document.getElementById("mg1-timer").innerText = mgTimeLeft;
+
+    const gameData = standaloneMiniGameData[mgIndex];
+    mgTargetWord = gameData.target;
+    document.getElementById("minigame-hint").innerText = `Petunjuk: "${gameData.hint}"`;
+    setupMiniGameLetters();
+
+    mgCountdownInterval = setInterval(() => {
+      if (!isWordCompleted) {
+        mgTimeLeft--;
+        document.getElementById("mg1-timer").innerText = mgTimeLeft;
+
+        if (mgTimeLeft <= 0) {
+          stopTimers();
+          document.getElementById("minigame-feedback").style.color = "#dc2626";
+          document.getElementById("minigame-feedback").innerText = "⏰ Masa telah tamat! Tekan Semula untuk cuba lagi.";
+          speakText("Masa telah tamat. Cuba lagi ya!");
+        }
+      }
+    }, 1000);
+  }
+
+  function setupMiniGameLetters() {
+    stopTimers();
+    isWordCompleted = false;
+    mgTimeLeft = 30;
+    document.getElementById("mg1-timer").innerText = mgTimeLeft;
+
+    mgCountdownInterval = setInterval(() => {
+      if (!isWordCompleted) {
+        mgTimeLeft--;
+        document.getElementById("mg1-timer").innerText = mgTimeLeft;
+
+        if (mgTimeLeft <= 0) {
+          stopTimers();
+          document.getElementById("minigame-feedback").style.color = "#dc2626";
+          document.getElementById("minigame-feedback").innerText = "⏰ Masa telah tamat! Tekan Semula.";
+          speakText("Masa telah tamat. Cuba lagi ya!");
+        }
+      }
+    }, 1000);
+
+    mgCurrentArr = [];
+    document.getElementById("minigame-target").innerHTML = "";
+    document.getElementById("minigame-feedback").innerText = "";
+    document.getElementById("mg-next-btn").style.display = "none";
+
+    const lettersContainer = document.getElementById("minigame-letters");
+    lettersContainer.innerHTML = "";
+
+    let letters = mgTargetWord.split('').sort(() => Math.random() - 0.5);
+    letters.forEach((char) => {
+      const box = document.createElement("div");
+      box.className = "letter-box";
+      box.innerText = char;
+      box.onclick = () => {
+        if (mgTimeLeft > 0 && !isWordCompleted) {
+          mgCurrentArr.push(char);
+          box.style.visibility = "hidden";
+          updateMiniGameUI();
+        }
+      };
+      lettersContainer.appendChild(box);
+    });
+  }
+
+  function updateMiniGameUI() {
+    const targetDiv = document.getElementById("minigame-target");
+    targetDiv.innerHTML = "";
+    
+    mgCurrentArr.forEach((char, idx) => {
+      const box = document.createElement("div");
+      box.className = "letter-box";
+      box.innerText = char;
+      box.onclick = () => {
+        if (!isWordCompleted && mgTimeLeft > 0) {
+          mgCurrentArr.splice(idx, 1);
+          resetMiniGameLetters();
+          updateMiniGameUI();
+        }
+      };
+      targetDiv.appendChild(box);
+    });
+
+    if (mgCurrentArr.length === mgTargetWord.length) {
+      if (mgCurrentArr.join('') === mgTargetWord) {
+        isWordCompleted = true;
+        stopTimers();
+
+        const bonusPoints = mgTimeLeft;
+        const totalWordScore = 10 + bonusPoints;
+        mgScore += totalWordScore;
+        document.getElementById("mg1-score").innerText = mgScore;
+
+        document.getElementById("minigame-feedback").style.color = "#16a34a";
+        document.getElementById("minigame-feedback").innerText = `${mgTargetWord} 🎉 (+${totalWordScore} Markah!)`;
+        
+        speakText(mgTargetWord);
+        document.getElementById("mg-next-btn").style.display = "inline-block";
+
+      } else {
+        document.getElementById("minigame-feedback").style.color = "#dc2626";
+        document.getElementById("minigame-feedback").innerText = "Salah, sila tekan Semula dan cuba lagi! ❌";
+      }
+    }
+  }
+
+  function resetMiniGameLetters() {
+    const lettersContainer = document.getElementById("minigame-letters");
+    const boxes = lettersContainer.querySelectorAll(".letter-box");
+    let tempArr = [...mgCurrentArr];
+    boxes.forEach(box => {
+      let char = box.innerText;
+      let indexInTemp = tempArr.indexOf(char);
+      if (indexInTemp > -1) {
+        box.style.visibility = "hidden";
+        tempArr.splice(indexInTemp, 1);
+      } else {
+        box.style.visibility = "visible";
+      }
+    });
+  }
+
+  function stopTimers() {
+    if (mgTimer) clearTimeout(mgTimer);
+    if (mgCountdownInterval) clearInterval(mgCountdownInterval);
+  }
+
+  function nextMiniGameWord() {
+    if (mgIndex < standaloneMiniGameData.length - 1) {
+      mgIndex++;
+      loadMiniGameQuestion();
+    } else {
+      stopTimers();
+      speakText(`Tahniah! Jumlah markah anda ialah ${mgScore}`);
+      document.getElementById("minigame-feedback").style.color = "#16a34a";
+      document.getElementById("minigame-feedback").innerText = `🏆 Tahniah! Anda telah tamat game dengan ${mgScore} markah!`;
+    }
+  }
+
+  window.onload = startStandaloneMiniGame;
+</script>
+</body>
+</html>
