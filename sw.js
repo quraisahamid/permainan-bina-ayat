@@ -1,5 +1,6 @@
-const CACHE_NAME = 'iska-app-v12';
+const CACHE_NAME = 'iska-app-v13';
 
+// Senarai lengkap fail tempatan untuk disimpan ke dalam cache peranti (100% Offline)
 const LOCAL_ASSETS = [
   '/',
   'index.html',
@@ -12,7 +13,7 @@ const LOCAL_ASSETS = [
   'manifest.json',
   'bgm.mp3',
 
-  // Gambar Lembaran
+  // Gambar Lembaran Latihan (Set 1 - 4)
   'images/lembaran5_1.png',
   'images/lembaran5_2.png',
   'images/lembaran5_3.png',
@@ -54,21 +55,20 @@ const EXTERNAL_CDN = [
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
 ];
 
-// 1. Install Event: Memaksa muat turun audio secara BLOB mentah
+// 1. Install Event: Memaksa muat turun fail tempatan satu per satu
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      console.log('[SW v12] Memaksa simpanan Audio Blob Offline...');
+      console.log('[SW v13] Menyimpan fail tempatan & audio secara offline...');
       
       for (const asset of LOCAL_ASSETS) {
         try {
-          // Guna fetch dengan mode cors & cache reload
           const response = await fetch(asset, { cache: 'reload' });
           if (response.ok) {
             await cache.put(asset, response);
           }
         } catch (e) {
-          console.error('[SW Error] Fail gagal di-cache:', asset, e);
+          console.error('[SW Error] Gagal simpan:', asset, e);
         }
       }
 
@@ -79,13 +79,14 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// 2. Activate Event: Bersihkan Cache Lama
+// 2. Activate Event: Pembersihan cache lama (v12 dan sebelumnya)
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
           if (cache !== CACHE_NAME) {
+            console.log('[SW] Membersihkan cache lama:', cache);
             return caches.delete(cache);
           }
         })
@@ -94,14 +95,13 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 3. Fetch Event: Pengendalian Audio Range & Offline Response
+// 3. Fetch Event: Pengendalian Offline & Audio Range Requests (Khas Safari iOS & Chrome Mobile)
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
     caches.match(event.request, { ignoreSearch: true }).then(async (cachedResponse) => {
       if (cachedResponse) {
-        // Pengendalian Audio Range Request khas iOS & Chrome Mobile
         if (event.request.headers.has('range')) {
           const blob = await cachedResponse.blob();
           const bytes = event.request.headers.get('range').replace(/bytes=/, "").split("-");

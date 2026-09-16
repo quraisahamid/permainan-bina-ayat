@@ -316,7 +316,7 @@
 </div>
 
 <div class="game-container">
-  <h1 class="main-title">Fasa 3: Membina Ayat i-SKA</h1>
+  <h1 class="main-title">FASA 3: Membina Ayat i-SKA</h1>
   
   <div class="sheet-selector-bar">
     <button class="sheet-tab-btn" id="tab-sheet-1" onclick="jumpToSheet(1)">Set 1</button>
@@ -473,14 +473,31 @@
   window.addEventListener("DOMContentLoaded", startAutoplayBGM);
   window.addEventListener("load", startAutoplayBGM);
 
-  /* Speech Synthesis Engine tempatan */
+  /* Speech Synthesis Engine tempatan (Mesra iOS & Android) */
   let msVoice = null;
+  let synthUnlocked = false;
+
   function loadVoices() {
     if ('speechSynthesis' in window) {
       const voices = window.speechSynthesis.getVoices();
       msVoice = voices.find(v => v.lang === 'ms-MY' || v.lang === 'ms_MY' || v.lang.toLowerCase().includes('melayu'));
     }
   }
+
+  // Nyahkunci (Unlock) Speech Synthesis pada iOS Safari pada sentuhan pertama
+  function unlockSpeechSynthesisIOS() {
+    if (!synthUnlocked && 'speechSynthesis' in window) {
+      window.speechSynthesis.resume();
+      const dummyUtterance = new SpeechSynthesisUtterance("");
+      dummyUtterance.volume = 0;
+      window.speechSynthesis.speak(dummyUtterance);
+      synthUnlocked = true;
+    }
+  }
+
+  document.addEventListener('touchstart', unlockSpeechSynthesisIOS, { once: true });
+  document.addEventListener('click', unlockSpeechSynthesisIOS, { once: true });
+
   if ('speechSynthesis' in window) {
     window.speechSynthesis.onvoiceschanged = loadVoices;
     loadVoices();
@@ -489,12 +506,20 @@
   function speakText(text, callback) {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
+      window.speechSynthesis.resume();
+
       const utterance = new SpeechSynthesisUtterance(text.toLowerCase());
       utterance.lang = 'ms-MY';
       if (msVoice) utterance.voice = msVoice;
       utterance.rate = 0.85;
+
       if (callback) utterance.onend = callback;
-      window.speechSynthesis.speak(utterance);
+
+      // Jalankan sebutan dengan perlindungan timeout untuk iOS
+      setTimeout(() => {
+        window.speechSynthesis.speak(utterance);
+      }, 50);
+
     } else if (callback) {
       callback();
     }
