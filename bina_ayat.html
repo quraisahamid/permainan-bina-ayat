@@ -10,25 +10,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=' + Date.now()).then((reg) => {
-          reg.update();
-          reg.addEventListener('updatefound', () => {
-            const newWorker = reg.installing;
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                newWorker.postMessage({ action: 'skipWaiting' });
-              }
-            });
-          });
-        });
-
-        let refreshing = false;
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          if (!refreshing) {
-            refreshing = true;
-            window.location.reload();
-          }
-        });
+        navigator.serviceWorker.register('sw.js?v=9').catch((err) => console.log('SW Error:', err));
       });
     }
   </script>
@@ -40,6 +22,7 @@
     * {
       box-sizing: border-box;
       font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
+      touch-action: manipulation;
     }
 
     body {
@@ -490,7 +473,7 @@
   window.addEventListener("DOMContentLoaded", startAutoplayBGM);
   window.addEventListener("load", startAutoplayBGM);
 
-  /* Speech Synthesis Engine */
+  /* Speech Synthesis Engine tempatan */
   let msVoice = null;
   function loadVoices() {
     if ('speechSynthesis' in window) {
@@ -562,7 +545,9 @@
   let currentIndex = 0;
   let selectedWords = [];
   let checkTimer = null;
+  let loadDebounceTimer = null;
   let isChecking = false;
+  let isBuildingUI = false; // Kunci mengelakkan sentuhan serentak semasa UI sedang dibina
 
   function updateSheetTabs() {
     const currentSheet = questions[currentIndex].sheet;
@@ -574,48 +559,66 @@
   }
 
   function loadQuestion() {
-    // 1. Padamkan sebarang pemasa sedia ada untuk halang reshuffle berulang
-    if (checkTimer) {
-      clearTimeout(checkTimer);
-      checkTimer = null;
-    }
-    isChecking = false;
-    selectedWords = [];
-
-    const q = questions[currentIndex];
+    // 1. Debounce 300ms untuk sekat pemanggilan semula secara berturut-turut pada iOS/Android
+    if (loadDebounceTimer) clearTimeout(loadDebounceTimer);
     
-    document.getElementById("next-btn").disabled = true;
-    document.getElementById("prev-btn").disabled = currentIndex === 0;
-    document.getElementById("sheet-title").innerText = `Latihan Set ${q.sheet}`;
-    document.getElementById("progress").innerText = `Ayat ${currentIndex + 1} / ${questions.length}`;
-    
-    updateSheetTabs();
+    loadDebounceTimer = setTimeout(() => {
+      if (checkTimer) {
+        clearTimeout(checkTimer);
+        checkTimer = null;
+      }
+      isChecking = false;
+      isBuildingUI = true;
+      selectedWords = [];
 
-    document.getElementById("image-display").src = q.img;
-    document.getElementById("feedback-text").innerText = "";
-    
-    const sentenceBox = document.getElementById("sentence-box");
-    sentenceBox.innerHTML = "";
-    sentenceBox.classList.remove("shake-error");
+      const q = questions[currentIndex];
+      
+      document.getElementById("next-btn").disabled = true;
+      document.getElementById("prev-btn").disabled = currentIndex === 0;
+      document.getElementById("sheet-title").innerText = `Latihan Set ${q.sheet}`;
+      document.getElementById("progress").innerText = `Ayat ${currentIndex + 1} / ${questions.length}`;
+      
+      updateSheetTabs();
 
-    // 2. Acak perkataan sekali sahaja semasa soalan baru dibuka
-    const poolContainer = document.getElementById("word-pool");
-    poolContainer.innerHTML = "";
+      document.getElementById("image-display").src = q.img;
+      document.getElementById("feedback-text").innerText = "";
+      
+      const sentenceBox = document.getElementById("sentence-box");
+      sentenceBox.innerHTML = "";
+      sentenceBox.classList.remove("shake-error");
 
-    const shuffled = [...q.words].sort(() => Math.random() - 0.5);
+      const poolContainer = document.getElementById("word-pool");
+      poolContainer.innerHTML = "";
 
-    shuffled.forEach((w) => {
-      const btn = document.createElement("button");
-      btn.className = "word-btn";
-      btn.innerHTML = `<span class="word-syllable-1">${w.s1}</span><span class="word-syllable-2">${w.s2}</span>`;
-      btn.dataset.type = w.type;
-      btn.onclick = () => selectWord(w, btn);
-      poolContainer.appendChild(btn);
-    });
+      // Pengacakan yang stabil
+      const shuffled = [...q.words].sort(() => Math.random() - 0.5);
+
+      shuffled.forEach((w) => {
+        const btn = document.createElement("button");
+        btn.className = "word-btn";
+        btn.innerHTML = `<span class="word-syllable-1">${w.s1}</span><span class="word-syllable-2">${w.s2}</span>`;
+        btn.dataset.type = w.type;
+
+        // Sekat Touch Ghosting & Double Tap
+        btn.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          selectWord(w, btn);
+        }, { passive: false });
+
+        btn.onclick = (e) => {
+          if (e.pointerType !== 'touch') selectWord(w, btn);
+        };
+
+        poolContainer.appendChild(btn);
+      });
+
+      // Buka semula kunci UI selepas 200ms
+      setTimeout(() => { isBuildingUI = false; }, 200);
+    }, 300);
   }
 
   function selectWord(wordObj, btnElement) {
-    if (isChecking) return; // Sekat jika jawapan sedang disemak
+    if (isChecking || isBuildingUI) return;
 
     selectedWords.push(wordObj);
     btnElement.style.visibility = "hidden";
@@ -629,11 +632,20 @@
     wordSpan.className = "word-btn";
     wordSpan.innerHTML = `<span class="word-syllable-1">${wordObj.s1}</span><span class="word-syllable-2">${wordObj.s2}</span>`;
     wordSpan.dataset.type = wordObj.type;
-    wordSpan.onclick = () => undoWord(wordObj, btnElement, wordSpan);
+
+    wordSpan.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      undoWord(wordObj, btnElement, wordSpan);
+    }, { passive: false });
+
+    wordSpan.onclick = (e) => {
+      if (e.pointerType !== 'touch') undoWord(wordObj, btnElement, wordSpan);
+    };
+
     targetBox.appendChild(wordSpan);
 
     if (selectedWords.length === questions[currentIndex].words.length) {
-      isChecking = true; // Kunci borang supaya tidak boleh diklik
+      isChecking = true;
       document.getElementById("feedback-text").className = "feedback";
       document.getElementById("feedback-text").innerText = "Menyemak jawapan...";
 
@@ -645,7 +657,7 @@
   }
 
   function undoWord(wordObj, originalBtn, builtBtn) {
-    if (isChecking) return;
+    if (isChecking || isBuildingUI) return;
 
     if (checkTimer) {
       clearTimeout(checkTimer);
@@ -712,11 +724,13 @@
   ];
 
   function jumpToSheet(num) {
+    if (isBuildingUI) return;
     currentIndex = (num - 1) * 4;
     loadQuestion();
   }
 
   function nextQuestion() {
+    if (isBuildingUI) return;
     if ((currentIndex + 1) % 4 === 0 && currentIndex < questions.length - 1) {
       const completedSetIndex = Math.floor(currentIndex / 4);
       openIntermissionModal(completedSetIndex);
@@ -747,6 +761,7 @@
   }
 
   function prevQuestion() {
+    if (isBuildingUI) return;
     if (currentIndex > 0) {
       currentIndex--;
       loadQuestion();
@@ -754,6 +769,7 @@
   }
 
   function resetCurrentSentence() {
+    if (isBuildingUI) return;
     loadQuestion();
   }
 

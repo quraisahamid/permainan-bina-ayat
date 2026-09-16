@@ -1,6 +1,6 @@
-const CACHE_NAME = 'iska-app-v9';
+const CACHE_NAME = 'iska-app-v10';
 
-// Senarai lengkap fail tempatan untuk disimpan dalam storan cache peranti (100% Offline)
+// Senarai lengkap fail tempatan untuk disimpan ke dalam cache peranti (100% Offline)
 const LOCAL_ASSETS = [
   '/',
   'index.html',
@@ -56,11 +56,11 @@ const EXTERNAL_CDN = [
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
 ];
 
-// 1. Install Event: Memuat turun dan menyimpan aset baharu versi v9
+// 1. Install Event: Memuat turun dan menyimpan aset baharu versi v10
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      console.log('[Service Worker v9] Mengemas kini dan menyalin aset offline...');
+      console.log('[Service Worker v10] Mengemas kini aset offline...');
       
       // Simpan fail tempatan
       for (const asset of LOCAL_ASSETS) {
@@ -83,7 +83,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// 2. Activate Event: Membersihkan cache versi lama (v8 dan sebelumnya)
+// 2. Activate Event: Membersihkan cache versi lama (v9 dan sebelumnya)
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
