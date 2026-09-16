@@ -1,6 +1,6 @@
-const CACHE_NAME = 'iska-app-v10';
+const CACHE_NAME = 'iska-app-v11';
 
-// Senarai lengkap fail tempatan untuk disimpan ke dalam cache peranti (100% Offline)
+// Senarai fail tempatan untuk disimpan ke dalam cache peranti
 const LOCAL_ASSETS = [
   '/',
   'index.html',
@@ -13,7 +13,7 @@ const LOCAL_ASSETS = [
   'manifest.json',
   'bgm.mp3',
 
-  // Gambar Lembaran Latihan (Set 1 - 4)
+  // Gambar Lembaran Latihan
   'images/lembaran5_1.png',
   'images/lembaran5_2.png',
   'images/lembaran5_3.png',
@@ -31,7 +31,7 @@ const LOCAL_ASSETS = [
   'images/lembaran8_3.png',
   'images/lembaran8_4.png',
 
-  // Fail Audio Sebutan Rakaman .mp3
+  // Senarai Penuh Audio Sebutan Rakaman .mp3
   'sebutan/faris_menulis_karangan.mp3',
   'sebutan/aina_menyapu_lantai.mp3',
   'sebutan/hakim_membawa_beg_sekolah.mp3',
@@ -50,40 +50,46 @@ const LOCAL_ASSETS = [
   'sebutan/siti_makan_buah.mp3'
 ];
 
-// Pustaka CDN Luaran (Tailwind & Three.js 3D Engine)
 const EXTERNAL_CDN = [
   'https://cdn.tailwindcss.com',
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
 ];
 
-// 1. Install Event: Memuat turun dan menyimpan aset baharu versi v10
+// 1. Install Event: Memaksa muat turun setiap fail audio satu per satu
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      console.log('[Service Worker v10] Mengemas kini aset offline...');
+      console.log('[Service Worker v11] Menyimpan semua fail audio & aset offline...');
       
-      // Simpan fail tempatan
-      for (const asset of LOCAL_ASSETS) {
-        try {
-          await cache.add(new Request(asset, { cache: 'reload' }));
-        } catch (e) {
-          console.error('[SW] Gagal menyimpan aset tempatan:', asset, e);
-        }
-      }
+      // Muat turun fail tempatan secara berasingan untuk elak kegagalan berantai
+      await Promise.all(
+        LOCAL_ASSETS.map(async (asset) => {
+          try {
+            const response = await fetch(asset, { cache: 'reload' });
+            if (response.ok) {
+              await cache.put(asset, response);
+            } else {
+              console.warn('[SW Warning] Fail tidak dijumpai:', asset);
+            }
+          } catch (e) {
+            console.error('[SW Error] Gagal simpan audio/aset:', asset, e);
+          }
+        })
+      );
 
-      // Simpan Pustaka CDN
+      // Muat turun CDN
       for (const url of EXTERNAL_CDN) {
         try {
           await cache.add(url);
         } catch (e) {
-          console.log('[SW] Pustaka CDN tiada sambungan internet:', url);
+          console.log('[SW] CDN tiada capaian internet:', url);
         }
       }
     }).then(() => self.skipWaiting())
   );
 });
 
-// 2. Activate Event: Membersihkan cache versi lama (v9 dan sebelumnya)
+// 2. Activate Event: Padam Cache Versi Lama
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -99,14 +105,14 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 3. Fetch Event: Menyokong mod offline dan penyiapan Range Requests untuk iOS WebKit / Android Audio
+// 3. Fetch Event: Menyokong Offline Audio & Range Requests (Khas iOS Safari & Chrome Mobile)
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
     caches.match(event.request, { ignoreSearch: true }).then(async (cachedResponse) => {
       if (cachedResponse) {
-        // Pengendalian Khas Audio Range Request (Wajib untuk Safari iOS & Chrome Mobile)
+        // Sokongan Range Request untuk audio .mp3
         if (event.request.headers.has('range')) {
           const blob = await cachedResponse.blob();
           const bytes = event.request.headers.get('range').replace(/bytes=/, "").split("-");
@@ -128,7 +134,7 @@ self.addEventListener('fetch', (event) => {
         return cachedResponse;
       }
 
-      // Ambil dari rangkaian sekiranya tiada dalam cache tempatan
+      // Ambil dari rangkaian dan simpan terus jika tiada dalam cache
       return fetch(event.request).then((networkResponse) => {
         if (!networkResponse || networkResponse.status !== 200) {
           return networkResponse;
@@ -149,7 +155,6 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// 4. Mesej skipWaiting untuk muat semula automatik
 self.addEventListener('message', (event) => {
   if (event.data && event.data.action === 'skipWaiting') {
     self.skipWaiting();
