@@ -10,13 +10,24 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ec4899">
 
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=19').catch((err) => console.log('SW Error:', err));
-      });
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js?v=21').then((registration) => {
+        if (registration.waiting) {
+          registration.waiting.postMessage({ action: 'skipWaiting' });
+        }
+      }).catch((err) => console.log('SW Error:', err));
+    });
+  }
+
+  // Tangkap arahan force reload daripada sw.js
+  navigator.serviceWorker?.addEventListener('message', (event) => {
+    if (event.data && event.data.action === 'forceReload') {
+      window.location.reload();
     }
-  </script>
+  });
+</script>
 
   <style>
     * {

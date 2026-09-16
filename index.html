@@ -11,31 +11,51 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#3b82f6">
 
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=' + Date.now()).then((reg) => {
-          reg.update();
-          reg.addEventListener('updatefound', () => {
-            const newWorker = reg.installing;
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                newWorker.postMessage({ action: 'skipWaiting' });
-              }
-            });
-          });
-        });
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js?v=21').then((registration) => {
+        console.log('Service Worker didaftarkan dengan berjaya:', registration.scope);
 
-        let refreshing = false;
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          if (!refreshing) {
-            refreshing = true;
-            window.location.reload();
-          }
-        });
+        // Semak jika ada versi Service Worker baharu yang menunggu
+        if (registration.waiting) {
+          registration.waiting.postMessage({ action: 'skipWaiting' });
+        }
+
+        // Pantau jika ada kemaskini baru dikesan
+        registration.onupdatefound = () => {
+          const installingWorker = registration.installing;
+          installingWorker.onstatechange = () => {
+            if (installingWorker.state === 'installed') {
+              if (navigator.serviceWorker.controller) {
+                console.log('Aset baharu dikesan. Memuat semula aplikasi...');
+                installingWorker.postMessage({ action: 'skipWaiting' });
+              }
+            }
+          };
+        };
+      }).catch((err) => {
+        console.log('Pendaftaran Service Worker gagal:', err);
       });
+
+      // Paksa reload halaman apabila SW baharu mengambil alih sepenuhnya
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
+    });
+  }
+
+  // Tangkap mesej forceReload dari sw.js versi 21
+  navigator.serviceWorker?.addEventListener('message', (event) => {
+    if (event.data && event.data.action === 'forceReload') {
+      window.location.reload();
     }
-  </script>
+  });
+</script>
 
   <style>
     * {
