@@ -1,6 +1,6 @@
-const CACHE_NAME = 'iska-app-v8';
+const CACHE_NAME = 'iska-app-v9';
 
-// Senarai fail tempatan yang disimpan ke dalam cache peranti
+// Senarai lengkap fail tempatan untuk disimpan dalam storan cache peranti (100% Offline)
 const LOCAL_ASSETS = [
   '/',
   'index.html',
@@ -50,17 +50,17 @@ const LOCAL_ASSETS = [
   'sebutan/siti_makan_buah.mp3'
 ];
 
-// Pustaka CDN Luaran
+// Pustaka CDN Luaran (Tailwind & Three.js 3D Engine)
 const EXTERNAL_CDN = [
   'https://cdn.tailwindcss.com',
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
 ];
 
-// 1. Install Event: Memuat turun dan menyimpan aset baharu versi v8
+// 1. Install Event: Memuat turun dan menyimpan aset baharu versi v9
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      console.log('[Service Worker v8] Mengemas kini dan menyimpan aset offline...');
+      console.log('[Service Worker v9] Mengemas kini dan menyalin aset offline...');
       
       // Simpan fail tempatan
       for (const asset of LOCAL_ASSETS) {
@@ -83,7 +83,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// 2. Activate Event: Pembersihan automatik cache versi lama (v7 dan sebelumnya)
+// 2. Activate Event: Membersihkan cache versi lama (v8 dan sebelumnya)
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -149,7 +149,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// 4. Pengendalian Mesej Pemasangan Automatik
+// 4. Mesej skipWaiting untuk muat semula automatik
 self.addEventListener('message', (event) => {
   if (event.data && event.data.action === 'skipWaiting') {
     self.skipWaiting();

@@ -574,15 +574,16 @@
   }
 
   function loadQuestion() {
-    // Bersihkan sebarang pemasa sedia ada
+    // 1. Padamkan sebarang pemasa sedia ada untuk halang reshuffle berulang
     if (checkTimer) {
       clearTimeout(checkTimer);
       checkTimer = null;
     }
     isChecking = false;
-    
-    const q = questions[currentIndex];
     selectedWords = [];
+
+    const q = questions[currentIndex];
+    
     document.getElementById("next-btn").disabled = true;
     document.getElementById("prev-btn").disabled = currentIndex === 0;
     document.getElementById("sheet-title").innerText = `Latihan Set ${q.sheet}`;
@@ -597,10 +598,11 @@
     sentenceBox.innerHTML = "";
     sentenceBox.classList.remove("shake-error");
 
-    // Acak perkataan sekali sahaja semasa soalan baru dimuatkan
-    const shuffled = [...q.words].sort(() => Math.random() - 0.5);
+    // 2. Acak perkataan sekali sahaja semasa soalan baru dibuka
     const poolContainer = document.getElementById("word-pool");
     poolContainer.innerHTML = "";
+
+    const shuffled = [...q.words].sort(() => Math.random() - 0.5);
 
     shuffled.forEach((w) => {
       const btn = document.createElement("button");
@@ -613,7 +615,7 @@
   }
 
   function selectWord(wordObj, btnElement) {
-    if (isChecking) return; // Alang-alang sedang menyemak, kunci pilihan
+    if (isChecking) return; // Sekat jika jawapan sedang disemak
 
     selectedWords.push(wordObj);
     btnElement.style.visibility = "hidden";
@@ -631,19 +633,20 @@
     targetBox.appendChild(wordSpan);
 
     if (selectedWords.length === questions[currentIndex].words.length) {
-      isChecking = true;
+      isChecking = true; // Kunci borang supaya tidak boleh diklik
       document.getElementById("feedback-text").className = "feedback";
       document.getElementById("feedback-text").innerText = "Menyemak jawapan...";
 
       if (checkTimer) clearTimeout(checkTimer);
       checkTimer = setTimeout(() => {
         checkAnswer();
-      }, 1000);
+      }, 800);
     }
   }
 
   function undoWord(wordObj, originalBtn, builtBtn) {
     if (isChecking) return;
+
     if (checkTimer) {
       clearTimeout(checkTimer);
       checkTimer = null;
