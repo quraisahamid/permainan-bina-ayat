@@ -1,4 +1,4 @@
-const CACHE_NAME = 'iska-app-v14';
+const CACHE_NAME = 'iska-app-v15';
 
 // Senarai lengkap fail tempatan untuk disimpan ke dalam cache peranti (100% Offline)
 const LOCAL_ASSETS = [
@@ -56,13 +56,12 @@ const EXTERNAL_CDN = [
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
 ];
 
-// 1. Peringkat Pemasangan (Install Event) - Muat turun & simpan fail tempatan secara berasingan
+// 1. Peringkat Pemasangan (Install Event)
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      console.log('[Service Worker v14] Mengemas kini aset offline & audio...');
+      console.log('[Service Worker v15] Mengemas kini aset offline...');
       
-      // Simpan fail tempatan secara individu untuk mengelakkan ralat berantai
       for (const asset of LOCAL_ASSETS) {
         try {
           const response = await fetch(asset, { cache: 'reload' });
@@ -74,7 +73,6 @@ self.addEventListener('install', (event) => {
         }
       }
 
-      // Simpan Pustaka CDN
       for (const url of EXTERNAL_CDN) {
         try { 
           await cache.add(url); 
@@ -86,7 +84,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// 2. Peringkat Pengaktifan (Activate Event) - Membersihkan cache versi lama (v13 dan ke bawah)
+// 2. Peringkat Pengaktifan (Activate Event) - Membersihkan cache versi lama
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -102,14 +100,13 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 3. Peringkat Pengambilan Data (Fetch Event) - Kawalan Range Request Khas Audio iOS & Android
+// 3. Peringkat Pengambilan Data (Fetch Event) - Range Requests khas iOS & Android
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
     caches.match(event.request, { ignoreSearch: true }).then(async (cachedResponse) => {
       if (cachedResponse) {
-        // Pengendalian Audio Range Request khas untuk WebKit Safari & Chrome Mobile
         if (event.request.headers.has('range')) {
           const blob = await cachedResponse.blob();
           const bytes = event.request.headers.get('range').replace(/bytes=/, "").split("-");
@@ -131,7 +128,6 @@ self.addEventListener('fetch', (event) => {
         return cachedResponse;
       }
 
-      // Ambil dari rangkaian sekiranya tiada dalam cache tempatan
       return fetch(event.request).then((networkResponse) => {
         if (!networkResponse || networkResponse.status !== 200) {
           return networkResponse;
@@ -152,7 +148,6 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// 4. Menerima Mesej Kemaskini Automatik
 self.addEventListener('message', (event) => {
   if (event.data && event.data.action === 'skipWaiting') {
     self.skipWaiting();

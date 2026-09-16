@@ -41,6 +41,7 @@
     * {
       box-sizing: border-box;
       font-family: 'Chalkboard SE', 'Comic Sans MS', sans-serif;
+      touch-action: manipulation;
     }
 
     body {
@@ -340,29 +341,6 @@
   </div>
 
 <script>
-  let msVoice = null;
-  function loadVoices() {
-    if ('speechSynthesis' in window) {
-      const voices = window.speechSynthesis.getVoices();
-      msVoice = voices.find(v => v.lang === 'ms-MY' || v.lang === 'ms_MY' || v.lang.toLowerCase().includes('melayu'));
-    }
-  }
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-    loadVoices();
-  }
-
-  function speakText(text) {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text.toLowerCase());
-      utterance.lang = 'ms-MY';
-      if (msVoice) utterance.voice = msVoice;
-      utterance.rate = 0.85;
-      window.speechSynthesis.speak(utterance);
-    }
-  }
-
   const bgmAudio = document.getElementById("bgm-player");
   const bgmBtn = document.getElementById("bgm-btn");
 
@@ -425,6 +403,7 @@
     }
   };
 
+  /* Fungsi Fasa 1: Paparan visual tanpa sebutan suaraSpeech Synthesis */
   function showSKADetail(type) {
     const data = skaData[type];
     const displayBox = document.getElementById("ska-info-display");
@@ -434,8 +413,6 @@
 
     document.getElementById("info-title").innerText = data.title;
     document.getElementById("info-desc").innerText = data.desc;
-
-    speakText(data.title);
 
     const examplesDiv = document.getElementById("info-examples");
     examplesDiv.innerHTML = "<small style='width:100%; color:#64748b; font-weight:bold;'>Contoh perkataan:</small>";
@@ -459,17 +436,14 @@
 
   /* Fungsi Keluar / Friendly Exit (Mesra iOS / Android / Chrome) */
   function exitApplication() {
-    speakText("Terima kasih! Jumpa lagi!");
-
     setTimeout(() => {
       if (confirm("Adakah anda pasti mahu keluar daripada aplikasi ini?")) {
-        // Stop audio BGM
         if (bgmAudio) bgmAudio.pause();
 
-        // 1. Cuba tutup tetingkap PWA / Web Window jika peranti benarkan (Android Chrome / PC Standalone)
+        // 1. Cuba tutup tetingkap PWA / Window
         window.close();
 
-        // 2. Paparkan Skrin UI Penutupan Khas (Mengelakkan Skrin Putih Blank pada iPhone / iPad iOS)
+        // 2. Paparkan Skrin UI Penutupan Khas jika pelayar menyekat window.close()
         setTimeout(() => {
           document.body.innerHTML = `
             <div style="
@@ -485,7 +459,7 @@
               font-family: 'Comic Sans MS', sans-serif; 
               padding: 24px;">
               
-              <div style="font-size: 4rem; margin-bottom: 15px;" class="animate-bounce">👋</div>
+              <div style="font-size: 4rem; margin-bottom: 15px;">👋</div>
               
               <h2 style="color: #f59e0b; font-size: 1.8rem; margin: 0 0 10px 0; font-weight: bold;">
                 Sesi Pembelajaran Tamat!
@@ -511,7 +485,7 @@
           `;
         }, 150);
       }
-    }, 250);
+    }, 100);
   }
 </script>
 </body>
