@@ -1,4 +1,4 @@
-const CACHE_NAME = 'iska-app-v33';
+const CACHE_NAME = 'iska-app-v34';
 
 // Senarai lengkap fail tempatan & audio (tanpa tanda '/')
 const LOCAL_ASSETS = [
@@ -33,8 +33,8 @@ const LOCAL_ASSETS = [
   // Audio Sebutan Ayat Penuh Fasa 3 (.mp3)
   'sebutan/faris_tulis_karangan.mp3',
   'sebutan/aina_sapu_lantai.mp3',
-  'sebutan/hakim_membawa_beg_sekolah.mp3',
-  'sebutan/sara_membaca_buku.mp3',
+  'sebutan/hakim_bawa_beg_sekolah.mp3',
+  'sebutan/sara_baca_buku.mp3',
   'sebutan/ibu_masak_nasi.mp3',
   'sebutan/ayah_basuh_kereta.mp3',
   'sebutan/kakak_lipat_baju.mp3',
@@ -50,11 +50,11 @@ const LOCAL_ASSETS = [
 
   // Audio Sebutan Perkataan Individu & Ralat
   'sebutan/faris.mp3',
-  'sebutan/Tulis.mp3',
-  'sebutan/Karangan.mp3',
+  'sebutan/tulis.mp3',
+  'sebutan/karangan.mp3',
   'sebutan/aina.mp3',
-  'sebutan/Sapu.mp3',
-  'sebutan/Lantai.mp3',
+  'sebutan/sapu.mp3',
+  'sebutan/lantai.mp3',
   'sebutan/hakim.mp3',
   'sebutan/bawa.mp3',
   'sebutan/beg_sekolah.mp3',
@@ -69,6 +69,7 @@ const LOCAL_ASSETS = [
   'sebutan/Kereta.mp3',
   'sebutan/Kakak.mp3',
   'sebutan/Lipat.mp3',
+  'sebutan/Baju.mp3',
   'sebutan/Adik.mp3',
   'sebutan/Susun.mp3',
   'sebutan/Kasut.mp3',
