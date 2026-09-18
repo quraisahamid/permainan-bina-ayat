@@ -1,4 +1,4 @@
-const CACHE_NAME = 'iska-app-v26';
+const CACHE_NAME = 'iska-app-v27';
 
 // Senarai lengkap fail tempatan & audio (tanpa tanda '/')
 const LOCAL_ASSETS = [
@@ -31,16 +31,14 @@ const LOCAL_ASSETS = [
   'images/lembaran9_4.png',
 
   // Audio Sebutan Ayat Penuh Fasa 3 (.mp3)
-  'sebutan/faris_menulis_karangan.mp3',
+  'sebutan/faris_tulis_karangan.mp3',
   'sebutan/aina_sapu_lantai.mp3',
   'sebutan/hakim_membawa_beg_sekolah.mp3',
   'sebutan/sara_membaca_buku.mp3',
-  'sebutan/ibu_memasak_nasi.mp3',
-  'sebutan/ayah_membasuh_kereta.mp3',
-  'sebutan/kakak_melipat_pakaian.mp3',
-  'sebutan/adik_menyusun_kasut.mp3',
-  'sebutan/rina_bermain_buaian.mp3',
-  'sebutan/amir_menunggang_basikal.mp3',
+  'sebutan/ibu_masak_nasi.mp3',
+  'sebutan/ayah_basuh_kereta.mp3',
+  'sebutan/kakak_lipat_pakaian.mp3',
+  'sebutan/adik_susun_kasut.mp3',
   'sebutan/ali_cuci_tangan.mp3',
   'sebutan/mira_potong_kuku.mp3',
   'sebutan/abu_minum_susu.mp3',
@@ -112,7 +110,7 @@ const EXTERNAL_CDN = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      console.log('[Service Worker v24] Memuat turun semula kesemua aset...');
+      console.log('[Service Worker v27] Memuat turun semula kesemua aset...');
       for (const asset of LOCAL_ASSETS) {
         try {
           const response = await fetch(asset, { cache: 'reload' });
