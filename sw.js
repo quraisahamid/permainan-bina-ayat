@@ -1,4 +1,4 @@
-const CACHE_NAME = 'iska-app-v27';
+const CACHE_NAME = 'iska-app-v29';
 
 // Senarai lengkap fail tempatan & audio (tanpa tanda '/')
 const LOCAL_ASSETS = [
@@ -49,7 +49,7 @@ const LOCAL_ASSETS = [
   'sebutan/adik_letak_baja_tanaman_supaya_subur.mp3',
 
   // Audio Sebutan Perkataan Individu & Ralat
-  'sebutan/Faris.mp3',
+  'sebutan/faris.mp3',
   'sebutan/Tulis.mp3',
   'sebutan/Karangan.mp3',
   'sebutan/aina.mp3',

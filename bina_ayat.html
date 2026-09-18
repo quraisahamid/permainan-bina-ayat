@@ -10,7 +10,7 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=27').then((registration) => {
+      navigator.serviceWorker.register('sw.js?v=29').then((registration) => {
         const showUpdateScreen = () => {
           const overlay = document.getElementById('update-overlay');
           if (overlay) overlay.style.display = 'flex';
@@ -602,6 +602,53 @@
 
   window.addEventListener('load', forcePreloadAllAudio);
 
+  // iOS Safari hanya membenarkan audio() dimainkan tanpa sentuhan baharu jika
+  // elemen yang SAMA pernah berjaya dimainkan semasa sentuhan pengguna. Audio
+  // yang dimainkan selepas setTimeout (contoh: ayat penuh & "Sila cuba lagi"
+  // dalam checkAnswer) hilang kaitan sentuhan itu, jadi kita guna satu elemen
+  // kekal yang dibuka kunci pada sentuhan pertama, khusus untuk kes lewat ini.
+  // Android tidak terjejas kerana ia hanya memainkan satu bunyi pada satu masa juga.
+  const delayedAudioEl = new Audio();
+  let delayedAudioUnlocked = false;
+  function unlockDelayedAudio() {
+    if (delayedAudioUnlocked) return;
+    delayedAudioUnlocked = true;
+    delayedAudioEl.play().then(() => delayedAudioEl.pause()).catch(() => {});
+  }
+  document.addEventListener('click', unlockDelayedAudio, { once: true });
+  document.addEventListener('touchstart', unlockDelayedAudio, { once: true, passive: true });
+
+  function playDelayedAudioFile(text, audioPath, callback) {
+    if (!audioPath) {
+      if (callback) callback();
+      return;
+    }
+
+    if (!bgmPlayer.paused) bgmPlayer.volume = 0.03;
+
+    const targetSrc = audioMemoryCache[audioPath] || audioPath;
+    delayedAudioEl.src = targetSrc;
+
+    let hasEnded = false;
+    const finishAudio = () => {
+      if (!hasEnded) {
+        hasEnded = true;
+        if (!bgmPlayer.paused) bgmPlayer.volume = 0.12;
+        if (callback) callback();
+      }
+    };
+
+    delayedAudioEl.onended = finishAudio;
+    delayedAudioEl.onerror = () => {
+      if (callback) callback();
+    };
+
+    delayedAudioEl.play().catch(() => {
+      if (!bgmPlayer.paused) bgmPlayer.volume = 0.12;
+      if (callback) callback();
+    });
+  }
+
   function playAudioFile(text, audioPath, callback) {
     if (audioPath) {
       if (!bgmPlayer.paused) bgmPlayer.volume = 0.03;
@@ -633,7 +680,7 @@
   }
 
   const questions = [
-    { sheet: 1, img: "images/lembaran5_1.png", audio: "sebutan/faris_tulis_karangan.mp3", words: [{ text: "Faris", s1: "Fa", s2: "ris", type: "siapa", audio: "sebutan/Faris.mp3" }, { text: "tulis", s1: "tu", s2: "lis", type: "kerja", audio: "sebutan/tulis.mp3" }, { text: "karangan", s1: "ka", s2: "rangan", type: "apa", audio: "sebutan/karangan.mp3" }] },
+    { sheet: 1, img: "images/lembaran5_1.png", audio: "sebutan/faris_tulis_karangan.mp3", words: [{ text: "Faris", s1: "Fa", s2: "ris", type: "siapa", audio: "sebutan/faris.mp3" }, { text: "tulis", s1: "tu", s2: "lis", type: "kerja", audio: "sebutan/tulis.mp3" }, { text: "karangan", s1: "ka", s2: "rangan", type: "apa", audio: "sebutan/karangan.mp3" }] },
     { sheet: 1, img: "images/lembaran5_2.png", audio: "sebutan/aina_sapu_lantai.mp3", words: [{ text: "Aina", s1: "Ai", s2: "na", type: "siapa", audio: "sebutan/aina.mp3" }, { text: "sapu", s1: "sa", s2: "pu", type: "kerja", audio: "sebutan/sapu.mp3" }, { text: "lantai", s1: "lan", s2: "tai", type: "apa", audio: "sebutan/lantai.mp3" }] },
     { sheet: 1, img: "images/lembaran5_3.png", audio: "sebutan/hakim_bawa_beg_sekolah.mp3", words: [{ text: "Hakim", s1: "Ha", s2: "kim", type: "siapa", audio: "sebutan/hakim.mp3" }, { text: "bawa", s1: "ba", s2: "wa", type: "kerja", audio: "sebutan/bawa.mp3" }, { text: "beg sekolah", s1: "beg ", s2: "sekolah", type: "apa", audio: "sebutan/beg_sekolah.mp3" }] },
     { sheet: 1, img: "images/lembaran5_4.png", audio: "sebutan/sara_baca_buku.mp3", words: [{ text: "Sara", s1: "Sa", s2: "ra", type: "siapa", audio: "sebutan/sara.mp3" }, { text: "baca", s1: "ba", s2: "ca", type: "kerja", audio: "sebutan/baca.mp3" }, { text: "buku", s1: "bu", s2: "ku", type: "apa", audio: "sebutan/buku.mp3" }] },
@@ -817,7 +864,7 @@
       const ayatPenuh = selectedWords.map(w => w.text).join(" ");
 
       setTimeout(() => {
-        playAudioFile(ayatPenuh, q.audio, () => {
+        playDelayedAudioFile(ayatPenuh, q.audio, () => {
           nextBtn.disabled = false;
           isChecking = false;
         });
@@ -831,7 +878,7 @@
       feedback.className = "feedback incorrect";
       feedback.innerText = "Sila cuba lagi! ❌";
       
-      playAudioFile("Sila cuba lagi", "sebutan/Sila_cuba_lagi.mp3");
+      playDelayedAudioFile("Sila cuba lagi", "sebutan/Sila_cuba_lagi.mp3");
 
       nextBtn.disabled = true;
       isChecking = false;
