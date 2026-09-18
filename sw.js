@@ -1,4 +1,4 @@
-const CACHE_NAME = 'iska-app-v32';
+const CACHE_NAME = 'iska-app-v33';
 
 // Senarai lengkap fail tempatan & audio (tanpa tanda '/')
 const LOCAL_ASSETS = [
@@ -21,10 +21,10 @@ const LOCAL_ASSETS = [
   'images/lembaran6_2.png',
   'images/lembaran6_3.png',
   'images/lembaran6_4.png',
-  'images/lembaran7_1.png',
-  'images/lembaran7_2.png',
-  'images/lembaran7_3.png',
-  'images/lembaran7_4.png',
+  'images/lembaran8_1.png',
+  'images/lembaran8_2.png',
+  'images/lembaran8_3.png',
+  'images/lembaran8_4.png',
   'images/lembaran9_1.png',
   'images/lembaran9_2.png',
   'images/lembaran9_3.png',

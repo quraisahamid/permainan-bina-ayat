@@ -10,7 +10,7 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=32').then((registration) => {
+      navigator.serviceWorker.register('sw.js?v=33').then((registration) => {
         const showUpdateScreen = () => {
           const overlay = document.getElementById('update-overlay');
           if (overlay) overlay.style.display = 'flex';
@@ -535,6 +535,10 @@
 
   const bgmPlayer = document.getElementById("bgm-player");
   const bgmBtn = document.getElementById("bgm-toggle");
+  // Jika pengguna tekan "OFF" sebelum sentuhan pertama selesai membuka kunci
+  // autoplay, tanda ini menghalang sentuhan yang sama daripada terus
+  // menyambung semula muzik (punca bunyi "berganda" selepas OFF ditekan).
+  let bgmManuallyPaused = false;
 
   function startAutoplayBGM() {
     bgmPlayer.volume = 0.12;
@@ -542,11 +546,12 @@
       bgmBtn.innerText = "🔊 Muzik: ON";
     }).catch(() => {
       const enableGesture = () => {
+        document.removeEventListener('click', enableGesture);
+        document.removeEventListener('touchstart', enableGesture);
+        if (bgmManuallyPaused) return;
         bgmPlayer.play().then(() => {
           bgmBtn.innerText = "🔊 Muzik: ON";
         });
-        document.removeEventListener('click', enableGesture);
-        document.removeEventListener('touchstart', enableGesture);
       };
       document.addEventListener('click', enableGesture);
       document.addEventListener('touchstart', enableGesture);
@@ -555,17 +560,18 @@
 
   function toggleBGM() {
     if (bgmPlayer.paused) {
+      bgmManuallyPaused = false;
       bgmPlayer.volume = 0.12;
       bgmPlayer.play();
       bgmBtn.innerText = "🔊 Muzik: ON";
     } else {
+      bgmManuallyPaused = true;
       bgmPlayer.pause();
       bgmBtn.innerText = "🔇 Muzik: OFF";
     }
   }
 
   window.addEventListener("DOMContentLoaded", startAutoplayBGM);
-  window.addEventListener("load", startAutoplayBGM);
 
   const audioMemoryCache = {};
 
@@ -609,6 +615,7 @@
   // kekal yang dibuka kunci pada sentuhan pertama, khusus untuk kes lewat ini.
   // Android tidak terjejas kerana ia hanya memainkan satu bunyi pada satu masa juga.
   const delayedAudioEl = new Audio();
+  delayedAudioEl.preload = 'auto';
   let delayedAudioUnlocked = false;
   function unlockDelayedAudio() {
     if (delayedAudioUnlocked) return;

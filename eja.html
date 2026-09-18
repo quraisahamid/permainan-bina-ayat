@@ -13,7 +13,7 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=32').then((registration) => {
+      navigator.serviceWorker.register('sw.js?v=33').then((registration) => {
         const showUpdateScreen = () => {
           const overlay = document.getElementById('update-overlay');
           if (overlay) overlay.style.display = 'flex';
@@ -479,6 +479,7 @@
   // dan "buka kunci" ia pada sentuhan pertama halaman. Android tidak terjejas
   // sebab ia tetap dimainkan satu-satu secara berurutan seperti sebelum ini.
   const sfxAudioEl = new Audio();
+  sfxAudioEl.preload = 'auto';
   let sfxUnlocked = false;
   function unlockSfxAudio() {
     if (sfxUnlocked) return;
@@ -531,6 +532,10 @@
 
   const bgmAudio = document.getElementById("bgm-player");
   const bgmBtn = document.getElementById("bgm-toggle");
+  // Jika pengguna tekan "OFF" sebelum sentuhan pertama selesai membuka kunci
+  // autoplay, tanda ini menghalang sentuhan yang sama daripada terus
+  // menyambung semula muzik (punca bunyi "berganda" selepas OFF ditekan).
+  let bgmManuallyPaused = false;
 
   function tryAutoplayBGM() {
     bgmAudio.volume = 0.12;
@@ -538,11 +543,12 @@
       bgmBtn.innerText = "🔊 Muzik: ON";
     }).catch(() => {
       const enableOnGesture = () => {
+        document.removeEventListener('click', enableOnGesture);
+        document.removeEventListener('touchstart', enableOnGesture);
+        if (bgmManuallyPaused) return;
         bgmAudio.play().then(() => {
           bgmBtn.innerText = "🔊 Muzik: ON";
         });
-        document.removeEventListener('click', enableOnGesture);
-        document.removeEventListener('touchstart', enableOnGesture);
       };
       document.addEventListener('click', enableOnGesture);
       document.addEventListener('touchstart', enableOnGesture);
@@ -551,10 +557,12 @@
 
   function toggleBGM() {
     if (bgmAudio.paused) {
+      bgmManuallyPaused = false;
       bgmAudio.volume = 0.12;
       bgmAudio.play();
       bgmBtn.innerText = "🔊 Muzik: ON";
     } else {
+      bgmManuallyPaused = true;
       bgmAudio.pause();
       bgmBtn.innerText = "🔇 Muzik: OFF";
     }
