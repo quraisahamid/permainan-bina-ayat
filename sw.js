@@ -1,4 +1,4 @@
-const CACHE_NAME = 'iska-app-v25';
+const CACHE_NAME = 'iska-app-v26';
 
 // Senarai lengkap fail tempatan & audio (tanpa tanda '/')
 const LOCAL_ASSETS = [
@@ -51,12 +51,12 @@ const LOCAL_ASSETS = [
   'sebutan/adik_letak_baja_tanaman_supaya_subur.mp3',
 
   // Audio Sebutan Perkataan Individu & Ralat
-  'sebutan/faris.mp3',
-  'sebutan/tulis.mp3',
-  'sebutan/karangan.mp3',
+  'sebutan/Faris.mp3',
+  'sebutan/Tulis.mp3',
+  'sebutan/Karangan.mp3',
   'sebutan/aina.mp3',
-  'sebutan/sapu.mp3',
-  'sebutan/lantai.mp3',
+  'sebutan/Sapu.mp3',
+  'sebutan/Lantai.mp3',
   'sebutan/hakim.mp3',
   'sebutan/bawa.mp3',
   'sebutan/beg_sekolah.mp3',
