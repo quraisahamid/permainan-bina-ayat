@@ -10,7 +10,7 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=37').then((registration) => {
+      navigator.serviceWorker.register('sw.js?v=38').then((registration) => {
         const showUpdateScreen = () => {
           const overlay = document.getElementById('update-overlay');
           if (overlay) overlay.style.display = 'flex';
@@ -448,12 +448,12 @@
 
 <div class="modal" id="game-intermission-modal">
   <div class="modal-content" style="border-color: #8b5cf6;">
-    <h2 style="color: #6d28d9; margin-top: 0;" id="intermission-title">🎮 MASA UNTUK MINI GAME!</h2>
+    <h2 style="color: #6d28d9; margin-top: 0;" id="intermission-title">🎮 MASA UNTUK PERMAINAN MINI!</h2>
     <p style="font-size: 1.05rem; color: #334155; font-weight: bold;" id="intermission-desc">
-      Tahniah! Anda telah menyelesaikan set lembaran ini. Mari bermain mini game!
+      Tahniah! Anda telah menyelesaikan set lembaran ini. Mari bermain permainan mini!
     </p>
     <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
-      <a id="intermission-game-link" href="#" class="action-btn" style="background-color: #22c55e; text-decoration: none; padding: 10px 20px; font-size: 1.1rem;">Main Game Sekarang 🚀</a>
+      <a id="intermission-game-link" href="#" class="action-btn" style="background-color: #22c55e; text-decoration: none; padding: 10px 20px; font-size: 1.1rem;">Main Sekarang 🚀</a>
       <button class="action-btn btn-prev" onclick="skipMiniGameToNextSet()">Lompat Ke Set Seterusnya ➡️</button>
     </div>
   </div>
@@ -915,10 +915,10 @@
   }
 
   const setGames = [
-    { gameLink: "ular_huruf_vokal_aeiou.html", name: "🐍 Game Ular Huruf Vokal" },
-    { gameLink: "game_2_ketuk_tikus_tanah.html", name: "🔨 Game Ketuk Tikus Tanah" },
-    { gameLink: "game_lompat_lari.html", name: "🏃‍♂️ Game Pelari Ejaan 3D" },
-    { gameLink: "game_1_kumpul_huruf.html", name: "🧩 Game Kumpul Huruf" }
+    { gameLink: "ular_huruf_vokal_aeiou.html", name: "🐍 Permainan Ular Huruf Vokal" },
+    { gameLink: "game_2_ketuk_tikus_tanah.html", name: "🔨 Permainan Ketuk Tikus Tanah" },
+    { gameLink: "game_lompat_lari.html", name: "🏃‍♂️ Permainan Pelari Ejaan 3D" },
+    { gameLink: "game_1_kumpul_huruf.html", name: "🧩 Permainan Kumpul Huruf" }
   ];
 
   function jumpToSheet(num) {
