@@ -13,18 +13,50 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=22').then((registration) => {
+      navigator.serviceWorker.register('sw.js?v=23').then((registration) => {
+        const showUpdateScreen = () => {
+          const overlay = document.getElementById('update-overlay');
+          if (overlay) overlay.style.display = 'flex';
+        };
+
+        if (registration.installing) {
+          showUpdateScreen();
+          registration.installing.onstatechange = (e) => {
+            if (e.target.state === 'installed') {
+              if (navigator.serviceWorker.controller) {
+                window.location.reload();
+              }
+            }
+          };
+        }
+
         if (registration.waiting) {
+          showUpdateScreen();
           registration.waiting.postMessage({ action: 'skipWaiting' });
         }
+
+        registration.addEventListener('updatefound', () => {
+          showUpdateScreen();
+          const newWorker = registration.installing;
+          if (newWorker) {
+            newWorker.onstatechange = () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                window.location.reload();
+              }
+            };
+          }
+        });
       }).catch((err) => console.log('SW Error:', err));
     });
   }
 
-  // Tangkap arahan force reload daripada sw.js
   navigator.serviceWorker?.addEventListener('message', (event) => {
     if (event.data && event.data.action === 'forceReload') {
-      window.location.reload();
+      const overlay = document.getElementById('update-overlay');
+      if (overlay) overlay.style.display = 'flex';
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     }
   });
 </script>
@@ -167,7 +199,6 @@
       flex-wrap: wrap;
     }
 
-    /* Standard Kod Warna BM i-SKA (Suku Kata 1 = Gelap, Suku Kata 2 = Merah) */
     .syllable-part-1 { color: #1e293b; }
     .syllable-part-2 { color: #dc2626; }
 
@@ -235,9 +266,60 @@
       cursor: not-allowed;
       box-shadow: none;
     }
+
+    /* Skrin Amaran Kemas Kini */
+    #update-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.85);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .update-box {
+      background: white;
+      color: #1e3a8a;
+      padding: 30px;
+      border-radius: 20px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      border: 4px solid #3b82f6;
+    }
+
+    .spinner {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #3b82f6;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body class="notranslate">
+
+<div id="update-overlay">
+  <div class="update-box">
+    <div class="spinner"></div>
+    <h2 style="margin-top: 0; color: #1e3a8a;">Sila tunggu sebentar...</h2>
+    <p style="font-size: 1rem; color: #475569; font-weight: bold;">
+      Aplikasi sedang memuat turun fail pembelajaran terkini. Jangan tutup atau sentuh skrin.
+    </p>
+  </div>
+</div>
 
 <canvas id="confetti-canvas"></canvas>
 <audio id="bgm-player" loop autoplay src="bgm.mp3"></audio>
@@ -277,7 +359,6 @@
 </div>
 
 <script>
-  /* Confetti System */
   const confettiCanvas = document.getElementById('confetti-canvas');
   const cCtx = confettiCanvas.getContext('2d');
   let confettiParticles = [];
@@ -340,7 +421,6 @@
     }
   }
 
-  /* 🎵 ENJIN AUDIO HTML5 mp3 (Blob Cache Offline) */
   const audioMemoryCache = {};
   let isProcessing = false;
   let audioQueue = [];
@@ -392,7 +472,6 @@
           processAudioQueue();
         };
       }).catch((err) => {
-        console.warn(`Fail audio ${formattedKey}.mp3 tiada:`, err);
         if (!bgmAudio.paused) bgmAudio.volume = 0.12;
         if (currentItem.callback) currentItem.callback();
         processAudioQueue();
@@ -401,7 +480,6 @@
     }, currentItem.delayMs);
   }
 
-  /* Kawalan Audio BGM */
   const bgmAudio = document.getElementById("bgm-player");
   const bgmBtn = document.getElementById("bgm-toggle");
 
@@ -435,7 +513,6 @@
 
   window.addEventListener("DOMContentLoaded", tryAutoplayBGM);
 
-  /* Data Kata Kerja Suku Kata i-SKA (Termasuk "lintas") */
   const wordList = [
     { word: "cuci", syllables: [{ text: "cu", part: 1 }, { text: "ci", part: 2 }] },
     { word: "masak", syllables: [{ text: "ma", part: 1 }, { text: "sak", part: 2 }] },
@@ -449,7 +526,6 @@
     { word: "tulis", syllables: [{ text: "tu", part: 1 }, { text: "lis", part: 2 }] }
   ];
 
-  // Preload semua audio suku kata dan perkataan penuh .mp3
   window.addEventListener('load', () => {
     wordList.forEach(w => {
       preloadAudioFile(w.word);
@@ -510,7 +586,6 @@
     selectedSyllables.push(sylObj);
     originalBtn.style.visibility = "hidden";
 
-    // Delay 1 saat (1000ms) untuk setiap suku kata yang ditekan
     queueAudio(sylObj.text, 1000);
 
     const builtBox = document.getElementById("built-spelling-box");
@@ -555,7 +630,6 @@
     if (userWord === targetWord) {
       isProcessing = true;
 
-      // Sebutan penuh dimainkan selepas sela masa, kemudian teks Tahniah & Confetti keluar
       queueAudio(targetWord, 1000, () => {
         document.getElementById("feedback-msg").innerHTML = "<span style='color: #16a34a;'>Tahniah! Ejaan Betul! 🎉</span>";
         triggerConfetti();
@@ -564,7 +638,7 @@
 
     } else {
       clearAudioQueue();
-      document.getElementById("feedback-msg").innerHTML = "<span style='color: #dc2626;'>Sila Cuba lagi! ❌</span>";
+      document.getElementById("feedback-msg").innerHTML = "<span style='color: #dc2626;'>Cuba lagi! ❌</span>";
       queueAudio("Sila cuba lagi", 0);
     }
   }

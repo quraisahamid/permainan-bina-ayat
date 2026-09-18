@@ -10,18 +10,50 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=21').then((registration) => {
+      navigator.serviceWorker.register('sw.js?v=23').then((registration) => {
+        const showUpdateScreen = () => {
+          const overlay = document.getElementById('update-overlay');
+          if (overlay) overlay.style.display = 'flex';
+        };
+
+        if (registration.installing) {
+          showUpdateScreen();
+          registration.installing.onstatechange = (e) => {
+            if (e.target.state === 'installed') {
+              if (navigator.serviceWorker.controller) {
+                window.location.reload();
+              }
+            }
+          };
+        }
+
         if (registration.waiting) {
+          showUpdateScreen();
           registration.waiting.postMessage({ action: 'skipWaiting' });
         }
+
+        registration.addEventListener('updatefound', () => {
+          showUpdateScreen();
+          const newWorker = registration.installing;
+          if (newWorker) {
+            newWorker.onstatechange = () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                window.location.reload();
+              }
+            };
+          }
+        });
       }).catch((err) => console.log('SW Error:', err));
     });
   }
 
-  // Tangkap arahan force reload daripada sw.js
   navigator.serviceWorker?.addEventListener('message', (event) => {
     if (event.data && event.data.action === 'forceReload') {
-      window.location.reload();
+      const overlay = document.getElementById('update-overlay');
+      if (overlay) overlay.style.display = 'flex';
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     }
   });
 </script>
@@ -198,6 +230,7 @@
     .tag-siapa { background-color: #bfdbfe; color: #1e3a8a; }
     .tag-kerja { background-color: #fbcfe8; color: #831843; }
     .tag-apa { background-color: #bbf7d0; color: #14532d; }
+    .tag-ket { background-color: #fef08a; color: #854d0e; }
 
     .sentence-builder {
       min-height: 55px;
@@ -251,6 +284,7 @@
     .word-btn[data-type="siapa"] { background-color: #bfdbfe; color: #1e3a8a; }
     .word-btn[data-type="kerja"] { background-color: #fbcfe8; color: #831843; }
     .word-btn[data-type="apa"] { background-color: #bbf7d0; color: #14532d; }
+    .word-btn[data-type="ket"] { background-color: #fef08a; color: #854d0e; }
 
     .word-syllable-1 { color: #1e293b; }
     .word-syllable-2 { color: #dc2626; }
@@ -314,9 +348,60 @@
       border: 4px solid #f59e0b;
       box-shadow: 0 10px 25px rgba(0,0,0,0.3);
     }
+
+    /* Skrin Amaran Kemas Kini */
+    #update-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.85);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .update-box {
+      background: white;
+      color: #1e3a8a;
+      padding: 30px;
+      border-radius: 20px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      border: 4px solid #3b82f6;
+    }
+
+    .spinner {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #3b82f6;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
+
+<div id="update-overlay">
+  <div class="update-box">
+    <div class="spinner"></div>
+    <h2 style="margin-top: 0; color: #1e3a8a;">Sila tunggu sebentar...</h2>
+    <p style="font-size: 1rem; color: #475569; font-weight: bold;">
+      Aplikasi sedang memuat turun fail pembelajaran terkini. Jangan tutup atau sentuh skrin.
+    </p>
+  </div>
+</div>
 
 <canvas id="confetti-canvas"></canvas>
 <audio id="bgm-player" loop autoplay src="bgm.mp3"></audio>
@@ -386,7 +471,6 @@
 </div>
 
 <script>
-  /* System Confetti */
   const confettiCanvas = document.getElementById('confetti-canvas');
   const cCtx = confettiCanvas.getContext('2d');
   let confettiParticles = [];
@@ -449,7 +533,6 @@
     }
   }
 
-  /* Audio BGM Controller */
   const bgmPlayer = document.getElementById("bgm-player");
   const bgmBtn = document.getElementById("bgm-toggle");
 
@@ -484,84 +567,6 @@
   window.addEventListener("DOMContentLoaded", startAutoplayBGM);
   window.addEventListener("load", startAutoplayBGM);
 
-  /* Speech Synthesis Engine tempatan (Enjin Kalis Ralat iOS Safari) */
-  let msVoice = null;
-  let synthUnlocked = false;
-
-  function loadVoices() {
-    if ('speechSynthesis' in window) {
-      const voices = window.speechSynthesis.getVoices();
-      if (voices && voices.length > 0) {
-        msVoice = voices.find(v => v.lang === 'ms-MY' || v.lang === 'ms_MY' || v.lang.toLowerCase().includes('melayu') || v.lang.toLowerCase().includes('id'));
-      }
-    }
-  }
-
-  // Nyahkunci (Unlock & Warmup) Enjin iOS Safari pada sentuhan pertama pengguna
-  function unlockSpeechSynthesisIOS() {
-    if (!synthUnlocked && 'speechSynthesis' in window) {
-      window.speechSynthesis.resume();
-      loadVoices();
-      const dummyUtterance = new SpeechSynthesisUtterance(" ");
-      dummyUtterance.volume = 0.01;
-      dummyUtterance.rate = 2.0;
-      window.speechSynthesis.speak(dummyUtterance);
-      synthUnlocked = true;
-    }
-  }
-
-  document.addEventListener('touchstart', unlockSpeechSynthesisIOS, { passive: true });
-  document.addEventListener('click', unlockSpeechSynthesisIOS, { passive: true });
-
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-    loadVoices();
-  }
-
-  function speakText(text, callback) {
-    if ('speechSynthesis' in window) {
-      try {
-        window.speechSynthesis.cancel();
-        window.speechSynthesis.resume();
-
-        const utterance = new SpeechSynthesisUtterance(text.toLowerCase());
-        
-        // Tetapkan voice jika wujud, jika tiada di iOS, biarkan fallback kepada lang 'ms-MY' / 'id-ID'
-        utterance.lang = msVoice ? msVoice.lang : 'ms-MY';
-        if (msVoice) utterance.voice = msVoice;
-        
-        utterance.rate = 0.85;
-
-        let hasCalledCallback = false;
-        const safeCallback = () => {
-          if (!hasCalledCallback && callback) {
-            hasCalledCallback = true;
-            callback();
-          }
-        };
-
-        utterance.onend = safeCallback;
-        utterance.onerror = safeCallback;
-
-        // Panggilan sebutan yang selamat bagi elak pembekuan WebKit iOS
-        setTimeout(() => {
-          window.speechSynthesis.speak(utterance);
-        }, 60);
-
-        // Fallback sekiranya event onend tidak dipicu oleh Safari iOS
-        setTimeout(() => {
-          safeCallback();
-        }, 3500);
-
-      } catch (e) {
-        if (callback) callback();
-      }
-    } else if (callback) {
-      callback();
-    }
-  }
-
-  /* Force Preloader Audio & Memory Cache untuk Kegunaan Offline 100% */
   const audioMemoryCache = {};
 
   function forcePreloadAllAudio() {
@@ -575,12 +580,29 @@
           })
           .catch(() => {});
       }
+      q.words.forEach(w => {
+        if (w.audio) {
+          fetch(w.audio)
+            .then(res => res.blob())
+            .then(blob => {
+              const blobUrl = URL.createObjectURL(blob);
+              audioMemoryCache[w.audio] = blobUrl;
+            })
+            .catch(() => {});
+        }
+      });
     });
+    // Preload audio fail ralat
+    fetch("sebutan/Sila_cuba_lagi.mp3")
+      .then(res => res.blob())
+      .then(blob => {
+        audioMemoryCache["sebutan/Sila_cuba_lagi.mp3"] = URL.createObjectURL(blob);
+      }).catch(() => {});
   }
 
   window.addEventListener('load', forcePreloadAllAudio);
 
-  function playSentenceAudio(text, audioPath, callback) {
+  function playAudioFile(text, audioPath, callback) {
     if (audioPath) {
       if (!bgmPlayer.paused) bgmPlayer.volume = 0.03;
 
@@ -599,37 +621,37 @@
       audio.play().then(() => {
         audio.onended = finishAudio;
         audio.onerror = () => {
-          speakText(text, callback);
+          if (callback) callback();
         };
       }).catch(() => {
         if (!bgmPlayer.paused) bgmPlayer.volume = 0.12;
-        speakText(text, callback);
+        if (callback) callback();
       });
     } else {
-      speakText(text, callback);
+      if (callback) callback();
     }
   }
 
   const questions = [
-    { sheet: 1, img: "images/lembaran5_1.png", audio: "sebutan/faris_menulis_karangan.mp3", words: [{ text: "Faris", s1: "Fa", s2: "ris", type: "siapa" }, { text: "tulis", s1: "tu", s2: "lis", type: "kerja" }, { text: "karangan", s1: "ka", s2: "rangan", type: "apa" }] },
-    { sheet: 1, img: "images/lembaran5_2.png", audio: "sebutan/aina_menyapu_lantai.mp3", words: [{ text: "Aina", s1: "Ai", s2: "na", type: "siapa" }, { text: "sapu", s1: "sa", s2: "pu", type: "kerja" }, { text: "lantai", s1: "lan", s2: "tai", type: "apa" }] },
-    { sheet: 1, img: "images/lembaran5_3.png", audio: "sebutan/hakim_membawa_beg_sekolah.mp3", words: [{ text: "Hakim", s1: "Ha", s2: "kim", type: "siapa" }, { text: "bawa", s1: "ba", s2: "wa", type: "kerja" }, { text: "beg sekolah", s1: "beg ", s2: "sekolah", type: "apa" }] },
-    { sheet: 1, img: "images/lembaran5_4.png", audio: "sebutan/sara_membaca_buku.mp3", words: [{ text: "Sara", s1: "Sa", s2: "ra", type: "siapa" }, { text: "baca", s1: "ba", s2: "ca", type: "kerja" }, { text: "buku", s1: "bu", s2: "ku", type: "apa" }] },
+    { sheet: 1, img: "images/lembaran5_1.png", audio: "sebutan/faris_menulis_karangan.mp3", words: [{ text: "Faris", s1: "Fa", s2: "ris", type: "siapa", audio: "sebutan/Faris.mp3" }, { text: "tulis", s1: "tu", s2: "lis", type: "kerja", audio: "sebutan/Tulis.mp3" }, { text: "karangan", s1: "ka", s2: "rangan", type: "apa", audio: "sebutan/Karangan.mp3" }] },
+    { sheet: 1, img: "images/lembaran5_2.png", audio: "sebutan/aina_sapu_lantai.mp3", words: [{ text: "Aina", s1: "Ai", s2: "na", type: "siapa", audio: "sebutan/Aina.mp3" }, { text: "sapu", s1: "sa", s2: "pu", type: "kerja", audio: "sebutan/Sapu.mp3" }, { text: "lantai", s1: "lan", s2: "tai", type: "apa", audio: "sebutan/Lantai.mp3" }] },
+    { sheet: 1, img: "images/lembaran5_3.png", audio: "sebutan/hakim_membawa_beg_sekolah.mp3", words: [{ text: "Hakim", s1: "Ha", s2: "kim", type: "siapa", audio: "sebutan/Hakim.mp3" }, { text: "bawa", s1: "ba", s2: "wa", type: "kerja", audio: "sebutan/Bawa.mp3" }, { text: "beg sekolah", s1: "beg ", s2: "sekolah", type: "apa", audio: "sebutan/Beg_sekolah.mp3" }] },
+    { sheet: 1, img: "images/lembaran5_4.png", audio: "sebutan/sara_membaca_buku.mp3", words: [{ text: "Sara", s1: "Sa", s2: "ra", type: "siapa", audio: "sebutan/Sara.mp3" }, { text: "baca", s1: "ba", s2: "ca", type: "kerja", audio: "sebutan/Baca.mp3" }, { text: "buku", s1: "bu", s2: "ku", type: "apa", audio: "sebutan/Buku.mp3" }] },
 
-    { sheet: 2, img: "images/lembaran6_1.png", audio: "sebutan/ibu_memasak_nasi.mp3", words: [{ text: "Ibu", s1: "I", s2: "bu", type: "siapa" }, { text: "masak", s1: "ma", s2: "sak", type: "kerja" }, { text: "nasi", s1: "na", s2: "si", type: "apa" }] },
-    { sheet: 2, img: "images/lembaran6_2.png", audio: "sebutan/ayah_membasuh_kereta.mp3", words: [{ text: "Ayah", s1: "A", s2: "yah", type: "siapa" }, { text: "basuh", s1: "ba", s2: "suh", type: "kerja" }, { text: "kereta", s1: "ke", s2: "reta", type: "apa" }] },
-    { sheet: 2, img: "images/lembaran6_3.png", audio: "sebutan/kakak_melipat_pakaian.mp3", words: [{ text: "Kakak", s1: "Ka", s2: "kak", type: "siapa" }, { text: "lipat", s1: "li", s2: "pat", type: "kerja" }, { text: "pakaian", s1: "pa", s2: "kaian", type: "apa" }] },
-    { sheet: 2, img: "images/lembaran6_4.png", audio: "sebutan/adik_menyusun_kasut.mp3", words: [{ text: "Adik", s1: "A", s2: "dik", type: "siapa" }, { text: "susun", s1: "su", s2: "sun", type: "kerja" }, { text: "kasut", s1: "ka", s2: "sut", type: "apa" }] },
+    { sheet: 2, img: "images/lembaran6_1.png", audio: "sebutan/ibu_memasak_nasi.mp3", words: [{ text: "Ibu", s1: "I", s2: "bu", type: "siapa", audio: "sebutan/Ibu.mp3" }, { text: "masak", s1: "ma", s2: "sak", type: "kerja", audio: "sebutan/Masak.mp3" }, { text: "nasi", s1: "na", s2: "si", type: "apa", audio: "sebutan/Nasi.mp3" }] },
+    { sheet: 2, img: "images/lembaran6_2.png", audio: "sebutan/ayah_membasuh_kereta.mp3", words: [{ text: "Ayah", s1: "A", s2: "yah", type: "siapa", audio: "sebutan/Ayah.mp3" }, { text: "basuh", s1: "ba", s2: "suh", type: "kerja", audio: "sebutan/Basuh.mp3" }, { text: "kereta", s1: "ke", s2: "reta", type: "apa", audio: "sebutan/Kereta.mp3" }] },
+    { sheet: 2, img: "images/lembaran6_3.png", audio: "sebutan/kakak_melipat_pakaian.mp3", words: [{ text: "Kakak", s1: "Ka", s2: "kak", type: "siapa", audio: "sebutan/Kakak.mp3" }, { text: "lipat", s1: "li", s2: "pat", type: "kerja", audio: "sebutan/Lipat.mp3" }, { text: "pakaian", s1: "pa", s2: "kaian", type: "apa", audio: "sebutan/Pakaian.mp3" }] },
+    { sheet: 2, img: "images/lembaran6_4.png", audio: "sebutan/adik_menyusun_kasut.mp3", words: [{ text: "Adik", s1: "A", s2: "dik", type: "siapa", audio: "sebutan/Adik.mp3" }, { text: "susun", s1: "su", s2: "sun", type: "kerja", audio: "sebutan/Susun.mp3" }, { text: "kasut", s1: "ka", s2: "sut", type: "apa", audio: "sebutan/Kasut.mp3" }] },
 
-    { sheet: 3, img: "images/lembaran7_1.png", audio: "sebutan/rina_bermain_buaian.mp3", words: [{ text: "Rina", s1: "Ri", s2: "na", type: "siapa" }, { text: "main", s1: "ma", s2: "in", type: "kerja" }, { text: "buaian", s1: "bu", s2: "aian", type: "apa" }] },
-    { sheet: 3, img: "images/lembaran7_2.png", audio: "sebutan/amir_menunggang_basikal.mp3", words: [{ text: "Amir", s1: "A", s2: "mir", type: "siapa" }, { text: "tunggang", s1: "tung", s2: "gang", type: "kerja" }, { text: "basikal", s1: "ba", s2: "sikal", type: "apa" }] },
-    { sheet: 3, img: "images/lembaran7_3.png", audio: "sebutan/hana_melompat_tali.mp3", words: [{ text: "Hana", s1: "Ha", s2: "na", type: "siapa" }, { text: "lompat", s1: "lom", s2: "pat", type: "kerja" }, { text: "tali", s1: "ta", s2: "li", type: "apa" }] },
-    { sheet: 3, img: "images/lembaran7_4.png", audio: "sebutan/danish_bermain_gelongsor.mp3", words: [{ text: "Danish", s1: "Da", s2: "nish", type: "siapa" }, { text: "main", s1: "ma", s2: "in", type: "kerja" }, { text: "gelongsor", s1: "ge", s2: "longsor", type: "apa" }] },
+    { sheet: 3, img: "images/lembaran8_1.png", audio: "sebutan/ali_cuci_tangan.mp3", words: [{ text: "Ali", s1: "A", s2: "li", type: "siapa", audio: "sebutan/Ali.mp3" }, { text: "cuci", s1: "cu", s2: "ci", type: "kerja", audio: "sebutan/Cuci.mp3" }, { text: "tangan", s1: "ta", s2: "ngan", type: "apa", audio: "sebutan/Tangan.mp3" }] },
+    { sheet: 3, img: "images/lembaran8_2.png", audio: "sebutan/mira_potong_kuku.mp3", words: [{ text: "Mira", s1: "Mi", s2: "ra", type: "siapa", audio: "sebutan/Mira.mp3" }, { text: "potong", s1: "po", s2: "tong", type: "kerja", audio: "sebutan/Potong.mp3" }, { text: "kuku", s1: "ku", s2: "ku", type: "apa", audio: "sebutan/Kuku.mp3" }] },
+    { sheet: 3, img: "images/lembaran8_3.png", audio: "sebutan/abu_minum_susu.mp3", words: [{ text: "Abu", s1: "A", s2: "bu", type: "siapa", audio: "sebutan/Abu.mp3" }, { text: "minum", s1: "mi", s2: "num", type: "kerja", audio: "sebutan/Minum.mp3" }, { text: "susu", s1: "su", s2: "su", type: "apa", audio: "sebutan/Susu.mp3" }] },
+    { sheet: 3, img: "images/lembaran8_4.png", audio: "sebutan/siti_makan_buah.mp3", words: [{ text: "Siti", s1: "Si", s2: "ti", type: "siapa", audio: "sebutan/Siti.mp3" }, { text: "makan", s1: "ma", s2: "kan", type: "kerja", audio: "sebutan/Makan.mp3" }, { text: "buah", s1: "bu", s2: "ah", type: "apa", audio: "sebutan/Buah.mp3" }] },
 
-    { sheet: 4, img: "images/lembaran8_1.png", audio: "sebutan/ali_mencuci_tangan.mp3", words: [{ text: "Ali", s1: "A", s2: "li", type: "siapa" }, { text: "cuci", s1: "cu", s2: "ci", type: "kerja" }, { text: "tangan", s1: "ta", s2: "ngan", type: "apa" }] },
-    { sheet: 4, img: "images/lembaran8_2.png", audio: "sebutan/mira_memotong_kuku.mp3", words: [{ text: "Mira", s1: "Mi", s2: "ra", type: "siapa" }, { text: "potong", s1: "po", s2: "tong", type: "kerja" }, { text: "kuku", s1: "ku", s2: "ku", type: "apa" }] },
-    { sheet: 4, img: "images/lembaran8_3.png", audio: "sebutan/abu_minum_susu.mp3", words: [{ text: "Abu", s1: "A", s2: "bu", type: "siapa" }, { text: "minum", s1: "mi", s2: "num", type: "kerja" }, { text: "susu", s1: "su", s2: "su", type: "apa" }] },
-    { sheet: 4, img: "images/lembaran8_4.png", audio: "sebutan/siti_makan_buah.mp3", words: [{ text: "Siti", s1: "Si", s2: "ti", type: "siapa" }, { text: "makan", s1: "ma", s2: "kan", type: "kerja" }, { text: "buah", s1: "bu", s2: "ah", type: "apa" }] }
+    { sheet: 4, img: "images/lembaran9_1.png", audio: "sebutan/bapa_tanam_cili_di_kebun.mp3", words: [{ text: "Bapa", s1: "Ba", s2: "pa", type: "siapa", audio: "sebutan/Bapa.mp3" }, { text: "tanam", s1: "ta", s2: "nam", type: "kerja", audio: "sebutan/Tanam.mp3" }, { text: "cili", s1: "ci", s2: "li", type: "apa", audio: "sebutan/Cili.mp3" }, { text: "di kebun", s1: "di ", s2: "kebun", type: "ket", audio: "sebutan/Di_kebun.mp3" }] },
+    { sheet: 4, img: "images/lembaran9_2.png", audio: "sebutan/abang_siram_pokok_bunga_waktu_petang.mp3", words: [{ text: "Abang", s1: "A", s2: "bang", type: "siapa", audio: "sebutan/Abang.mp3" }, { text: "siram", s1: "si", s2: "ram", type: "kerja", audio: "sebutan/Siram.mp3" }, { text: "pokok bunga", s1: "pokok ", s2: "bunga", type: "apa", audio: "sebutan/Pokok_bunga.mp3" }, { text: "pada waktu petang", s1: "pada ", s2: "petang", type: "ket", audio: "sebutan/Pada_waktu_petang.mp3" }] },
+    { sheet: 4, img: "images/lembaran9_3.png", audio: "sebutan/ibu_petik_mangga_dengan_berhati_hati.mp3", words: [{ text: "Ibu", s1: "I", s2: "bu", type: "siapa", audio: "sebutan/Ibu.mp3" }, { text: "petik", s1: "pe", s2: "tik", type: "kerja", audio: "sebutan/Petik.mp3" }, { text: "mangga", s1: "ma", s2: "ngga", type: "apa", audio: "sebutan/Mangga.mp3" }, { text: "dengan berhati-hati", s1: "dengan ", s2: "berhati-hati", type: "ket", audio: "sebutan/Dengan_berhati_hati.mp3" }] },
+    { sheet: 4, img: "images/lembaran9_4.png", audio: "sebutan/adik_letak_baja_tanaman_supaya_subur.mp3", words: [{ text: "Adik", s1: "A", s2: "dik", type: "siapa", audio: "sebutan/Adik.mp3" }, { text: "letak", s1: "le", s2: "tak", type: "kerja", audio: "sebutan/Letak.mp3" }, { text: "baja tanaman", s1: "baja ", s2: "tanaman", type: "apa", audio: "sebutan/Baja_tanaman.mp3" }, { text: "supaya subur", s1: "supaya ", s2: "subur", type: "ket", audio: "sebutan/Supaya_subur.mp3" }] }
   ];
 
   let currentIndex = 0;
@@ -671,6 +693,22 @@
 
       document.getElementById("image-display").src = q.img;
       document.getElementById("feedback-text").innerText = "";
+
+      const patternLegend = document.getElementById("pattern-legend");
+      if (q.sheet === 4) {
+        patternLegend.innerHTML = `
+          <span class="legend-tag tag-siapa">Siapa</span> + 
+          <span class="legend-tag tag-kerja">Kata Kerja</span> + 
+          <span class="legend-tag tag-apa">Apa</span> + 
+          <span class="legend-tag tag-ket">Penerangan / Keterangan</span>
+        `;
+      } else {
+        patternLegend.innerHTML = `
+          <span class="legend-tag tag-siapa">Siapa (Subjek)</span> + 
+          <span class="legend-tag tag-kerja">Kata Kerja (Tunggal)</span> + 
+          <span class="legend-tag tag-apa">Apa (Objek)</span>
+        `;
+      }
       
       const sentenceBox = document.getElementById("sentence-box");
       sentenceBox.innerHTML = "";
@@ -709,7 +747,7 @@
     selectedWords.push(wordObj);
     btnElement.style.visibility = "hidden";
     
-    speakText(wordObj.text);
+    playAudioFile(wordObj.text, wordObj.audio);
 
     const targetBox = document.getElementById("sentence-box");
     targetBox.classList.remove("shake-error");
@@ -778,10 +816,12 @@
       nextBtn.disabled = true;
       const ayatPenuh = selectedWords.map(w => w.text).join(" ");
 
-      playSentenceAudio(ayatPenuh, q.audio, () => {
-        nextBtn.disabled = false;
-        isChecking = false;
-      });
+      setTimeout(() => {
+        playAudioFile(ayatPenuh, q.audio, () => {
+          nextBtn.disabled = false;
+          isChecking = false;
+        });
+      }, 6000);
 
     } else {
       sentenceBox.classList.remove("shake-error");
@@ -790,7 +830,9 @@
 
       feedback.className = "feedback incorrect";
       feedback.innerText = "Sila cuba lagi! ❌";
-      speakText("Sila cuba lagi!");
+      
+      playAudioFile("Sila cuba lagi", "sebutan/Sila_cuba_lagi.mp3");
+
       nextBtn.disabled = true;
       isChecking = false;
     }
@@ -799,7 +841,7 @@
   function playCurrentSentenceAudio() {
     const q = questions[currentIndex];
     const ayatPenuh = q.words.map(w => w.text).join(" ");
-    playSentenceAudio(ayatPenuh, q.audio);
+    playAudioFile(ayatPenuh, q.audio);
   }
 
   const setGames = [

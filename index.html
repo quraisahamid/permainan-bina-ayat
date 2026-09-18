@@ -3,65 +3,73 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  
   <meta name="google" content="notranslate">
   <meta name="chrome" content="notranslate">
 
-  <title>JOM BELAJAR BINA AYAT i-SKA</title>
+  <title>Menu Utama i-SKA</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#3b82f6">
 
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=21').then((registration) => {
-        console.log('Service Worker didaftarkan dengan berjaya:', registration.scope);
-
-        // Semak jika ada versi Service Worker baharu yang menunggu
-        if (registration.waiting) {
-          registration.waiting.postMessage({ action: 'skipWaiting' });
-        }
-
-        // Pantau jika ada kemaskini baru dikesan
-        registration.onupdatefound = () => {
-          const installingWorker = registration.installing;
-          installingWorker.onstatechange = () => {
-            if (installingWorker.state === 'installed') {
-              if (navigator.serviceWorker.controller) {
-                console.log('Aset baharu dikesan. Memuat semula aplikasi...');
-                installingWorker.postMessage({ action: 'skipWaiting' });
-              }
-            }
+  <!-- Skrip Pendaftaran Service Worker & Skrin Muat Turun Kemas Kini -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js?v=23').then((registration) => {
+          
+          const showUpdateScreen = () => {
+            const overlay = document.getElementById('update-overlay');
+            if (overlay) overlay.style.display = 'flex';
           };
-        };
-      }).catch((err) => {
-        console.log('Pendaftaran Service Worker gagal:', err);
-      });
 
-      // Paksa reload halaman apabila SW baharu mengambil alih sepenuhnya
-      let refreshing = false;
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (!refreshing) {
-          refreshing = true;
-          window.location.reload();
-        }
-      });
-    });
-  }
+          if (registration.installing) {
+            showUpdateScreen();
+            registration.installing.onstatechange = (e) => {
+              if (e.target.state === 'installed') {
+                if (navigator.serviceWorker.controller) {
+                  window.location.reload();
+                }
+              }
+            };
+          }
 
-  // Tangkap mesej forceReload dari sw.js versi 21
-  navigator.serviceWorker?.addEventListener('message', (event) => {
-    if (event.data && event.data.action === 'forceReload') {
-      window.location.reload();
+          if (registration.waiting) {
+            showUpdateScreen();
+            registration.waiting.postMessage({ action: 'skipWaiting' });
+          }
+
+          registration.addEventListener('updatefound', () => {
+            showUpdateScreen();
+            const newWorker = registration.installing;
+            if (newWorker) {
+              newWorker.onstatechange = () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  window.location.reload();
+                }
+              };
+            }
+          });
+
+        }).catch((err) => console.log('SW Error:', err));
+      });
     }
-  });
-</script>
+
+    navigator.serviceWorker?.addEventListener('message', (event) => {
+      if (event.data && event.data.action === 'forceReload') {
+        const overlay = document.getElementById('update-overlay');
+        if (overlay) overlay.style.display = 'flex';
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      }
+    });
+  </script>
 
   <style>
     * {
       box-sizing: border-box;
-      font-family: 'Chalkboard SE', 'Comic Sans MS', sans-serif;
+      font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
       touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
@@ -76,437 +84,141 @@
       min-height: 100vh;
       min-height: 100dvh;
       margin: 0;
-      padding: clamp(10px, 2.5vw, 24px);
+      padding: clamp(10px, 3vw, 20px);
     }
 
-    .main-card {
-      background: #ffffff;
-      border: 5px solid #3b82f6;
-      border-radius: 28px;
-      padding: clamp(16px, 3vw, 30px);
-      width: clamp(300px, 92vw, 650px);
+    .menu-card {
+      background: white;
+      border: 4px solid #3b82f6;
+      border-radius: 24px;
+      padding: clamp(20px, 4vw, 35px);
+      width: clamp(300px, 90vw, 550px);
       text-align: center;
-      box-shadow: 0 16px 35px rgba(0, 0, 0, 0.12);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.1);
     }
 
-    .title-banner {
-      background-color: #3b82f6;
-      color: white;
-      padding: clamp(10px, 2vw, 16px);
-      border-radius: 18px;
-      font-size: clamp(1.3rem, 3.5vw, 1.8rem);
-      font-weight: bold;
-      margin-bottom: clamp(14px, 2.5vw, 20px);
+    h1 {
+      color: #1e3a8a;
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+      margin-top: 0;
+      margin-bottom: 20px;
       text-transform: uppercase;
-      box-shadow: 0 5px 0 #1d4ed8;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
     }
 
-    .section-group {
-      background: #fffbe6;
-      border: 3px solid #f59e0b;
-      border-radius: 20px;
-      padding: clamp(14px, 2.5vw, 20px);
+    .menu-btn-container {
       display: flex;
       flex-direction: column;
-      gap: 14px;
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+      gap: 15px;
     }
 
-    .group-header {
-      font-size: clamp(1.1rem, 2.5vw, 1.3rem);
-      font-weight: bold;
-      padding: 10px 14px;
-      border-radius: 12px;
+    .menu-btn {
+      background-color: #3b82f6;
       color: white;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-      background-color: #f59e0b;
-      box-shadow: 0 3px 0 #d97706;
-    }
-
-    .phase-btn {
-      width: 100%;
-      padding: clamp(14px, 2vw, 18px);
-      font-size: clamp(1rem, 2vw, 1.2rem);
-      font-weight: bold;
-      border-radius: 16px;
       border: none;
+      padding: 15px 20px;
+      border-radius: 16px;
+      font-size: clamp(1rem, 2.5vw, 1.25rem);
+      font-weight: bold;
       cursor: pointer;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      box-shadow: 0 5px 0 #1d4ed8;
       text-decoration: none;
-      transition: transform 0.2s, filter 0.2s;
-    }
-
-    .phase-btn:hover {
-      transform: translateY(-2px) scale(1.02);
-      filter: brightness(1.05);
-    }
-
-    .phase-btn:active {
-      transform: translateY(3px);
-    }
-
-    .btn-fasa1 { background-color: #f59e0b; box-shadow: 0 5px 0 #d97706; }
-    .btn-fasa2 { background-color: #ec4899; box-shadow: 0 5px 0 #be185d; }
-    .btn-fasa3 { background-color: #10b981; box-shadow: 0 5px 0 #047857; }
-    .btn-exit { background-color: #ef4444; box-shadow: 0 5px 0 #b91c1c; margin-top: 5px; }
-
-    .success-badge {
-      margin-top: clamp(14px, 2.5vw, 24px);
-      background-color: #dcfce7;
-      border: 3px dashed #22c55e;
-      padding: 10px;
-      border-radius: 16px;
-      color: #15803d;
-      font-weight: bold;
-      font-size: clamp(0.95rem, 2vw, 1.1rem);
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
       justify-content: center;
-      align-items: center;
-      z-index: 100;
-      padding: 10px;
-    }
-
-    .modal-content {
-      background: white;
-      padding: clamp(15px, 3vw, 25px);
-      border-radius: 20px;
-      width: clamp(290px, 90vw, 540px);
-      max-height: 90vh;
-      overflow-y: auto;
-      text-align: center;
-      border: 4px solid #f59e0b;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-      position: relative;
-    }
-
-    .ska-box {
-      width: 100%;
-      margin: 8px 0;
-      padding: 12px 15px;
-      border-radius: 12px;
-      font-weight: bold;
-      font-size: clamp(0.85rem, 2vw, 1rem);
-      border: none;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .box-s { background: #bfdbfe; color: #1e3a8a; }
-    .box-k { background: #fbcfe8; color: #831843; }
-    .box-a { background: #bbf7d0; color: #14532d; }
-    .box-p { background: #fef08a; color: #713f12; }
-
-    .info-display-box {
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 12px;
-      background-color: #f8fafc;
-      border: 2px dashed #94a3b8;
-      text-align: left;
-    }
-
-    .example-chips {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin-top: 8px;
-    }
-
-    .chip {
-      padding: 4px 10px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: bold;
-      background: white;
-      border: 1px solid #cbd5e1;
-    }
-
-    .word-root-code { color: #dc2626; font-weight: bold; }
-
-    .close-btn {
-      background: #ef4444;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      font-size: 1rem;
-      font-weight: bold;
-      border-radius: 10px;
-      cursor: pointer;
-      display: inline-block;
-      margin-top: 15px;
-      box-shadow: 0 4px 0 #b91c1c;
-    }
-
-    .bgm-toggle-floating {
-      position: fixed;
-      bottom: 18px;
-      right: 18px;
-      background: #f59e0b;
-      color: white;
-      border: none;
-      border-radius: 50px;
-      padding: 10px 20px;
-      font-size: 1rem;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 4px 0 #b45309;
-      z-index: 90;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      gap: 10px;
       transition: transform 0.1s;
     }
 
-    .bgm-toggle-floating:active {
-      transform: translateY(2px);
+    .menu-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 1px 0 #1d4ed8;
+    }
+
+    .btn-fasa2 { background-color: #ec4899; box-shadow: 0 5px 0 #be185d; }
+    .btn-fasa2:active { box-shadow: 0 1px 0 #be185d; }
+
+    .btn-fasa3 { background-color: #10b981; box-shadow: 0 5px 0 #047857; }
+    .btn-fasa3:active { box-shadow: 0 1px 0 #047857; }
+
+    /* Gaya Skrin Amaran Kemas Kini (Update Overlay) */
+    #update-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.85);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .update-box {
+      background: white;
+      color: #1e3a8a;
+      padding: 30px;
+      border-radius: 20px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      border: 4px solid #3b82f6;
+    }
+
+    .spinner {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #3b82f6;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body class="notranslate">
 
+  <!-- Skrin Amaran Semasa PWA Kemas Kini Fail -->
+  <div id="update-overlay">
+    <div class="update-box">
+      <div class="spinner"></div>
+      <h2 style="margin-top: 0; color: #1e3a8a;">Sila tunggu sebentar...</h2>
+      <p style="font-size: 1rem; color: #475569; font-weight: bold;">
+        Aplikasi sedang memuat turun fail pembelajaran terkini. Jangan tutup atau sentuh skrin.
+      </p>
+    </div>
+  </div>
+
   <audio id="bgm-player" loop autoplay src="bgm.mp3"></audio>
 
-  <button class="bgm-toggle-floating" id="bgm-btn" onclick="toggleBGM(event)">🔊 Muzik: ON</button>
-
-  <div class="main-card">
-    <div class="title-banner">💡 Jom Belajar Bina Ayat i-SKA</div>
-
-    <div class="section-group">
-      <div class="group-header">📘 Fasa Pembelajaran</div>
-
-      <button class="phase-btn btn-fasa1" onclick="openFasa1()" title="📌 Klik di sini untuk penerangan Fasa 1">
-        <span>💡 Fasa 1: Apa itu i-SKA?</span>
-        <span>➡️</span>
-      </button>
-
-      <a href="eja.html" class="phase-btn btn-fasa2" title="📌 Klik di sini untuk paparan mengeja">
-        <span>🔤 Fasa 2: Mengeja i-SKA</span>
-        <span>➡️</span>
-      </a>
-
-      <a href="bina_ayat.html" class="phase-btn btn-fasa3" title="📌 Klik di sini mebina ayat">
-        <span>✍️ Fasa 3: Membina Ayat</span>
-        <span>➡️</span>
-      </a>
-
-      <!-- Butang Keluar Aplikasi -->
-      <button class="phase-btn btn-exit" onclick="exitApplication()" title="📌 Klik untuk keluar dari aplikasi">
-        <span>🚪 Keluar Aplikasi</span>
-        <span>✖️</span>
-      </button>
-    </div>
-
-    <div class="success-badge">
-      🎉 BELAJAR SAMBIL BERMAIN 🙋‍♂️
+  <div class="menu-card">
+    <h1>MENU UTAMA i-SKA</h1>
+    <div class="menu-btn-container">
+      <a href="eja.html" class="menu-btn btn-fasa2">🗣️ FASA 2: Mengeja Suku Kata</a>
+      <a href="bina_ayat.html" class="menu-btn btn-fasa3">✍️ FASA 3: Membina Ayat</a>
     </div>
   </div>
 
-  <!-- MODAL FASA 1 -->
-  <div class="modal" id="modal-fasa1">
-    <div class="modal-content" style="text-align: left;">
-      <h2 style="color: #d97706; text-align: center; margin-top: 0;">💡 Apa itu Teknik i-SKA?</h2>
-      <p style="font-size: 0.9rem; color: #475569; margin-bottom: 10px; text-align: center; font-style: italic;">
-        👇 Tekan butang di bawah untuk melihat penerangan & contoh:
-      </p>
-      
-      <button class="ska-box box-s" onclick="showSKADetail('subjek')">
-        <span>S - SUBJEK (Siapa / Pelaku)</span>
-        <span>👆 Tekan</span>
-      </button>
-
-      <button class="ska-box box-k" onclick="showSKADetail('kerja')">
-        <span>K - KATA KERJA TUNGGAL (Buat apa / Perbuatan Tunggal)</span>
-        <span>👆 Tekan</span>
-      </button>
-
-      <button class="ska-box box-a" onclick="showSKADetail('apa')">
-        <span>A - APA / OBJEK (Benda / Sasaran)</span>
-        <span>👆 Tekan</span>
-      </button>
-
-      <button class="ska-box box-p" onclick="showSKADetail('perluasan')">
-        <span>P - PENERANGAN / PERLUASAN (Keterangan)</span>
-        <span>👆 Tekan</span>
-      </button>
-
-      <div id="ska-info-display" class="info-display-box" style="display: none;">
-        <h3 id="info-title" style="margin-top: 0; font-size: 1.1rem;">-</h3>
-        <p id="info-desc" style="margin: 5px 0; font-size: 0.95rem; color: #334155; line-height: 1.4;">-</p>
-        <div id="info-examples" class="example-chips"></div>
-      </div>
-
-      <p style="font-size: 0.9rem; color: #475569; margin-top: 15px; text-align: center;">
-        <strong>Contoh Ayat Penuh:</strong><br>
-        <span style="color: #1e3a8a; font-weight: bold;">Ali</span> (S) + 
-        <span style="color: #831843; font-weight: bold;">cuci</span> (K) + 
-        <span style="color: #14532d; font-weight: bold;">tangan</span> (A) + 
-        <span style="color: #713f12; font-weight: bold;">dengan sabun</span> (P).
-      </p>
-
-      <button class="close-btn" style="display: block; margin: 15px auto 0 auto;" onclick="closeFasa1()">Faham, Tutup ✖️</button>
-    </div>
-  </div>
-
-<script>
-  const bgmAudio = document.getElementById("bgm-player");
-  const bgmBtn = document.getElementById("bgm-btn");
-
-  function tryAutoplayBGM() {
-    bgmAudio.volume = 0.12;
-    bgmAudio.play().then(() => {
-      bgmBtn.innerText = "🔊 Muzik: ON";
-    }).catch(() => {
-      const enableOnGesture = () => {
-        bgmAudio.play().then(() => {
-          bgmBtn.innerText = "🔊 Muzik: ON";
-        });
-        document.removeEventListener('click', enableOnGesture);
-        document.removeEventListener('touchstart', enableOnGesture);
-      };
-      document.addEventListener('click', enableOnGesture);
-      document.addEventListener('touchstart', enableOnGesture);
+  <script>
+    const bgmPlayer = document.getElementById("bgm-player");
+    window.addEventListener("load", () => {
+      bgmPlayer.volume = 0.12;
+      bgmPlayer.play().catch(() => {
+        const unlockAudio = () => {
+          bgmPlayer.play();
+          document.removeEventListener('click', unlockAudio);
+          document.removeEventListener('touchstart', unlockAudio);
+        };
+        document.addEventListener('click', unlockAudio);
+        document.addEventListener('touchstart', unlockAudio);
+      });
     });
-  }
-
-  function toggleBGM(e) {
-    if (e) e.stopPropagation();
-    if (bgmAudio.paused) {
-      bgmAudio.volume = 0.12;
-      bgmAudio.play();
-      bgmBtn.innerText = "🔊 Muzik: ON";
-    } else {
-      bgmAudio.pause();
-      bgmBtn.innerText = "🔇 Muzik: OFF";
-    }
-  }
-
-  window.addEventListener("DOMContentLoaded", tryAutoplayBGM);
-  window.addEventListener("load", tryAutoplayBGM);
-
-  const skaData = {
-    subjek: {
-      title: "🔵 S - SUBJEK (Siapa / Pelaku)",
-      desc: "Subjek ialah orang, haiwan, atau watak yang melakukan perbuatan dalam ayat.",
-      bg: "#eff6ff", borderColor: "#3b82f6",
-      examples: ["Ali", "Ibu", "Kakak", "Kucing", "Murid", "Ayah"]
-    },
-    kerja: {
-      title: "💗 K - KATA KERJA TUNGGAL (Buat Apa / Perbuatan)",
-      desc: "Kata kerja dasar (tanpa imbuhan) yang mewakili perbuatan yang dilakukan.",
-      bg: "#fdf2f8", borderColor: "#ec4899",
-      examples: ["cuci", "masak", "baca", "sapu", "minum", "lipat", "basuh", "potong"]
-    },
-    apa: {
-      title: "🟢 A - APA / OBJEK (Benda / Sasaran)",
-      desc: "Apa/Objek merujuk kepada benda atau sasaran yang menerima perbuatan tersebut.",
-      bg: "#f0fdf4", borderColor: "#22c55e",
-      examples: ["tangan", "nasi", "buku", "lantai", "susu", "pakaian"]
-    },
-    perluasan: {
-      title: "🟡 P - PENERANGAN / PERLUASAN (Keterangan)",
-      desc: "Penerangan/Perluasan memberikan maklumat tambahan seperti cara, tempat, atau alatan.",
-      bg: "#fefce8", borderColor: "#eab308",
-      examples: ["dengan sabun", "di dapur", "di bilik", "sehingga bersih", "pada waktu pagi"]
-    }
-  };
-
-  /* Fungsi Fasa 1: Paparan visual tanpa sebutan suaraSpeech Synthesis */
-  function showSKADetail(type) {
-    const data = skaData[type];
-    const displayBox = document.getElementById("ska-info-display");
-    displayBox.style.display = "block";
-    displayBox.style.backgroundColor = data.bg;
-    displayBox.style.borderColor = data.borderColor;
-
-    document.getElementById("info-title").innerText = data.title;
-    document.getElementById("info-desc").innerText = data.desc;
-
-    const examplesDiv = document.getElementById("info-examples");
-    examplesDiv.innerHTML = "<small style='width:100%; color:#64748b; font-weight:bold;'>Contoh perkataan:</small>";
-    data.examples.forEach(ex => {
-      const chip = document.createElement("span");
-      chip.className = "chip";
-      if (type === 'kerja') {
-        chip.innerHTML = `<span class="word-root-code">${ex}</span>`;
-      } else {
-        chip.innerText = ex;
-      }
-      examplesDiv.appendChild(chip);
-    });
-  }
-
-  function openFasa1() { document.getElementById('modal-fasa1').style.display = 'flex'; }
-  function closeFasa1() {
-    document.getElementById('modal-fasa1').style.display = 'none';
-    document.getElementById('ska-info-display').style.display = 'none';
-  }
-
-  /* Fungsi Keluar / Friendly Exit (Mesra iOS / Android / Chrome) */
-  function exitApplication() {
-    setTimeout(() => {
-      if (confirm("Adakah anda pasti mahu keluar daripada aplikasi ini?")) {
-        if (bgmAudio) bgmAudio.pause();
-
-        // 1. Cuba tutup tetingkap PWA / Window
-        window.close();
-
-        // 2. Paparkan Skrin UI Penutupan Khas jika pelayar menyekat window.close()
-        setTimeout(() => {
-          document.body.innerHTML = `
-            <div style="
-              display: flex; 
-              flex-direction: column; 
-              align-items: center; 
-              justify-content: center; 
-              height: 100vh; 
-              height: 100dvh;
-              background: #1e1b4b; 
-              color: white; 
-              text-align: center; 
-              font-family: 'Comic Sans MS', sans-serif; 
-              padding: 24px;">
-              
-              <div style="font-size: 4rem; margin-bottom: 15px;">👋</div>
-              
-              <h2 style="color: #f59e0b; font-size: 1.8rem; margin: 0 0 10px 0; font-weight: bold;">
-                Sesi Pembelajaran Tamat!
-              </h2>
-              
-              <p style="color: #cbd5e1; max-width: 380px; font-size: 1rem; line-height: 1.5; margin-bottom: 25px;">
-                Syabas kerana telah belajar hari ini. Anda boleh menutup tab ini atau swipe up untuk keluar dari aplikasi.
-              </p>
-              
-              <button onclick="window.location.reload()" style="
-                padding: 12px 28px; 
-                background-color: #3b82f6; 
-                color: white; 
-                border: none; 
-                border-radius: 14px; 
-                font-size: 1.1rem; 
-                font-weight: bold; 
-                box-shadow: 0 4px 0 #1d4ed8; 
-                cursor: pointer;">
-                🔄 Buka Semula Aplikasi
-              </button>
-            </div>
-          `;
-        }, 150);
-      }
-    }, 100);
-  }
-</script>
+  </script>
 </body>
 </html>
