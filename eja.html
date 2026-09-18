@@ -13,7 +13,7 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=35').then((registration) => {
+      navigator.serviceWorker.register('sw.js?v=36').then((registration) => {
         const showUpdateScreen = () => {
           const overlay = document.getElementById('update-overlay');
           if (overlay) overlay.style.display = 'flex';
@@ -199,8 +199,8 @@
       flex-wrap: wrap;
     }
 
-    .syllable-part-1 { color: #1e293b; }
-    .syllable-part-2 { color: #dc2626; }
+    .syllable-part-1 { color: #dc2626; }
+    .syllable-part-2 { color: #1e293b; }
 
     .tile-btn {
       background: #ffffff;
