@@ -13,7 +13,7 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=21').then((registration) => {
+      navigator.serviceWorker.register('sw.js?v=22').then((registration) => {
         if (registration.waiting) {
           registration.waiting.postMessage({ action: 'skipWaiting' });
         }
@@ -340,14 +340,14 @@
     }
   }
 
-  /* 🎵 ENJIN AUDIO HTML5 M4A (Blob Cache Offline) */
+  /* 🎵 ENJIN AUDIO HTML5 mp3 (Blob Cache Offline) */
   const audioMemoryCache = {};
   let isProcessing = false;
   let audioQueue = [];
   let isQueueRunning = false;
 
   function preloadAudioFile(soundKey) {
-    const audioUrl = `sebutan/${soundKey.toLowerCase()}.m4a`;
+    const audioUrl = `sebutan/${soundKey.toLowerCase().replace(/\s+/g, '_')}.mp3`;
     fetch(audioUrl)
       .then(res => res.blob())
       .then(blob => {
@@ -379,7 +379,8 @@
 
     setTimeout(() => {
       const soundKey = currentItem.soundKey.toLowerCase();
-      const audioSource = audioMemoryCache[soundKey] || `sebutan/${soundKey}.m4a`;
+      const formattedKey = soundKey.replace(/\s+/g, '_');
+      const audioSource = audioMemoryCache[soundKey] || `sebutan/${formattedKey}.mp3`;
       const audio = new Audio(audioSource);
 
       if (!bgmAudio.paused) bgmAudio.volume = 0.03;
@@ -391,7 +392,7 @@
           processAudioQueue();
         };
       }).catch((err) => {
-        console.warn(`Fail audio ${soundKey}.m4a tiada:`, err);
+        console.warn(`Fail audio ${formattedKey}.mp3 tiada:`, err);
         if (!bgmAudio.paused) bgmAudio.volume = 0.12;
         if (currentItem.callback) currentItem.callback();
         processAudioQueue();
@@ -448,13 +449,13 @@
     { word: "tulis", syllables: [{ text: "tu", part: 1 }, { text: "lis", part: 2 }] }
   ];
 
-  // Preload semua audio suku kata dan perkataan penuh .m4a
+  // Preload semua audio suku kata dan perkataan penuh .mp3
   window.addEventListener('load', () => {
     wordList.forEach(w => {
       preloadAudioFile(w.word);
       w.syllables.forEach(s => preloadAudioFile(s.text));
     });
-    preloadAudioFile("cuba_lagi");
+    preloadAudioFile("Sila cuba lagi");
   });
 
   let currentIndex = 0;
@@ -509,8 +510,8 @@
     selectedSyllables.push(sylObj);
     originalBtn.style.visibility = "hidden";
 
-    // Delay 3 saat (3000ms) untuk setiap suku kata yang ditekan
-    queueAudio(sylObj.text, 3000);
+    // Delay 1 saat (1000ms) untuk setiap suku kata yang ditekan
+    queueAudio(sylObj.text, 1000);
 
     const builtBox = document.getElementById("built-spelling-box");
     const tileSpan = document.createElement("button");
@@ -563,8 +564,8 @@
 
     } else {
       clearAudioQueue();
-      document.getElementById("feedback-msg").innerHTML = "<span style='color: #dc2626;'>Cuba lagi! ❌</span>";
-      queueAudio("cuba_lagi", 0);
+      document.getElementById("feedback-msg").innerHTML = "<span style='color: #dc2626;'>Sila Cuba lagi! ❌</span>";
+      queueAudio("Sila cuba lagi", 0);
     }
   }
 

@@ -1,6 +1,6 @@
-const CACHE_NAME = 'iska-app-v21';
+const CACHE_NAME = 'iska-app-v22';
 
-// Senarai lengkap fail tempatan & audio .m4a berhuruf besar di depan
+// Senarai lengkap fail tempatan & audio di dalam direktori sebutan/
 const LOCAL_ASSETS = [
   '/',
   'index.html',
@@ -26,14 +26,14 @@ const LOCAL_ASSETS = [
   'images/lembaran7_2.png',
   'images/lembaran7_3.png',
   'images/lembaran7_4.png',
-  'images/lembaran8_1.png',
-  'images/lembaran8_2.png',
-  'images/lembaran8_3.png',
-  'images/lembaran8_4.png',
+  'images/lembaran9_1.png',
+  'images/lembaran9_2.png',
+  'images/lembaran9_3.png',
+  'images/lembaran9_4.png',
 
-  // Audio Sebutan Fasa 3 (Ayat Penuh .mp3)
+  // Audio Sebutan Ayat Penuh (.mp3)
   'sebutan/faris_menulis_karangan.mp3',
-  'sebutan/aina_menyapu_lantai.mp3',
+  'sebutan/aina_sapu_lantai.mp3',
   'sebutan/hakim_membawa_beg_sekolah.mp3',
   'sebutan/sara_membaca_buku.mp3',
   'sebutan/ibu_memasak_nasi.mp3',
@@ -44,21 +44,61 @@ const LOCAL_ASSETS = [
   'sebutan/amir_menunggang_basikal.mp3',
   'sebutan/hana_melompat_tali.mp3',
   'sebutan/danish_bermain_gelongsor.mp3',
-  'sebutan/ali_mencuci_tangan.mp3',
-  'sebutan/mira_memotong_kuku.mp3',
-  'sebutan/abu_minum_susu.mp3',
-  'sebutan/siti_makan_buah.mp3',
+  'sebutan/bapa_tanam_cili_di_kebun.mp3',
+  'sebutan/abang_siram_pokok_bunga_waktu_petang.mp3',
+  'sebutan/ibu_petik_mangga_dengan_berhati_hati.mp3',
+  'sebutan/adik_letak_baja_tanaman_supaya_subur.mp3',
 
-  // Audio Sebutan Fasa 2 (Suku Kata & Perkataan .m4a - Huruf Depan Besar)
-  'sebutan/Cu.m4a', 'sebutan/Ci.m4a', 'sebutan/Ma.m4a', 'sebutan/Sak.m4a',
-  'sebutan/Lin.m4a', 'sebutan/Tas.m4a', 'sebutan/Sa.m4a', 'sebutan/Pu.m4a',
-  'sebutan/Mi.m4a', 'sebutan/Num.m4a', 'sebutan/Li.m4a', 'sebutan/Pat.m4a',
-  'sebutan/Ba.m4a', 'sebutan/Suh.m4a', 'sebutan/Po.m4a', 'sebutan/Tong.m4a',
-  'sebutan/Su.m4a', 'sebutan/Sun.m4a', 'sebutan/Tu.m4a', 'sebutan/Lis.m4a',
-
-  'sebutan/Cuci.m4a', 'sebutan/Masak.m4a', 'sebutan/Lintas.m4a', 'sebutan/Sapu.m4a',
-  'sebutan/Minum.m4a', 'sebutan/Lipat.m4a', 'sebutan/Basuh.m4a', 'sebutan/Potong.m4a',
-  'sebutan/Susun.m4a', 'sebutan/Tulis.m4a', 'sebutan/Cuba_lagi.m4a'
+  // Audio Sebutan Perkataan Individu Fasa 3
+  'sebutan/Faris.mp3',
+  'sebutan/Tulis.mp3',
+  'sebutan/Karangan.mp3',
+  'sebutan/Aina.mp3',
+  'sebutan/Sapu.mp3',
+  'sebutan/Lantai.mp3',
+  'sebutan/Hakim.mp3',
+  'sebutan/Bawa.mp3',
+  'sebutan/Beg_sekolah.mp3',
+  'sebutan/Sara.mp3',
+  'sebutan/Baca.mp3',
+  'sebutan/Buku.mp3',
+  'sebutan/Ibu.mp3',
+  'sebutan/Masak.mp3',
+  'sebutan/Nasi.mp3',
+  'sebutan/Ayah.mp3',
+  'sebutan/Basuh.mp3',
+  'sebutan/Kereta.mp3',
+  'sebutan/Kakak.mp3',
+  'sebutan/Lipat.mp3',
+  'sebutan/Pakaian.mp3',
+  'sebutan/Adik.mp3',
+  'sebutan/Susun.mp3',
+  'sebutan/Kasut.mp3',
+  'sebutan/Rina.mp3',
+  'sebutan/Main.mp3',
+  'sebutan/Buaian.mp3',
+  'sebutan/Amir.mp3',
+  'sebutan/Tunggang.mp3',
+  'sebutan/Basikal.mp3',
+  'sebutan/Hana.mp3',
+  'sebutan/Lompat.mp3',
+  'sebutan/Tali.mp3',
+  'sebutan/Danish.mp3',
+  'sebutan/Gelongsor.mp3',
+  'sebutan/Bapa.mp3',
+  'sebutan/Tanam.mp3',
+  'sebutan/Cili.mp3',
+  'sebutan/Di_kebun.mp3',
+  'sebutan/Abang.mp3',
+  'sebutan/Siram.mp3',
+  'sebutan/Pokok_bunga.mp3',
+  'sebutan/Pada_waktu_petang.mp3',
+  'sebutan/Petik.mp3',
+  'sebutan/Mangga.mp3',
+  'sebutan/Dengan_berhati_hati.mp3',
+  'sebutan/Letak.mp3',
+  'sebutan/Baja_tanaman.mp3',
+  'sebutan/Supaya_subur.mp3'
 ];
 
 const EXTERNAL_CDN = [
@@ -70,7 +110,7 @@ const EXTERNAL_CDN = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      console.log('[Service Worker v21] Memuat turun semula kesemua aset & .m4a...');
+      console.log('[Service Worker v22] Memuat turun semula kesemua aset & audio perkataan...');
       for (const asset of LOCAL_ASSETS) {
         try {
           const response = await fetch(asset, { cache: 'reload' });
@@ -104,7 +144,6 @@ self.addEventListener('activate', (event) => {
       );
     }).then(() => {
       return self.clients.claim().then(() => {
-        // Hantar arahan kepada semua tab pelayar untuk reload automatik
         self.clients.matchAll({ type: 'window' }).then(clients => {
           clients.forEach(client => client.postMessage({ action: 'forceReload' }));
         });
@@ -131,7 +170,7 @@ self.addEventListener('fetch', (event) => {
             status: 206,
             statusText: 'Partial Content',
             headers: new Headers({
-              'Content-Type': cachedResponse.headers.get('Content-Type') || 'audio/mp4',
+              'Content-Type': cachedResponse.headers.get('Content-Type') || 'audio/mpeg',
               'Content-Range': `bytes ${start}-${end}/${blob.size}`,
               'Content-Length': chunk.size,
               'Accept-Ranges': 'bytes'
