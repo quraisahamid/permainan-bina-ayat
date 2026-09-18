@@ -10,7 +10,7 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=30').then((registration) => {
+      navigator.serviceWorker.register('sw.js?v=31').then((registration) => {
         const showUpdateScreen = () => {
           const overlay = document.getElementById('update-overlay');
           if (overlay) overlay.style.display = 'flex';
@@ -613,7 +613,17 @@
   function unlockDelayedAudio() {
     if (delayedAudioUnlocked) return;
     delayedAudioUnlocked = true;
-    delayedAudioEl.play().then(() => delayedAudioEl.pause()).catch(() => {});
+    // Guna fail sebenar (dibisukan) untuk "buka kunci" - main tanpa sumber
+    // langsung boleh menyebabkan elemen tersekat/rosak pada sesetengah Android.
+    delayedAudioEl.muted = true;
+    delayedAudioEl.src = 'bgm.mp3';
+    delayedAudioEl.play().then(() => {
+      delayedAudioEl.pause();
+      delayedAudioEl.currentTime = 0;
+      delayedAudioEl.muted = false;
+    }).catch(() => {
+      delayedAudioEl.muted = false;
+    });
   }
   document.addEventListener('click', unlockDelayedAudio, { once: true });
   document.addEventListener('touchstart', unlockDelayedAudio, { once: true, passive: true });
