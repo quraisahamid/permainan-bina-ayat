@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Permainan Bina Ayat Bahasa Melayu</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
+    }
+
+    body {
+      background-color: #f0f9ff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 10px;
+    }
+
+    .game-container {
+      background: #ffffff;
+      border: 4px solid #3b82f6;
+      border-radius: 20px;
+      padding: 15px;
+      max-width: 680px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      position: relative;
+    }
+    
+    .bgm-control {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+    }
+
+    .bgm-btn {
+      background: #f59e0b;
+      border: none;
+      border-radius: 50%;
+      width: 42px;
+      height: 42px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #b45309;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.1s;
+    }
+
+    .bgm-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #b45309;
+    }
+
+    .main-title {
+      color: #1e3a8a;
+      font-size: 1.6rem;
+      margin-top: 5px;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+
+    .instruction-text {
+      color: #475569;
+      font-size: 0.95rem;
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-style: italic;
+    }
+
+    .header-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      background: #e0f2fe;
+      padding: 8px 15px;
+      border-radius: 12px;
+      font-weight: bold;
+      color: #0369a1;
+    }
+
+    .image-card {
+      width: 100%;
+      max-width: 320px;
+      height: 200px;
+      margin: 0 auto 15px auto;
+      border-radius: 15px;
+      border: 3px solid #cbd5e1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f8fafc;
+      overflow: hidden;
+      padding: 5px;
+    }
+
+    .image-card img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 10px;
+    }
+
+    .pattern-legend {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 15px;
+      font-size: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .legend-tag {
+      padding: 3px 6px;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+
+    .tag-siapa { background-color: #bfdbfe; color: #1e3a8a; }
+    .tag-kerja { background-color: #fbcfe8; color: #831843; }
+    .tag-apa { background-color: #bbf7d0; color: #14532d; }
+    .tag-perluasan { background-color: #fef08a; color: #713f12; }
+
+    .sentence-builder {
+      min-height: 60px;
+      border: 3px dashed #94a3b8;
+      border-radius: 12px;
+      background-color: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .word-pool {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+      min-height: 45px;
+    }
+
+    .word-btn {
+      padding: 8px 14px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 10px;
+      border: 2px solid rgba(0,0,0,0.1);
+      cursor: pointer;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+      transition: transform 0.1s;
+    }
+
+    .word-btn:active {
+      transform: translateY(2px);
+    }
+
+    .word-btn[data-type="siapa"] { background-color: #bfdbfe; color: #1e3a8a; }
+    .word-btn[data-type="kerja"] { background-color: #fbcfe8; color: #831843; }
+    .word-btn[data-type="apa"] { background-color: #bbf7d0; color: #14532d; }
+    .word-btn[data-type="perluasan"] { background-color: #fef08a; color: #713f12; }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    }
+
+    .btn-prev { background-color: #64748b; }
+    .btn-reset { background-color: #ef4444; }
+    .btn-audio { background-color: #8b5cf6; }
+    .btn-next { background-color: #22c55e; }
+
+    .action-btn:disabled {
+      background-color: #cbd5e1 !important;
+      color: #94a3b8 !important;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .feedback {
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-top: 10px;
+      min-height: 25px;
+    }
+    .correct { color: #16a34a; }
+    .incorrect { color: #dc2626; }
+
+    /* Modal Mini Game Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 20px;
+      max-width: 450px;
+      width: 90%;
+      text-align: center;
+      border: 4px solid #f59e0b;
+    }
+    .letter-box {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      line-height: 40px;
+      margin: 3px;
+      border: 2px solid #3b82f6;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      background: #e0f2fe;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Audio Player MP3 Muzik Latar -->
+<audio id="bgm-player" loop src="bgm.mp3"></audio>
+
+<div class="game-container">
+  <!-- Butang Kawalan Muzik Latar -->
+  <div class="bgm-control">
+    <button class="bgm-btn" id="bgm-toggle" onclick="toggleBGM()" title="Muzik Latar (BGM)">🎵</button>
+  </div>
+
+  <h1 class="main-title">Permainan Bina Ayat</h1>
+  <p class="instruction-text">Sila baca dan lengkapkan ayat berdasarkan gambar.</p>
+
+  <div class="header-info">
+    <span id="sheet-title">Latihan 1</span>
+    <span id="progress">Ayat 1 / 16</span>
+  </div>
+
+  <div class="image-card">
+    <img id="image-display" src="" alt="Gambar Soalan">
+  </div>
+
+  <div class="pattern-legend">
+    <span class="legend-tag tag-siapa">Siapa (Subjek)</span> + 
+    <span class="legend-tag tag-kerja">Kata Kerja</span> + 
+    <span class="legend-tag tag-apa">Apa (Objek)</span> + 
+    <span class="legend-tag tag-perluasan">Perluasan</span>
+  </div>
+
+  <div class="sentence-builder" id="sentence-box"></div>
+  <div class="word-pool" id="word-pool"></div>
+
+  <div class="controls">
+    <button class="action-btn btn-prev" id="prev-btn" onclick="prevQuestion()">⬅️ Sebelum</button>
+    <button class="action-btn btn-audio" onclick="playCurrentSentenceAudio()">🔊 Sebut</button>
+    <button class="action-btn btn-reset" onclick="resetCurrentSentence()">🔄 Semula</button>
+    <button class="action-btn btn-next" id="next-btn" onclick="nextQuestion()" disabled>Ayat Seterusnya ➡️</button>
+  </div>
+
+  <div class="feedback" id="feedback-text"></div>
+</div>
+
+<!-- Modal Mini Game -->
+<div class="modal" id="minigame-modal">
+  <div class="modal-content">
+    <h2 style="color: #d97706; margin-top: 0;">🎮 Mini Game: Kumpul Huruf!</h2>
+    <p>Susun huruf menjadi perkataan yang betul:</p>
+    <h3 id="minigame-hint" style="color: #0284c7;">--</h3>
+    
+    <div id="minigame-target" style="min-height: 50px; margin-bottom: 10px;"></div>
+    <div id="minigame-letters"></div>
+    
+    <div id="minigame-feedback" style="margin-top: 10px; font-weight: bold;"></div>
+    <button class="action-btn btn-next" id="minigame-continue" style="margin-top: 15px; display: none;" onclick="closeMiniGame()">Teruskan Lembaran Seterusnya ➡️</button>
+  </div>
+</div>
+
+<script>
+  const questions = [
+    // --- LEMBARAN 1 ---
+    { sheet: 1, img: "lembaran1_1.png", words: [{ text: "Amir", type: "siapa" }, { text: "melintas", type: "kerja" }, { text: "jalan", type: "apa" }, { text: "di lintasan belang", type: "perluasan" }] },
+    { sheet: 1, img: "lembaran1_2.png", words: [{ text: "Sara", type: "siapa" }, { text: "memakai", type: "kerja" }, { text: "topi keledar", type: "apa" }, { text: "untuk keselamatan", type: "perluasan" }] },
+    { sheet: 1, img: "lembaran1_3.png", words: [{ text: "Hakim", type: "siapa" }, { text: "menunggu", type: "kerja" }, { text: "bas", type: "apa" }, { text: "di perhentian", type: "perluasan" }] },
+    { sheet: 1, img: "lembaran1_4.png", words: [{ text: "Aina", type: "siapa" }, { text: "memakai", type: "kerja" }, { text: "tali pinggang keledar", type: "apa" }, { text: "di dalam kereta", type: "perluasan" }] },
+
+    // --- LEMBARAN 2 ---
+    { sheet: 2, img: "lembaran2_1.png", words: [{ text: "Faris", type: "siapa" }, { text: "memakai", type: "kerja" }, { text: "baju Melayu", type: "apa" }, { text: "semasa sambutan Hari Raya", type: "perluasan" }] },
+    { sheet: 2, img: "lembaran2_2.png", words: [{ text: "Mei Ling", type: "siapa" }, { text: "memakai", type: "kerja" }, { text: "cheongsam", type: "apa" }, { text: "ketika Tahun Baharu Cina", type: "perluasan" }] },
+    { sheet: 2, img: "lembaran2_3.png", words: [{ text: "Kavin", type: "siapa" }, { text: "memakai", type: "kerja" }, { text: "sari", type: "apa" }, { text: "semasa Deepavali", type: "perluasan" }] },
+    { sheet: 2, img: "lembaran2_4.png", words: [{ text: "Murid-murid", type: "siapa" }, { text: "menari", type: "kerja" }, { text: "tarian tradisional", type: "apa" }, { text: "dengan gembira", type: "perluasan" }] },
+
+    // --- LEMBARAN 3 ---
+    { sheet: 3, img: "lembaran3_1.png", words: [{ text: "Petani", type: "siapa" }, { text: "menanam", type: "kerja" }, { text: "padi", type: "apa" }, { text: "di sawah", type: "perluasan" }] },
+    { sheet: 3, img: "lembaran3_2.png", words: [{ text: "Amir", type: "siapa" }, { text: "menyiram", type: "kerja" }, { text: "pokok sayur", type: "apa" }, { text: "pada waktu petang", type: "perluasan" }] },
+    { sheet: 3, img: "lembaran3_3.png", words: [{ text: "Pekebun", type: "siapa" }, { text: "memetik", type: "kerja" }, { text: "buah", type: "apa" }, { text: "dengan berhati-hati", type: "perluasan" }] },
+    { sheet: 3, img: "lembaran3_4.png", words: [{ text: "Siti", type: "siapa" }, { text: "membaja", type: "kerja" }, { text: "tanaman", type: "apa" }, { text: "supaya subur", type: "perluasan" }] },
+
+    // --- LEMBARAN 4 ---
+    { sheet: 4, img: "lembaran4_1.png", words: [{ text: "Amir", type: "siapa" }, { text: "menggunakan", type: "kerja" }, { text: "komputer", type: "apa" }, { text: "di makmal komputer", type: "perluasan" }] },
+    { sheet: 4, img: "lembaran4_2.png", words: [{ text: "Sara", type: "siapa" }, { text: "menaip", type: "kerja" }, { text: "tugasan", type: "apa" }, { text: "dengan teliti", type: "perluasan" }] },
+    { sheet: 4, img: "lembaran4_3.png", words: [{ text: "Guru", type: "siapa" }, { text: "mengajar", type: "kerja" }, { text: "murid", type: "apa" }, { text: "menggunakan proyektor", type: "perluasan" }] },
+    { sheet: 4, img: "lembaran4_4.png", words: [{ text: "Hakim", type: "siapa" }, { text: "mencari", type: "kerja" }, { text: "maklumat", type: "apa" }, { text: "di Internet", type: "perluasan" }] }
+  ];
+
+  const miniGameData = [
+    { target: "MELINTAS", hint: "Perbuatan berjalan menyeberangi jalan." },
+    { target: "CHEONGSAM", hint: "Pakaian tradisional masyarakat Cina." },
+    { target: "MENANAM", hint: "Aktiviti meletakkan benih padi di sawah." },
+    { target: "KOMPUTER", hint: "Alat elektronik yang digunakan di makmal." }
+  ];
+
+  let currentIndex = 0;
+  let selectedWords = [];
+  let bgmPlaying = false;
+
+  // Function Kawalan BGM MP3
+  function toggleBGM() {
+    const bgmPlayer = document.getElementById("bgm-player");
+    const btn = document.getElementById("bgm-toggle");
+
+    if (!bgmPlaying) {
+      bgmPlayer.volume = 0.25; // Tetapkan kelantangan lembut (25%) supaya sebutan jelas
+      bgmPlayer.play().then(() => {
+        bgmPlaying = true;
+        btn.innerText = "🔊";
+      }).catch(err => {
+        console.log("Audio BGM error:", err);
+      });
+    } else {
+      bgmPlayer.pause();
+      bgmPlaying = false;
+      btn.innerText = "🎵";
+    }
+  }
+
+  // Web Speech Synthesis
+  function speakText(text) {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ms-MY';
+      utterance.rate = 0.85;
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
+  function loadQuestion() {
+    const q = questions[currentIndex];
+    selectedWords = [];
+    
+    document.getElementById("next-btn").disabled = true;
+    document.getElementById("prev-btn").disabled = currentIndex === 0;
+
+    document.getElementById("sheet-title").innerText = `Latihan ${q.sheet}`;
+    document.getElementById("progress").innerText = `Ayat ${currentIndex + 1} / ${questions.length}`;
+    
+    document.getElementById("image-display").src = q.img;
+    document.getElementById("feedback-text").innerText = "";
+    document.getElementById("sentence-box").innerHTML = "";
+
+    const shuffled = [...q.words].sort(() => Math.random() - 0.5);
+    const poolContainer = document.getElementById("word-pool");
+    poolContainer.innerHTML = "";
+
+    shuffled.forEach((w) => {
+      const btn = document.createElement("button");
+      btn.className = "word-btn";
+      btn.innerText = w.text;
+      btn.dataset.type = w.type;
+      btn.onclick = () => selectWord(w, btn);
+      poolContainer.appendChild(btn);
+    });
+  }
+
+  function selectWord(wordObj, btnElement) {
+    selectedWords.push(wordObj);
+    btnElement.style.visibility = "hidden";
+
+    speakText(wordObj.text);
+
+    const targetBox = document.getElementById("sentence-box");
+    const wordSpan = document.createElement("button");
+    wordSpan.className = "word-btn";
+    wordSpan.innerText = wordObj.text;
+    wordSpan.dataset.type = wordObj.type;
+    
+    wordSpan.onclick = () => undoWord(wordObj, btnElement, wordSpan);
+    targetBox.appendChild(wordSpan);
+
+    checkAnswer();
+  }
+
+  function undoWord(wordObj, originalBtn, builtBtn) {
+    selectedWords = selectedWords.filter(w => w !== wordObj);
+    builtBtn.remove();
+    originalBtn.style.visibility = "visible";
+    document.getElementById("feedback-text").innerText = "";
+    document.getElementById("next-btn").disabled = true;
+  }
+
+  function resetCurrentSentence() {
+    loadQuestion();
+  }
+
+  function checkAnswer() {
+    const targetLength = questions[currentIndex].words.length;
+
+    if (selectedWords.length === targetLength) {
+      const isCorrect = selectedWords.every((w, index) => w === questions[currentIndex].words[index]);
+      const feedback = document.getElementById("feedback-text");
+
+      if (isCorrect) {
+        feedback.className = "feedback correct";
+        feedback.innerText = "Syabas! Ayat ini Betul! 🎉";
+        
+        const fullSentence = selectedWords.map(w => w.text).join(" ");
+        speakText("Syabas! " + fullSentence);
+
+        document.getElementById("next-btn").disabled = false;
+      } else {
+        feedback.className = "feedback incorrect";
+        feedback.innerText = "Sila cuba lagi! ❌";
+        speakText("Sila cuba lagi!");
+        document.getElementById("next-btn").disabled = true;
+      }
+    }
+  }
+
+  function playCurrentSentenceAudio() {
+    const fullSentence = questions[currentIndex].words.map(w => w.text).join(" ");
+    speakText(fullSentence);
+  }
+
+  function nextQuestion() {
+    if ((currentIndex + 1) % 4 === 0 && currentIndex < questions.length - 1) {
+      openMiniGame(Math.floor(currentIndex / 4));
+    } else if (currentIndex < questions.length - 1) {
+      currentIndex++;
+      loadQuestion();
+    } else {
+      speakText("Tahniah! Anda telah selesai membina semua ayat!");
+      alert("Tahniah! Anda telah selesai membina semua 16 ayat! 🌟");
+      currentIndex = 0;
+      loadQuestion();
+    }
+  }
+
+  function prevQuestion() {
+    if (currentIndex > 0) {
+      currentIndex--;
+      loadQuestion();
+    }
+  }
+
+  // --- LOGIK MINI GAME ---
+  let mgTargetWord = "";
+  let mgCurrentArr = [];
+
+  function openMiniGame(sheetIdx) {
+    const gameData = miniGameData[sheetIdx] || miniGameData[0];
+    mgTargetWord = gameData.target;
+    mgCurrentArr = [];
+
+    document.getElementById("minigame-hint").innerText = `Petunjuk: "${gameData.hint}"`;
+    document.getElementById("minigame-target").innerHTML = "";
+    document.getElementById("minigame-feedback").innerText = "";
+    document.getElementById("minigame-continue").style.display = "none";
+
+    const lettersContainer = document.getElementById("minigame-letters");
+    lettersContainer.innerHTML = "";
+
+    let letters = mgTargetWord.split('').sort(() => Math.random() - 0.5);
+    letters.forEach((char) => {
+      const box = document.createElement("div");
+      box.className = "letter-box";
+      box.innerText = char;
+      box.onclick = () => {
+        mgCurrentArr.push(char);
+        box.style.visibility = "hidden";
+        updateMiniGameUI();
+        speakText(char);
+      };
+      lettersContainer.appendChild(box);
+    });
+
+    document.getElementById("minigame-modal").style.display = "flex";
+  }
+
+  function updateMiniGameUI() {
+    const targetDiv = document.getElementById("minigame-target");
+    targetDiv.innerHTML = "";
+    mgCurrentArr.forEach((char, idx) => {
+      const box = document.createElement("div");
+      box.className = "letter-box";
+      box.innerText = char;
+      box.onclick = () => {
+        mgCurrentArr.splice(idx, 1);
+        resetMiniGameLetters();
+        updateMiniGameUI();
+      };
+      targetDiv.appendChild(box);
+    });
+
+    if (mgCurrentArr.join('') === mgTargetWord) {
+      document.getElementById("minigame-feedback").innerText = "Tahniah! Perkataan Betul! 🎉";
+      document.getElementById("minigame-feedback").style.color = "#16a34a";
+      document.getElementById("minigame-continue").style.display = "inline-block";
+      speakText("Tahniah! " + mgTargetWord);
+    }
+  }
+
+  function resetMiniGameLetters() {
+    const lettersContainer = document.getElementById("minigame-letters");
+    const boxes = lettersContainer.querySelectorAll(".letter-box");
+    let tempArr = [...mgCurrentArr];
+    
+    boxes.forEach(box => {
+      let char = box.innerText;
+      let indexInTemp = tempArr.indexOf(char);
+      if (indexInTemp > -1) {
+        box.style.visibility = "hidden";
+        tempArr.splice(indexInTemp, 1);
+      } else {
+        box.style.visibility = "visible";
+      }
+    });
+  }
+
+  function closeMiniGame() {
+    document.getElementById("minigame-modal").style.display = "none";
+    currentIndex++;
+    loadQuestion();
+  }
+
+  loadQuestion();
+</script>
+</body>
+</html>

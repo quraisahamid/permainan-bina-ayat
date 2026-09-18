@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="ms" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="google" content="notranslate">
+  <meta name="chrome" content="notranslate">
+  <title>Game 3: Cari Pasangan Huruf</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Chalkboard SE', 'Comic Sans MS', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #e0f2fe 0%, #fef3c7 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0;
+      padding: clamp(10px, 2.5vw, 24px);
+    }
+
+    .game-card {
+      background: white;
+      padding: clamp(15px, 3vw, 25px);
+      border-radius: 20px;
+      width: clamp(290px, 90vw, 520px);
+      text-align: center;
+      border: 4px solid #ec4899;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      position: relative;
+    }
+
+    #memory-canvas-holder {
+      width: 100%;
+      height: clamp(260px, 45vh, 360px);
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 8px 0;
+    }
+
+    #memoryCanvas {
+      width: 100%;
+      height: 100%;
+      background: #fdf2f8;
+      border-radius: 16px;
+      border: 2px solid #f472b6;
+      touch-action: none;
+    }
+
+    .action-btn {
+      padding: 8px 16px;
+      font-size: clamp(0.85rem, 2vw, 0.95rem);
+      font-weight: bold;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .back-btn {
+      background-color: #64748b;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      padding: 10px;
+    }
+
+    .modal-content {
+      background: white;
+      padding: clamp(15px, 3vw, 25px);
+      border-radius: 20px;
+      width: clamp(290px, 90vw, 520px);
+      max-height: 90vh;
+      overflow-y: auto;
+      text-align: center;
+      border: 4px solid #f472b6;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      position: relative;
+    }
+
+    .kid-instruction-box {
+      text-align: left;
+      background: #fff1f2;
+      border: 2px dashed #fda4af;
+      padding: 10px;
+      border-radius: 16px;
+      margin: 10px 0;
+      font-size: clamp(0.85rem, 2vw, 0.95rem);
+      color: #881337;
+    }
+
+    .kid-instruction-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body class="notranslate">
+
+  <div class="game-card">
+    <h2 style="color: #be185d; margin-top: 0;">🃏 Game 3: Cari Pasangan Huruf</h2>
+    
+    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 0.95rem; color: #334155; padding: 0 5px; margin-bottom: 5px;">
+      <span>⭐ Markah: <span id="mem-score" style="color: #2563eb;">0</span></span>
+      <span>🔄 Cubaan: <span id="mem-flips" style="color: #db2777;">0</span></span>
+      <button class="action-btn" style="background-color: #f472b6; padding: 3px 8px; font-size: 0.8rem;" onclick="showMemoryHelp()">❓ Cara Bermain</button>
+    </div>
+
+    <div id="memory-canvas-holder">
+      <canvas id="memoryCanvas"></canvas>
+    </div>
+
+    <div id="mem-feedback" style="font-weight: bold; min-height: 22px; font-size: 0.95rem;"></div>
+
+    <div style="margin-top: 8px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
+      <button class="action-btn" style="background-color: #22c55e;" onclick="initMemoryGame()">🔄 Mula Semula</button>
+      <a href="index.html" class="action-btn back-btn">🏠 Halaman Utama</a>
+    </div>
+  </div>
+
+  <!-- SUB-MODAL 1: CARA BERMAIN GAME 3 -->
+  <div class="modal" id="mem-help-modal" style="z-index: 120;">
+    <div class="modal-content">
+      <h2 style="color: #9d174d; margin-top: 0;">📖 Cara Bermain</h2>
+      <p style="font-weight: bold; color: #be123c; margin-bottom: 8px;">
+        🎯 Padankan semua huruf konsonan dengan gambarnya!
+      </p>
+
+      <div class="kid-instruction-box">
+        <div class="kid-instruction-item">
+          <span style="font-size: 1.3rem;">👆</span>
+          <span>Ketik kad untuk membukanya.</span>
+        </div>
+        <div class="kid-instruction-item">
+          <span style="font-size: 1.3rem;">🔁</span>
+          <span>Padankan huruf dengan gambar (cth. <b>b</b> ↔️ <b>⚽ bola</b>).</span>
+        </div>
+        <div class="kid-instruction-item">
+          <span style="font-size: 1.3rem;">✨</span>
+          <span>Ingat kedudukan kad untuk kumpul markah kombo!</span>
+        </div>
+      </div>
+
+      <p style="font-size: 0.85rem; color: #9f1239; font-style: italic;">
+        💡 Tip: Padankan dengan cubaan paling sedikit untuk dapat 3 bintang!
+      </p>
+
+      <div style="margin-top: 8px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
+        <button class="action-btn" style="background-color: #22c55e; width: 100%; font-size: 1rem; padding: 10px; margin-top: 8px;" onclick="closeMemoryHelp()">Mula Main! 🚀</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUB-MODAL 2: TAHNIAH / KEMENANGAN GAME 3 -->
+  <div class="modal" id="mem-win-modal" style="z-index: 120;">
+    <div class="modal-content" style="border-color: #22c55e;">
+      <h2 style="color: #15803d; margin-top: 0;">🎉 SYABAS & TAHNIAH!</h2>
+      <p style="color: #334155; font-weight: bold;">Anda berjaya mencari kesemua pasangan!</p>
+      
+      <div id="mem-win-stars" style="font-size: 2.5rem; margin: 8px 0;">⭐⭐⭐</div>
+      
+      <div class="kid-instruction-box" style="text-align: center; justify-content: center;">
+        <div>Jumlah Markah: <b id="mem-final-score" style="color: #2563eb; font-size: 1.1rem;">0</b></div>
+        <div>Jumlah Cubaan: <b id="mem-final-flips" style="color: #db2777; font-size: 1.1rem;">0</b></div>
+      </div>
+
+      <button class="action-btn" style="background-color: #22c55e; width: 100%; font-size: 1rem; padding: 10px; margin-top: 8px;" onclick="closeWinModalAndRestart()">Main Semula 🔄</button>
+    </div>
+  </div>
+
+<script>
+  let msVoice = null;
+  function loadVoices() {
+    if ('speechSynthesis' in window) {
+      const voices = window.speechSynthesis.getVoices();
+      msVoice = voices.find(v => v.lang === 'ms-MY' || v.lang === 'ms_MY' || v.lang.toLowerCase().includes('melayu') || v.lang.toLowerCase().includes('malay'));
+    }
+  }
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    loadVoices();
+  }
+
+  function speakText(text) {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text.toLowerCase());
+      utterance.lang = 'ms-MY';
+      if (msVoice) utterance.voice = msVoice;
+      utterance.rate = 0.85;
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
+  const MASTER_PAIR_LIST = [
+    { letter: 'b', word: 'bola', emoji: '⚽', color: '#3b82f6' },
+    { letter: 'k', word: 'kucing', emoji: '🐱', color: '#f59e0b' },
+    { letter: 'd', word: 'daun', emoji: '🍃', color: '#10b981' },
+    { letter: 'g', word: 'gajah', emoji: '🐘', color: '#8b5cf6' },
+    { letter: 'r', word: 'rumah', emoji: '🏠', color: '#ef4444' },
+    { letter: 's', word: 'susu', emoji: '🥛', color: '#06b6d4' },
+    { letter: 'm', word: 'mata', emoji: '👁️', color: '#ec4899' },
+    { letter: 'p', word: 'pokok', emoji: '🌳', color: '#059669' },
+    { letter: 't', word: 'topi', emoji: '👒', color: '#d97706' },
+    { letter: 'l', word: 'lebah', emoji: '🐝', color: '#eab308' }
+  ];
+
+  let memCards = [];
+  let memFlippedCards = [];
+  let memScore = 0;
+  let memFlips = 0;
+  let memMatchedPairs = 0;
+  let memComboCount = 0;
+  let isMemBusy = false;
+  let memParticles = [];
+  let memAnimFrameId = null;
+
+  const memCanvas = document.getElementById('memoryCanvas');
+  const memCtx = memCanvas.getContext('2d');
+  const memCanvasHolder = document.getElementById('memory-canvas-holder');
+
+  let memGridCols = 3;
+  let memGridRows = 4;
+  let memCardWidth = 0;
+  let memCardHeight = 0;
+  let memOffsetX = 0;
+  let memOffsetY = 0;
+
+  function buildMemoryDeck() {
+    const shuffledPairs = [...MASTER_PAIR_LIST].sort(() => Math.random() - 0.5);
+    const selectedPairs = shuffledPairs.slice(0, 6);
+    const deck = [];
+
+    selectedPairs.forEach((item, index) => {
+      deck.push({
+        pairId: index, type: 'letter', content: item.letter, subtext: '', color: item.color,
+        isFlipped: false, isMatched: false, flipProgress: 0
+      });
+      deck.push({
+        pairId: index, type: 'image', content: item.emoji, subtext: item.word, color: item.color,
+        isFlipped: false, isMatched: false, flipProgress: 0
+      });
+    });
+
+    for (let i = deck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+    return deck;
+  }
+
+  function resizeMemoryCanvas() {
+    if (!memCanvasHolder) return;
+    const rect = memCanvasHolder.getBoundingClientRect();
+    memCanvas.width = rect.width;
+    memCanvas.height = rect.height;
+
+    memGridCols = 3;
+    memGridRows = 4;
+
+    const padding = 8;
+    const availWidth = memCanvas.width - (padding * (memGridCols + 1));
+    const availHeight = memCanvas.height - (padding * (memGridRows + 1));
+
+    memCardWidth = availWidth / memGridCols;
+    memCardHeight = availHeight / memGridRows;
+
+    memOffsetX = padding;
+    memOffsetY = padding;
+  }
+
+  window.addEventListener('resize', resizeMemoryCanvas);
+
+  function createMemSparkles(x, y, color) {
+    for (let i = 0; i < 12; i++) {
+      memParticles.push({
+        x: x, y: y,
+        vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6,
+        size: Math.random() * 6 + 3, color: color, alpha: 1
+      });
+    }
+  }
+
+  function renderMemoryCanvas() {
+    memCtx.clearRect(0, 0, memCanvas.width, memCanvas.height);
+    const padding = 8;
+
+    memCards.forEach((card, index) => {
+      const col = index % memGridCols;
+      const row = Math.floor(index / memGridCols);
+      const baseX = memOffsetX + col * (memCardWidth + padding);
+      const baseY = memOffsetY + row * (memCardHeight + padding);
+
+      const targetProgress = (card.isFlipped || card.isMatched) ? 1 : 0;
+      card.flipProgress += (targetProgress - card.flipProgress) * 0.2;
+
+      memCtx.save();
+      memCtx.translate(baseX + memCardWidth / 2, baseY + memCardHeight / 2);
+
+      const flipScale = Math.abs(Math.cos(card.flipProgress * Math.PI));
+      memCtx.scale(flipScale, 1);
+
+      const drawX = -memCardWidth / 2;
+      const drawY = -memCardHeight / 2;
+
+      const isFront = card.flipProgress >= 0.5;
+
+      if (!isFront) {
+        memCtx.fillStyle = '#93c5fd';
+        memCtx.beginPath();
+        memCtx.roundRect(drawX, drawY, memCardWidth, memCardHeight, 10);
+        memCtx.fill();
+        memCtx.strokeStyle = '#3b82f6';
+        memCtx.lineWidth = 2;
+        memCtx.stroke();
+
+        memCtx.font = `${memCardHeight * 0.35}px sans-serif`;
+        memCtx.textAlign = 'center';
+        memCtx.textBaseline = 'middle';
+        memCtx.fillText('🐘', 0, 0);
+      } else {
+        memCtx.fillStyle = card.isMatched ? '#f0fdf4' : '#ffffff';
+        memCtx.beginPath();
+        memCtx.roundRect(drawX, drawY, memCardWidth, memCardHeight, 10);
+        memCtx.fill();
+        memCtx.strokeStyle = card.isMatched ? '#22c55e' : card.color;
+        memCtx.lineWidth = 3;
+        memCtx.stroke();
+
+        if (card.type === 'letter') {
+          memCtx.fillStyle = card.color;
+          memCtx.font = `bold ${memCardHeight * 0.4}px 'Chalkboard SE', sans-serif`;
+          memCtx.textAlign = 'center';
+          memCtx.textBaseline = 'middle';
+          memCtx.fillText(card.content, 0, 0);
+        } else {
+          memCtx.font = `${memCardHeight * 0.32}px sans-serif`;
+          memCtx.textAlign = 'center';
+          memCtx.textBaseline = 'middle';
+          memCtx.fillText(card.content, 0, -memCardHeight * 0.12);
+
+          memCtx.fillStyle = '#334155';
+          memCtx.font = `bold ${Math.max(10, memCardHeight * 0.18)}px 'Chalkboard SE', sans-serif`;
+          memCtx.fillText(card.subtext, 0, memCardHeight * 0.28);
+        }
+      }
+
+      memCtx.restore();
+    });
+
+    for (let i = memParticles.length - 1; i >= 0; i--) {
+      const p = memParticles[i];
+      p.x += p.vx; p.y += p.vy; p.alpha -= 0.03;
+      if (p.alpha <= 0) { memParticles.splice(i, 1); continue; }
+      memCtx.save();
+      memCtx.globalAlpha = p.alpha;
+      memCtx.fillStyle = p.color;
+      memCtx.beginPath();
+      memCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      memCtx.fill();
+      memCtx.restore();
+    }
+
+    memAnimFrameId = requestAnimationFrame(renderMemoryCanvas);
+  }
+
+  function handleMemoryClick(clientX, clientY) {
+    if (isMemBusy) return;
+
+    const rect = memCanvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    const padding = 8;
+
+    for (let i = 0; i < memCards.length; i++) {
+      const col = i % memGridCols;
+      const row = Math.floor(i / memGridCols);
+      const cardX = memOffsetX + col * (memCardWidth + padding);
+      const cardY = memOffsetY + row * (memCardHeight + padding);
+
+      if (x >= cardX && x <= cardX + memCardWidth && y >= cardY && y <= cardY + memCardHeight) {
+        const targetCard = memCards[i];
+        if (targetCard.isFlipped || targetCard.isMatched) return;
+
+        targetCard.isFlipped = true;
+        memFlippedCards.push(i);
+
+        if (memFlippedCards.length === 2) {
+          memFlips++;
+          document.getElementById('mem-flips').innerText = memFlips;
+          evaluateMemoryPair();
+        }
+        break;
+      }
+    }
+  }
+
+  function evaluateMemoryPair() {
+    isMemBusy = true;
+    const [idx1, idx2] = memFlippedCards;
+    const card1 = memCards[idx1];
+    const card2 = memCards[idx2];
+
+    if (card1.pairId === card2.pairId) {
+      setTimeout(() => {
+        card1.isMatched = true;
+        card2.isMatched = true;
+
+        const padding = 8;
+        const x1 = memOffsetX + (idx1 % memGridCols) * (memCardWidth + padding) + memCardWidth / 2;
+        const y1 = memOffsetY + Math.floor(idx1 / memGridCols) * (memCardHeight + padding) + memCardHeight / 2;
+        createMemSparkles(x1, y1, card1.color);
+
+        memComboCount++;
+        memScore += 100 + ((memComboCount - 1) * 50);
+        memMatchedPairs++;
+
+        document.getElementById('mem-score').innerText = memScore;
+        document.getElementById('mem-feedback').style.color = "#16a34a";
+        document.getElementById('mem-feedback').innerText = `👍 Betul! (${card2.subtext || card1.content})`;
+        speakText(card2.subtext || card1.content);
+
+        memFlippedCards = [];
+        isMemBusy = false;
+
+        if (memMatchedPairs === 6) {
+          setTimeout(endMemoryGame, 500);
+        }
+      }, 300);
+    } else {
+      memComboCount = 0;
+      setTimeout(() => {
+        document.getElementById('mem-feedback').style.color = "#dc2626";
+        document.getElementById('mem-feedback').innerText = "❌ Bukan pasangan, cuba lagi!";
+        card1.isFlipped = false;
+        card2.isFlipped = false;
+        memFlippedCards = [];
+        isMemBusy = false;
+      }, 1000);
+    }
+  }
+
+  function initMemoryGame() {
+    memScore = 0;
+    memFlips = 0;
+    memMatchedPairs = 0;
+    memComboCount = 0;
+    memFlippedCards = [];
+    isMemBusy = false;
+
+    document.getElementById('mem-score').innerText = memScore;
+    document.getElementById('mem-flips').innerText = memFlips;
+    document.getElementById('mem-feedback').innerText = "";
+
+    memCards = buildMemoryDeck();
+    resizeMemoryCanvas();
+    if (!memAnimFrameId) renderMemoryCanvas();
+  }
+
+  function showMemoryHelp() {
+    document.getElementById('mem-help-modal').style.display = 'flex';
+  }
+
+  function closeMemoryHelp() {
+    document.getElementById('mem-help-modal').style.display = 'none';
+  }
+
+  function endMemoryGame() {
+    let stars = "⭐";
+    if (memFlips <= 8) stars = "⭐⭐⭐";
+    else if (memFlips <= 12) stars = "⭐⭐";
+
+    document.getElementById('mem-win-stars').innerText = stars;
+    document.getElementById('mem-final-score').innerText = memScore;
+    document.getElementById('mem-final-flips').innerText = memFlips;
+
+    document.getElementById('mem-win-modal').style.display = 'flex';
+    speakText("Syabas! Anda berjaya mencari kesemua pasangan!");
+  }
+
+  function closeWinModalAndRestart() {
+    document.getElementById('mem-win-modal').style.display = 'none';
+    initMemoryGame();
+  }
+
+  memCanvas.addEventListener('click', (e) => handleMemoryClick(e.clientX, e.clientY));
+  memCanvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (e.touches.length > 0) handleMemoryClick(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: false });
+
+  window.onload = () => {
+    initMemoryGame();
+    showMemoryHelp();
+  };
+</script>
+</body>
+</html>

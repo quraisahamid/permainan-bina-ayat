@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="ms" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  
+  <meta name="google" content="notranslate">
+  <meta name="chrome" content="notranslate">
+
+  <title>JOM BELAJAR BINA AYAT i-SKA</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#3b82f6">
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js?v=' + Date.now()).then((reg) => {
+          reg.update();
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                newWorker.postMessage({ action: 'skipWaiting' });
+              }
+            });
+          });
+        });
+
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+          }
+        });
+      });
+    }
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Chalkboard SE', 'Comic Sans MS', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #e0f2fe 0%, #fef3c7 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0;
+      padding: clamp(10px, 2.5vw, 24px);
+    }
+
+    .main-card {
+      background: #ffffff;
+      border: 5px solid #3b82f6;
+      border-radius: 28px;
+      padding: clamp(16px, 3vw, 30px);
+      width: clamp(300px, 92vw, 900px);
+      text-align: center;
+      box-shadow: 0 16px 35px rgba(0, 0, 0, 0.15);
+    }
+
+    .title-banner {
+      background-color: #3b82f6;
+      color: white;
+      padding: clamp(10px, 2vw, 16px);
+      border-radius: 18px;
+      font-size: clamp(1.3rem, 3.5vw, 1.8rem);
+      font-weight: bold;
+      margin-bottom: clamp(14px, 2.5vw, 20px);
+      text-transform: uppercase;
+      box-shadow: 0 5px 0 #1d4ed8;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    }
+
+    /* Grouped Grid Dashboard */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: clamp(12px, 2vw, 20px);
+      margin-top: 5px;
+    }
+
+    .section-group {
+      background: #f8fafc;
+      border: 3px solid #cbd5e1;
+      border-radius: 20px;
+      padding: clamp(12px, 2vw, 18px);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    .group-learn {
+      border-color: #f59e0b;
+      background: #fffbe6;
+    }
+
+    .group-games {
+      border-color: #8b5cf6;
+      background: #f3e8ff;
+    }
+
+    .group-header {
+      font-size: clamp(1.05rem, 2.5vw, 1.25rem);
+      font-weight: bold;
+      padding: 8px 12px;
+      border-radius: 12px;
+      color: white;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+      box-shadow: 0 3px 0 rgba(0,0,0,0.15);
+    }
+
+    .header-learn { background-color: #f59e0b; }
+    .header-games { background-color: #8b5cf6; }
+
+    .phase-btn {
+      width: 100%;
+      padding: clamp(12px, 2vw, 16px);
+      font-size: clamp(0.95rem, 2vw, 1.15rem);
+      font-weight: bold;
+      border-radius: 16px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      text-decoration: none;
+      transition: transform 0.2s, filter 0.2s;
+    }
+
+    .phase-btn:hover {
+      transform: translateY(-2px) scale(1.02);
+      filter: brightness(1.05);
+    }
+
+    .phase-btn:active {
+      transform: translateY(3px);
+    }
+
+    /* Learning Group Buttons */
+    .btn-fasa1 { background-color: #f59e0b; box-shadow: 0 5px 0 #d97706; }
+    .btn-fasa2 { background-color: #ec4899; box-shadow: 0 5px 0 #be185d; }
+    .btn-fasa3 { background-color: #10b981; box-shadow: 0 5px 0 #047857; }
+
+    /* Mini Game Group Buttons */
+    .btn-minigame { background-color: #6366f1; box-shadow: 0 5px 0 #4338ca; }
+    .btn-whackamole { background-color: #ef4444; box-shadow: 0 5px 0 #b91c1c; }
+    .btn-memorygame { background-color: #ec4899; box-shadow: 0 5px 0 #be185d; }
+
+    .success-badge {
+      margin-top: clamp(14px, 2.5vw, 24px);
+      background-color: #dcfce7;
+      border: 3px dashed #22c55e;
+      padding: 10px;
+      border-radius: 16px;
+      color: #15803d;
+      font-weight: bold;
+      font-size: clamp(0.95rem, 2vw, 1.1rem);
+    }
+
+    /* Modal Styling */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      padding: 10px;
+    }
+
+    .modal-content {
+      background: white;
+      padding: clamp(15px, 3vw, 25px);
+      border-radius: 20px;
+      width: clamp(290px, 90vw, 520px);
+      max-height: 90vh;
+      overflow-y: auto;
+      text-align: center;
+      border: 4px solid #f59e0b;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      position: relative;
+    }
+
+    .ska-box {
+      width: 100%;
+      margin: 8px 0;
+      padding: 12px 15px;
+      border-radius: 12px;
+      font-weight: bold;
+      font-size: clamp(0.85rem, 2vw, 1rem);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .box-s { background: #bfdbfe; color: #1e3a8a; }
+    .box-k { background: #fbcfe8; color: #831843; }
+    .box-a { background: #bbf7d0; color: #14532d; }
+
+    .info-display-box {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      background-color: #f8fafc;
+      border: 2px dashed #94a3b8;
+      text-align: left;
+    }
+
+    .example-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .chip {
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      background: white;
+      border: 1px solid #cbd5e1;
+    }
+
+    .letter-box {
+      display: inline-block;
+      width: clamp(34px, 8vw, 42px);
+      height: clamp(34px, 8vw, 42px);
+      line-height: clamp(34px, 8vw, 42px);
+      margin: 3px;
+      border: 2px solid #3b82f6;
+      border-radius: 8px;
+      font-size: clamp(1rem, 2.5vw, 1.2rem);
+      font-weight: bold;
+      background: #e0f2fe;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .close-btn {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+      display: inline-block;
+      margin-top: 15px;
+      box-shadow: 0 4px 0 #b91c1c;
+    }
+
+    .action-btn {
+      padding: 8px 16px;
+      font-size: clamp(0.85rem, 2vw, 0.95rem);
+      font-weight: bold;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    }
+
+    .mole-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: clamp(6px, 1.5vw, 10px);
+      margin: 12px 0;
+    }
+
+    .hole {
+      height: clamp(65px, 15vh, 90px);
+      background: #78350f;
+      border-radius: 15px;
+      position: relative;
+      overflow: hidden;
+      border: 3px solid #451a03;
+      box-shadow: inset 0 8px 0 #290e05;
+    }
+
+    .mole {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: #b45309;
+      border-radius: 12px 12px 0 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: top 0.25s ease-out;
+      user-select: none;
+    }
+
+    .mole.up { top: 0%; }
+
+    .mole-word {
+      background: #ffffff;
+      color: #1e293b;
+      padding: 2px 5px;
+      border-radius: 6px;
+      font-size: clamp(0.75rem, 2vw, 0.85rem);
+      margin-top: 2px;
+      box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+    }
+
+    #memory-canvas-holder {
+      width: 100%;
+      height: clamp(260px, 45vh, 360px);
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 8px 0;
+    }
+
+    #memoryCanvas {
+      width: 100%;
+      height: 100%;
+      background: #fdf2f8;
+      border-radius: 16px;
+      border: 2px solid #f472b6;
+      touch-action: none;
+    }
+
+    .kid-instruction-box {
+      text-align: left;
+      background: #fff1f2;
+      border: 2px dashed #fda4af;
+      padding: 10px;
+      border-radius: 16px;
+      margin: 10px 0;
+      font-size: clamp(0.85rem, 2vw, 0.95rem);
+      color: #881337;
+    }
+
+    .kid-instruction-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    /* Landscape Mode Optimizations */
+    @media (orientation: landscape) and (max-height: 550px) {
+      body {
+        padding: 4px;
+      }
+      .main-card {
+        padding: 12px;
+      }
+      .title-banner {
+        padding: 8px;
+        margin-bottom: 8px;
+      }
+      .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+      .section-group {
+        padding: 8px;
+        gap: 6px;
+      }
+      .phase-btn {
+        padding: 8px 12px;
+      }
+    }
+  </style>
+</head>
+<body class="notranslate">
+
+  <div class="main-card">
+    <div class="title-banner">💡 Jom Belajar Bina Ayat i-SKA</div>
+
+    <!-- Grouped Grid Dashboard -->
+    <div class="dashboard-grid">
+      
+      <!-- GROUP 1: FASA PEMBELAJARAN -->
+      <div class="section-group group-learn">
+        <div class="group-header header-learn">📘 Fasa Pembelajaran</div>
+
+        <button class="phase-btn btn-fasa1" onclick="openFasa1()" title="📌 Klik di sini untuk penerangan Fasa 1">
+          <span>💡 Fasa 1: Apa itu i-SKA?</span>
+          <span>➡️</span>
+        </button>
+
+        <a href="eja.html" class="phase-btn btn-fasa2" title="📌 Klik di sini untuk paparan mengeja">
+          <span>🔤 Fasa 2: Mengeja i-SKA</span>
+          <span>➡️</span>
+        </a>
+
+        <a href="bina_ayat.html" class="phase-btn btn-fasa3" title="📌 Klik di sini untuk paparan membina ayat">
+          <span>✍️ Fasa 3: Membina Ayat</span>
+          <span>➡️</span>
+        </a>
+      </div>
+
+      <!-- GROUP 2: MINI GAME -->
+      <div class="section-group group-games">
+        <div class="group-header header-games">🎮 Mini Game</div>
+
+        <button class="phase-btn btn-minigame" onclick="startStandaloneMiniGame()" title="📌 Klik untuk bermain Mini Game Ejaan">
+          <span>🧩 Game 1: Kumpul Huruf</span>
+          <span>➡️</span>
+        </button>
+
+        <button class="phase-btn btn-whackamole" onclick="startWhackAMoleGame()" title="📌 Klik untuk bermain Ketuk Tikus Tanah">
+          <span>🔨 Game 2: Ketuk Tikus Tanah</span>
+          <span>➡️</span>
+        </button>
+
+        <button class="phase-btn btn-memorygame" onclick="startMemoryMatchGame()" title="📌 Klik untuk bermain Cari Pasangan Huruf">
+          <span>🃏 Game 3: Cari Pasangan</span>
+          <span>➡️</span>
+        </button>
+      </div>
+
+    </div>
+
+    <div class="success-badge">
+      🎉 BELAJAR SAMBIL BERMAIN 🙋‍♂️
+    </div>
+  </div>
+
+  <!-- MODAL FASA 1 -->
+  <div class="modal" id="modal-fasa1">
+    <div class="modal-content" style="text-align: left;">
+      <h2 style="color: #d97706; text-align: center; margin-top: 0;">💡 Apa itu Teknik i-SKA?</h2>
+      <p style="font-size: 0.9rem; color: #475569; margin-bottom: 10px; text-align: center; font-style: italic;">
+        👇 Tekan butang di bawah untuk melihat penerangan & contoh:
+      </p>
+      
+      <button class="ska-box box-s" onclick="showSKADetail('subjek')">
+        <span>S - SUBJEK (Siapa / Pelaku)</span>
+        <span>👆 Tekan</span>
+      </button>
+
+      <button class="ska-box box-k" onclick="showSKADetail('kerja')">
+        <span>K - KATA KERJA (Buat apa / Perbuatan)</span>
+        <span>👆 Tekan</span>
+      </button>
+
+      <button class="ska-box box-a" onclick="showSKADetail('apa')">
+        <span>A - APA / OBJEK (Penerangan / Perluasan)</span>
+        <span>👆 Tekan</span>
+      </button>
+
+      <div id="ska-info-display" class="info-display-box" style="display: none;">
+        <h3 id="info-title" style="margin-top: 0; font-size: 1.1rem;">-</h3>
+        <p id="info-desc" style="margin: 5px 0; font-size: 0.95rem; color: #334155; line-height: 1.4;">-</p>
+        <div id="info-examples" class="example-chips"></div>
+      </div>
+
+      <p style="font-size: 0.9rem; color: #475569; margin-top: 15px; text-align: center;">
+        <strong>Contoh Ayat Penuh:</strong><br>
+        <span style="color: #1e3a8a; font-weight: bold;">Ali</span> (S) + 
+        <span style="color: #831843; font-weight: bold;">mencuci</span> (K) + 
+        <span style="color: #14532d; font-weight: bold;">tangan</span> (A).
+      </p>
+
+      <button class="close-btn" style="display: block; margin: 15px auto 0 auto;" onclick="closeFasa1()">Faham, Tutup ✖️</button>
+    </div>
+  </div>
+
+  <!-- MODAL MINI GAME 1 -->
+  <div class="modal" id="minigame-modal">
+    <div class="modal-content" style="border-color: #8b5cf6;">
+      <h2 style="color: #6d28d9; margin-top: 0;">🎮 Mini Game 1: Kumpul Huruf!</h2>
+      
+      <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1rem; color: #334155; padding: 0 5px; margin-bottom: 8px;">
+        <span>⭐ Markah: <span id="mg1-score" style="color: #2563eb;">0</span></span>
+        <span>⏳ Masa: <span id="mg1-timer" style="color: #dc2626;">30</span>s</span>
+      </div>
+
+      <div style="background-color: #f3e8ff; border: 2px dashed #8b5cf6; color: #581c87; padding: 8px 12px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 10px; font-weight: bold;">
+        📌 <strong>Arahan:</strong> Tekan huruf di bawah mengikut urutan yang betul sebelum masa tamat!
+      </div>
+      <h3 id="minigame-hint" style="color: #0284c7; margin: 6px 0;">--</h3>
+      <div id="minigame-target" style="min-height: 45px; margin-bottom: 10px;"></div>
+      <div id="minigame-letters"></div>
+      <div id="minigame-feedback" style="margin-top: 8px; font-weight: bold; min-height: 24px;"></div>
+      
+      <div style="margin-top: 12px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
+        <button class="action-btn" style="background-color: #ef4444;" onclick="setupMiniGameLetters()">🔄 Semula</button>
+        <button class="action-btn" id="mg-next-btn" style="background-color: #22c55e; display: none;" onclick="nextMiniGameWord()">Soalan Seterusnya ➡️</button>
+        <button class="action-btn" style="background-color: #64748b;" onclick="closeMiniGame()">Tutup ✖️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL MINI GAME 2 -->
+  <div class="modal" id="whack-modal">
+    <div class="modal-content" style="border-color: #ef4444;">
+      <h2 style="color: #b91c1c; margin-top: 0;">🔨 Ketuk Tikus Tanah Bahasa Melayu</h2>
+      
+      <div id="wam-instruction" style="background-color: #fee2e2; border: 2px dashed #ef4444; color: #991b1b; padding: 6px 10px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 8px; font-weight: bold;">
+        🎯 Ketuk perkataan jenis: <span id="wam-target-category" style="text-decoration: underline;">--</span>!
+      </div>
+
+      <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1rem; color: #334155; padding: 0 5px;">
+        <span>⭐ Markah: <span id="wam-score" style="color: #2563eb;">0</span></span>
+        <span>⏳ Masa: <span id="wam-timer" style="color: #dc2626;">20</span>s</span>
+      </div>
+
+      <div class="mole-grid">
+        <div class="hole"><div class="mole" onclick="whackMole(0)">🐭<span class="mole-word" id="mw0">-</span></div></div>
+        <div class="hole"><div class="mole" onclick="whackMole(1)">🐭<span class="mole-word" id="mw1">-</span></div></div>
+        <div class="hole"><div class="mole" onclick="whackMole(2)">🐭<span class="mole-word" id="mw2">-</span></div></div>
+        <div class="hole"><div class="mole" onclick="whackMole(3)">🐭<span class="mole-word" id="mw3">-</span></div></div>
+        <div class="hole"><div class="mole" onclick="whackMole(4)">🐭<span class="mole-word" id="mw4">-</span></div></div>
+        <div class="hole"><div class="mole" onclick="whackMole(5)">🐭<span class="mole-word" id="mw5">-</span></div></div>
+        <div class="hole"><div class="mole" onclick="whackMole(6)">🐭<span class="mole-word" id="mw6">-</span></div></div>
+        <div class="hole"><div class="mole" onclick="whackMole(7)">🐭<span class="mole-word" id="mw7">-</span></div></div>
+        <div class="hole"><div class="mole" onclick="whackMole(8)">🐭<span class="mole-word" id="mw8">-</span></div></div>
+      </div>
+
+      <div id="wam-feedback" style="font-weight: bold; min-height: 24px; font-size: 0.95rem;"></div>
+
+      <div style="margin-top: 10px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
+        <button class="action-btn" style="background-color: #22c55e;" onclick="startWhackAMoleGame()">🔄 Mula Semula</button>
+        <button class="action-btn" style="background-color: #64748b;" onclick="closeWhackAMole()">Tutup ✖️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL MAIN GAME 3: CARI PASANGAN HURUF -->
+  <div class="modal" id="memory-modal">
+    <div class="modal-content" style="border-color: #ec4899;">
+      <h2 style="color: #be185d; margin-top: 0;">🃏 Cari Pasangan Huruf</h2>
+      
+      <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 0.95rem; color: #334155; padding: 0 5px; margin-bottom: 5px;">
+        <span>⭐ Markah: <span id="mem-score" style="color: #2563eb;">0</span></span>
+        <span>🔄 Cubaan: <span id="mem-flips" style="color: #db2777;">0</span></span>
+        <button class="action-btn" style="background-color: #f472b6; padding: 3px 8px; font-size: 0.8rem;" onclick="showMemoryHelp()">❓ Cara Bermain</button>
+      </div>
+
+      <div id="memory-canvas-holder">
+        <canvas id="memoryCanvas"></canvas>
+      </div>
+
+      <div id="mem-feedback" style="font-weight: bold; min-height: 22px; font-size: 0.95rem;"></div>
+
+      <div style="margin-top: 8px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
+        <button class="action-btn" style="background-color: #22c55e;" onclick="initMemoryGame()">🔄 Mula Semula</button>
+        <button class="action-btn" style="background-color: #64748b;" onclick="closeMemoryGame()">Tutup ✖️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUB-MODAL 1: CARA BERMAIN GAME 3 -->
+  <div class="modal" id="mem-help-modal" style="z-index: 120;">
+    <div class="modal-content" style="border-color: #f472b6;">
+      <h2 style="color: #9d174d; margin-top: 0;">📖 Cara Bermain</h2>
+      <p style="font-weight: bold; color: #be123c; margin-bottom: 8px;">
+        🎯 Padankan semua huruf konsonan dengan gambarnya!
+      </p>
+
+      <div class="kid-instruction-box">
+        <div class="kid-instruction-item">
+          <span style="font-size: 1.3rem;">👆</span>
+          <span>Ketik kad untuk membukanya.</span>
+        </div>
+        <div class="kid-instruction-item">
+          <span style="font-size: 1.3rem;">🔁</span>
+          <span>Padankan huruf dengan gambar (cth. <b>b</b> ↔️ <b>⚽ bola</b>).</span>
+        </div>
+        <div class="kid-instruction-item">
+          <span style="font-size: 1.3rem;">✨</span>
+          <span>Ingat kedudukan kad untuk kumpul markah kombo!</span>
+        </div>
+      </div>
+
+      <p style="font-size: 0.85rem; color: #9f1239; font-style: italic;">
+        💡 Tip: Padankan dengan cubaan paling sedikit untuk dapat 3 bintang!
+      </p>
+
+            <div style="margin-top: 8px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
+         <button class="action-btn" style="background-color: #22c55e; width: 100%; font-size: 1rem; padding: 10px; margin-top: 8px;" onclick="closeMemoryHelp()">Mula Main! 🚀</button>
+        <button class="action-btn" style="background-color: #64748b;" onclick="closeMemoryGame()">Tutup ✖️</button>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- SUB-MODAL 2: TAHNIAH / KEMENANGAN GAME 3 -->
+  <div class="modal" id="mem-win-modal" style="z-index: 120;">
+    <div class="modal-content" style="border-color: #22c55e;">
+      <h2 style="color: #15803d; margin-top: 0;">🎉 SYABAS & TAHNIAH!</h2>
+      <p style="color: #334155; font-weight: bold;">Anda berjaya mencari kesemua pasangan!</p>
+      
+      <div id="mem-win-stars" style="font-size: 2.5rem; margin: 8px 0;">⭐⭐⭐</div>
+      
+      <div class="kid-instruction-box" style="text-align: center; justify-content: center;">
+        <div>Jumlah Markah: <b id="mem-final-score" style="color: #2563eb; font-size: 1.1rem;">0</b></div>
+        <div>Jumlah Cubaan: <b id="mem-final-flips" style="color: #db2777; font-size: 1.1rem;">0</b></div>
+      </div>
+
+      <button class="action-btn" style="background-color: #22c55e; width: 100%; font-size: 1rem; padding: 10px; margin-top: 8px;" onclick="closeWinModalAndRestart()">Main Semula 🔄</button>
+    </div>
+  </div>
+
+<script>
+  /* ==========================================
+     1. FASA 1 JS
+     ========================================== */
+  const skaData = {
+    subjek: {
+      title: "🔵 S - SUBJEK (Siapa / Pelaku)",
+      desc: "Subjek ialah orang, haiwan, atau watak yang melakukan perbuatan dalam ayat.",
+      bg: "#eff6ff", borderColor: "#3b82f6",
+      examples: ["Ali", "Ibu", "Kakak", "Kucing", "Murid-murid", "Ayah"]
+    },
+    kerja: {
+      title: "💗 K - KATA KERJA (Buat Apa / Perbuatan)",
+      desc: "Kata kerja ialah perbuatan atau tindakan yang dilakukan oleh subjek.",
+      bg: "#fdf2f8", borderColor: "#ec4899",
+      examples: ["mencuci", "memasak", "membaca", "menyapu", "minum", "melipat"]
+    },
+    apa: {
+      title: "🟢 A - APA / OBJEK (Penerangan / Perluasan)",
+      desc: "Apa/Objek merujuk kepada benda yang terlibat atau penerangan lanjut tentang perbuatan tersebut.",
+      bg: "#f0fdf4", borderColor: "#22c55e",
+      examples: ["tangan", "nasi", "buku", "lantai", "susu", "pakaian"]
+    }
+  };
+
+  function showSKADetail(type) {
+    const data = skaData[type];
+    const displayBox = document.getElementById("ska-info-display");
+    displayBox.style.display = "block";
+    displayBox.style.backgroundColor = data.bg;
+    displayBox.style.borderColor = data.borderColor;
+
+    document.getElementById("info-title").innerText = data.title;
+    document.getElementById("info-desc").innerText = data.desc;
+
+    const examplesDiv = document.getElementById("info-examples");
+    examplesDiv.innerHTML = "<small style='width:100%; color:#64748b; font-weight:bold;'>Contoh perkataan:</small>";
+    data.examples.forEach(ex => {
+      const chip = document.createElement("span");
+      chip.className = "chip";
+      chip.innerText = ex;
+      examplesDiv.appendChild(chip);
+    });
+  }
+
+  function openFasa1() { document.getElementById('modal-fasa1').style.display = 'flex'; }
+  function closeFasa1() {
+    document.getElementById('modal-fasa1').style.display = 'none';
+    document.getElementById('ska-info-display').style.display = 'none';
+  }
+
+  /* ==========================================
+     SHARED SPEECH SYNTHESIS LOGIC
+     ========================================== */
+  let msVoice = null;
+  function loadVoices() {
+    if ('speechSynthesis' in window) {
+      const voices = window.speechSynthesis.getVoices();
+      msVoice = voices.find(v => v.lang === 'ms-MY' || v.lang === 'ms_MY' || v.lang.toLowerCase().includes('melayu') || v.lang.toLowerCase().includes('malay'));
+    }
+  }
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    loadVoices();
+  }
+
+  function speakText(text) {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text.toLowerCase());
+      utterance.lang = 'ms-MY';
+      if (msVoice) utterance.voice = msVoice;
+      utterance.rate = 0.85;
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
+  /* ==========================================
+     2. STANDALONE MINI GAME 1 JS
+     ========================================== */
+  const standaloneMiniGameData = [
+    { target: "KARANGAN", hint: "Mari eja KARANGAN." },
+    { target: "PAKAIAN", hint: "Mari eja PAKAIAN." },
+    { target: "BASIKAL", hint: "Mari eja BASIKAL." },
+    { target: "MENCUCI", hint: "Mari eja MENCUCI." }
+  ];
+
+  let mgIndex = 0;
+  let mgTargetWord = "";
+  let mgCurrentArr = [];
+  let mgTimer = null;
+  let mgScore = 0;
+  let mgTimeLeft = 30;
+  let mgCountdownInterval = null;
+  let isWordCompleted = false;
+
+  function startStandaloneMiniGame() {
+    mgIndex = 0;
+    mgScore = 0;
+    document.getElementById("mg1-score").innerText = mgScore;
+    document.getElementById("minigame-modal").style.display = "flex";
+    loadMiniGameQuestion();
+  }
+
+  function loadMiniGameQuestion() {
+    stopTimers();
+    isWordCompleted = false;
+    mgTimeLeft = 30;
+    document.getElementById("mg1-timer").innerText = mgTimeLeft;
+
+    const gameData = standaloneMiniGameData[mgIndex];
+    mgTargetWord = gameData.target;
+    document.getElementById("minigame-hint").innerText = `Petunjuk: "${gameData.hint}"`;
+    setupMiniGameLetters();
+
+    mgCountdownInterval = setInterval(() => {
+      if (!isWordCompleted) {
+        mgTimeLeft--;
+        document.getElementById("mg1-timer").innerText = mgTimeLeft;
+
+        if (mgTimeLeft <= 0) {
+          stopTimers();
+          document.getElementById("minigame-feedback").style.color = "#dc2626";
+          document.getElementById("minigame-feedback").innerText = "⏰ Masa telah tamat! Tekan Semula untuk cuba lagi.";
+          speakText("Masa telah tamat. Cuba lagi ya!");
+        }
+      }
+    }, 1000);
+  }
+
+  function setupMiniGameLetters() {
+    stopTimers();
+    isWordCompleted = false;
+    mgTimeLeft = 30;
+    document.getElementById("mg1-timer").innerText = mgTimeLeft;
+
+    mgCountdownInterval = setInterval(() => {
+      if (!isWordCompleted) {
+        mgTimeLeft--;
+        document.getElementById("mg1-timer").innerText = mgTimeLeft;
+
+        if (mgTimeLeft <= 0) {
+          stopTimers();
+          document.getElementById("minigame-feedback").style.color = "#dc2626";
+          document.getElementById("minigame-feedback").innerText = "⏰ Masa telah tamat! Tekan Semula.";
+          speakText("Masa telah tamat. Cuba lagi ya!");
+        }
+      }
+    }, 1000);
+
+    mgCurrentArr = [];
+    document.getElementById("minigame-target").innerHTML = "";
+    document.getElementById("minigame-feedback").innerText = "";
+    document.getElementById("mg-next-btn").style.display = "none";
+
+    const lettersContainer = document.getElementById("minigame-letters");
+    lettersContainer.innerHTML = "";
+
+    let letters = mgTargetWord.split('').sort(() => Math.random() - 0.5);
+    letters.forEach((char) => {
+      const box = document.createElement("div");
+      box.className = "letter-box";
+      box.innerText = char;
+      box.onclick = () => {
+        if (mgTimeLeft > 0 && !isWordCompleted) {
+          mgCurrentArr.push(char);
+          box.style.visibility = "hidden";
+          updateMiniGameUI();
+        }
+      };
+      lettersContainer.appendChild(box);
+    });
+  }
+
+  function updateMiniGameUI() {
+    const targetDiv = document.getElementById("minigame-target");
+    targetDiv.innerHTML = "";
+    
+    mgCurrentArr.forEach((char, idx) => {
+      const box = document.createElement("div");
+      box.className = "letter-box";
+      box.innerText = char;
+      box.onclick = () => {
+        if (!isWordCompleted && mgTimeLeft > 0) {
+          mgCurrentArr.splice(idx, 1);
+          resetMiniGameLetters();
+          updateMiniGameUI();
+        }
+      };
+      targetDiv.appendChild(box);
+    });
+
+    if (mgCurrentArr.length === mgTargetWord.length) {
+      if (mgCurrentArr.join('') === mgTargetWord) {
+        isWordCompleted = true;
+        stopTimers();
+
+        const bonusPoints = mgTimeLeft;
+        const totalWordScore = 10 + bonusPoints;
+        mgScore += totalWordScore;
+        document.getElementById("mg1-score").innerText = mgScore;
+
+        document.getElementById("minigame-feedback").style.color = "#16a34a";
+        document.getElementById("minigame-feedback").innerText = `${mgTargetWord} 🎉 (+${totalWordScore} Markah!)`;
+        
+        speakText(mgTargetWord);
+        document.getElementById("mg-next-btn").style.display = "inline-block";
+
+      } else {
+        document.getElementById("minigame-feedback").style.color = "#dc2626";
+        document.getElementById("minigame-feedback").innerText = "Salah, sila tekan Semula dan cuba lagi! ❌";
+      }
+    }
+  }
+
+  function resetMiniGameLetters() {
+    const lettersContainer = document.getElementById("minigame-letters");
+    const boxes = lettersContainer.querySelectorAll(".letter-box");
+    let tempArr = [...mgCurrentArr];
+    boxes.forEach(box => {
+      let char = box.innerText;
+      let indexInTemp = tempArr.indexOf(char);
+      if (indexInTemp > -1) {
+        box.style.visibility = "hidden";
+        tempArr.splice(indexInTemp, 1);
+      } else {
+        box.style.visibility = "visible";
+      }
+    });
+  }
+
+  function stopTimers() {
+    if (mgTimer) clearTimeout(mgTimer);
+    if (mgCountdownInterval) clearInterval(mgCountdownInterval);
+  }
+
+  function nextMiniGameWord() {
+    if (mgIndex < standaloneMiniGameData.length - 1) {
+      mgIndex++;
+      loadMiniGameQuestion();
+    } else {
+      stopTimers();
+      speakText(`Tahniah! Jumlah markah anda ialah ${mgScore}`);
+      closeMiniGame();
+    }
+  }
+
+  function closeMiniGame() {
+    stopTimers();
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    document.getElementById("minigame-modal").style.display = "none";
+  }
+
+  /* ==========================================
+     3. MINI GAME 2: KETUK TIKUS TANAH (WHACK-A-MOLE)
+     ========================================== */
+  const wordCategories = {
+    "SUBJEK (Siapa)": {
+      targets: ["Ali", "Ibu", "Kakak", "Kucing", "Ayah", "Cikgu", "Abang", "Murid"],
+      others: ["Mencuci", "Memasak", "Membaca", "Lantai", "Nasi", "Buku", "Minum", "Tangan"]
+    },
+    "KATA KERJA (Perbuatan)": {
+      targets: ["Mencuci", "Memasak", "Membaca", "Menyapu", "Minum", "Melipat", "Berlari", "Menulis"],
+      others: ["Ali", "Ibu", "Kakak", "Lantai", "Nasi", "Buku", "Ayah", "Tangan"]
+    }
+  };
+
+  let wamScore = 0;
+  let wamTimeLeft = 20;
+  let wamGameInterval = null;
+  let wamMoleInterval = null;
+  let currentTargetCat = "";
+  let moleData = Array(9).fill(null);
+
+  function startWhackAMoleGame() {
+    closeWhackAMole();
+    wamScore = 0;
+    wamTimeLeft = 20;
+    document.getElementById("wam-score").innerText = wamScore;
+    document.getElementById("wam-timer").innerText = wamTimeLeft;
+    document.getElementById("wam-feedback").innerText = "";
+    
+    const categories = Object.keys(wordCategories);
+    currentTargetCat = categories[Math.floor(Math.random() * categories.length)];
+    document.getElementById("wam-target-category").innerText = currentTargetCat;
+
+    document.getElementById("whack-modal").style.display = "flex";
+
+    wamMoleInterval = setInterval(popUpMoles, 1000);
+    wamGameInterval = setInterval(() => {
+      wamTimeLeft--;
+      document.getElementById("wam-timer").innerText = wamTimeLeft;
+      if (wamTimeLeft <= 0) {
+        endWhackAMoleGame();
+      }
+    }, 1000);
+  }
+
+  function popUpMoles() {
+    const moles = document.querySelectorAll('.mole');
+    moles.forEach(mole => mole.classList.remove('up'));
+
+    const popCount = Math.floor(Math.random() * 2) + 1;
+    const categoryInfo = wordCategories[currentTargetCat];
+
+    for (let i = 0; i < popCount; i++) {
+      const idx = Math.floor(Math.random() * 9);
+      const isTarget = Math.random() > 0.4;
+      const wordList = isTarget ? categoryInfo.targets : categoryInfo.others;
+      const chosenWord = wordList[Math.floor(Math.random() * wordList.length)];
+
+      moleData[idx] = { word: chosenWord, isCorrect: isTarget };
+      document.getElementById(`mw${idx}`).innerText = chosenWord;
+      moles[idx].classList.add('up');
+    }
+  }
+
+  function whackMole(index) {
+    const moleElem = document.querySelectorAll('.mole')[index];
+    if (!moleElem.classList.contains('up')) return;
+
+    moleElem.classList.remove('up');
+    const data = moleData[index];
+
+    if (data) {
+      speakText(data.word);
+      const feedback = document.getElementById("wam-feedback");
+      if (data.isCorrect) {
+        wamScore += 10;
+        feedback.style.color = "#16a34a";
+        feedback.innerText = `👍 Betul! +10 (${data.word})`;
+      } else {
+        wamScore = Math.max(0, wamScore - 5);
+        feedback.style.color = "#dc2626";
+        feedback.innerText = `❌ Salah! -5 (${data.word})`;
+      }
+      document.getElementById("wam-score").innerText = wamScore;
+    }
+  }
+
+  function endWhackAMoleGame() {
+    clearInterval(wamGameInterval);
+    clearInterval(wamMoleInterval);
+    const moles = document.querySelectorAll('.mole');
+    moles.forEach(mole => mole.classList.remove('up'));
+    
+    document.getElementById("wam-feedback").style.color = "#6d28d9";
+    document.getElementById("wam-feedback").innerText = `🎉 Tamat Masa! Markah Akhir: ${wamScore}`;
+    speakText(`Tamat Masa! Markah anda ialah ${wamScore}`);
+  }
+
+  function closeWhackAMole() {
+    clearInterval(wamGameInterval);
+    clearInterval(wamMoleInterval);
+    document.getElementById("whack-modal").style.display = "none";
+  }
+
+  /* ==========================================
+     4. MINI GAME 3: CARI PASANGAN HURUF (CANVAS 2D)
+     ========================================== */
+  const MASTER_PAIR_LIST = [
+    { letter: 'b', word: 'bola', emoji: '⚽', color: '#3b82f6' },
+    { letter: 'k', word: 'kucing', emoji: '🐱', color: '#f59e0b' },
+    { letter: 'd', word: 'daun', emoji: '🍃', color: '#10b981' },
+    { letter: 'g', word: 'gajah', emoji: '🐘', color: '#8b5cf6' },
+    { letter: 'r', word: 'rumah', emoji: '🏠', color: '#ef4444' },
+    { letter: 's', word: 'susu', emoji: '🥛', color: '#06b6d4' },
+    { letter: 'm', word: 'mata', emoji: '👁️', color: '#ec4899' },
+    { letter: 'p', word: 'pokok', emoji: '🌳', color: '#059669' },
+    { letter: 't', word: 'topi', emoji: '👒', color: '#d97706' },
+    { letter: 'l', word: 'lebah', emoji: '🐝', color: '#eab308' }
+  ];
+
+  let memCards = [];
+  let memFlippedCards = [];
+  let memScore = 0;
+  let memFlips = 0;
+  let memMatchedPairs = 0;
+  let memComboCount = 0;
+  let isMemBusy = false;
+  let memParticles = [];
+  let memAnimFrameId = null;
+
+  const memCanvas = document.getElementById('memoryCanvas');
+  const memCtx = memCanvas.getContext('2d');
+  const memCanvasHolder = document.getElementById('memory-canvas-holder');
+
+  let memGridCols = 3;
+  let memGridRows = 4;
+  let memCardWidth = 0;
+  let memCardHeight = 0;
+  let memOffsetX = 0;
+  let memOffsetY = 0;
+
+  function buildMemoryDeck() {
+    const shuffledPairs = [...MASTER_PAIR_LIST].sort(() => Math.random() - 0.5);
+    const selectedPairs = shuffledPairs.slice(0, 6);
+    const deck = [];
+
+    selectedPairs.forEach((item, index) => {
+      deck.push({
+        pairId: index, type: 'letter', content: item.letter, subtext: '', color: item.color,
+        isFlipped: false, isMatched: false, flipProgress: 0
+      });
+      deck.push({
+        pairId: index, type: 'image', content: item.emoji, subtext: item.word, color: item.color,
+        isFlipped: false, isMatched: false, flipProgress: 0
+      });
+    });
+
+    for (let i = deck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+    return deck;
+  }
+
+  function resizeMemoryCanvas() {
+    if (!memCanvasHolder) return;
+    const rect = memCanvasHolder.getBoundingClientRect();
+    memCanvas.width = rect.width;
+    memCanvas.height = rect.height;
+
+    memGridCols = 3;
+    memGridRows = 4;
+
+    const padding = 8;
+    const availWidth = memCanvas.width - (padding * (memGridCols + 1));
+    const availHeight = memCanvas.height - (padding * (memGridRows + 1));
+
+    memCardWidth = availWidth / memGridCols;
+    memCardHeight = availHeight / memGridRows;
+
+    memOffsetX = padding;
+    memOffsetY = padding;
+  }
+
+  window.addEventListener('resize', resizeMemoryCanvas);
+
+  function createMemSparkles(x, y, color) {
+    for (let i = 0; i < 12; i++) {
+      memParticles.push({
+        x: x, y: y,
+        vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6,
+        size: Math.random() * 6 + 3, color: color, alpha: 1
+      });
+    }
+  }
+
+  function renderMemoryCanvas() {
+    memCtx.clearRect(0, 0, memCanvas.width, memCanvas.height);
+    const padding = 8;
+
+    memCards.forEach((card, index) => {
+      const col = index % memGridCols;
+      const row = Math.floor(index / memGridCols);
+      const baseX = memOffsetX + col * (memCardWidth + padding);
+      const baseY = memOffsetY + row * (memCardHeight + padding);
+
+      const targetProgress = (card.isFlipped || card.isMatched) ? 1 : 0;
+      card.flipProgress += (targetProgress - card.flipProgress) * 0.2;
+
+      memCtx.save();
+      memCtx.translate(baseX + memCardWidth / 2, baseY + memCardHeight / 2);
+
+      const flipScale = Math.abs(Math.cos(card.flipProgress * Math.PI));
+      memCtx.scale(flipScale, 1);
+
+      const drawX = -memCardWidth / 2;
+      const drawY = -memCardHeight / 2;
+
+      const isFront = card.flipProgress >= 0.5;
+
+      if (!isFront) {
+        memCtx.fillStyle = '#93c5fd';
+        memCtx.beginPath();
+        memCtx.roundRect(drawX, drawY, memCardWidth, memCardHeight, 10);
+        memCtx.fill();
+        memCtx.strokeStyle = '#3b82f6';
+        memCtx.lineWidth = 2;
+        memCtx.stroke();
+
+        memCtx.font = `${memCardHeight * 0.35}px sans-serif`;
+        memCtx.textAlign = 'center';
+        memCtx.textBaseline = 'middle';
+        memCtx.fillText('🐘', 0, 0);
+      } else {
+        memCtx.fillStyle = card.isMatched ? '#f0fdf4' : '#ffffff';
+        memCtx.beginPath();
+        memCtx.roundRect(drawX, drawY, memCardWidth, memCardHeight, 10);
+        memCtx.fill();
+        memCtx.strokeStyle = card.isMatched ? '#22c55e' : card.color;
+        memCtx.lineWidth = 3;
+        memCtx.stroke();
+
+        if (card.type === 'letter') {
+          memCtx.fillStyle = card.color;
+          memCtx.font = `bold ${memCardHeight * 0.4}px 'Chalkboard SE', sans-serif`;
+          memCtx.textAlign = 'center';
+          memCtx.textBaseline = 'middle';
+          memCtx.fillText(card.content, 0, 0);
+        } else {
+          memCtx.font = `${memCardHeight * 0.32}px sans-serif`;
+          memCtx.textAlign = 'center';
+          memCtx.textBaseline = 'middle';
+          memCtx.fillText(card.content, 0, -memCardHeight * 0.12);
+
+          memCtx.fillStyle = '#334155';
+          memCtx.font = `bold ${Math.max(10, memCardHeight * 0.18)}px 'Chalkboard SE', sans-serif`;
+          memCtx.fillText(card.subtext, 0, memCardHeight * 0.28);
+        }
+      }
+
+      memCtx.restore();
+    });
+
+    for (let i = memParticles.length - 1; i >= 0; i--) {
+      const p = memParticles[i];
+      p.x += p.vx; p.y += p.vy; p.alpha -= 0.03;
+      if (p.alpha <= 0) { memParticles.splice(i, 1); continue; }
+      memCtx.save();
+      memCtx.globalAlpha = p.alpha;
+      memCtx.fillStyle = p.color;
+      memCtx.beginPath();
+      memCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      memCtx.fill();
+      memCtx.restore();
+    }
+
+    memAnimFrameId = requestAnimationFrame(renderMemoryCanvas);
+  }
+
+  function handleMemoryClick(clientX, clientY) {
+    if (isMemBusy) return;
+
+    const rect = memCanvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    const padding = 8;
+
+    for (let i = 0; i < memCards.length; i++) {
+      const col = i % memGridCols;
+      const row = Math.floor(i / memGridCols);
+      const cardX = memOffsetX + col * (memCardWidth + padding);
+      const cardY = memOffsetY + row * (memCardHeight + padding);
+
+      if (x >= cardX && x <= cardX + memCardWidth && y >= cardY && y <= cardY + memCardHeight) {
+        const targetCard = memCards[i];
+        if (targetCard.isFlipped || targetCard.isMatched) return;
+
+        targetCard.isFlipped = true;
+        memFlippedCards.push(i);
+
+        if (memFlippedCards.length === 2) {
+          memFlips++;
+          document.getElementById('mem-flips').innerText = memFlips;
+          evaluateMemoryPair();
+        }
+        break;
+      }
+    }
+  }
+
+  function evaluateMemoryPair() {
+    isMemBusy = true;
+    const [idx1, idx2] = memFlippedCards;
+    const card1 = memCards[idx1];
+    const card2 = memCards[idx2];
+
+    if (card1.pairId === card2.pairId) {
+      setTimeout(() => {
+        card1.isMatched = true;
+        card2.isMatched = true;
+
+        const padding = 8;
+        const x1 = memOffsetX + (idx1 % memGridCols) * (memCardWidth + padding) + memCardWidth / 2;
+        const y1 = memOffsetY + Math.floor(idx1 / memGridCols) * (memCardHeight + padding) + memCardHeight / 2;
+        createMemSparkles(x1, y1, card1.color);
+
+        memComboCount++;
+        memScore += 100 + ((memComboCount - 1) * 50);
+        memMatchedPairs++;
+
+        document.getElementById('mem-score').innerText = memScore;
+        document.getElementById('mem-feedback').style.color = "#16a34a";
+        document.getElementById('mem-feedback').innerText = `👍 Betul! (${card2.subtext || card1.content})`;
+        speakText(card2.subtext || card1.content);
+
+        memFlippedCards = [];
+        isMemBusy = false;
+
+        if (memMatchedPairs === 6) {
+          setTimeout(endMemoryGame, 500);
+        }
+      }, 300);
+    } else {
+      memComboCount = 0;
+      setTimeout(() => {
+        document.getElementById('mem-feedback').style.color = "#dc2626";
+        document.getElementById('mem-feedback').innerText = "❌ Bukan pasangan, cuba lagi!";
+        card1.isFlipped = false;
+        card2.isFlipped = false;
+        memFlippedCards = [];
+        isMemBusy = false;
+      }, 1000);
+    }
+  }
+
+  function startMemoryMatchGame() {
+    document.getElementById('memory-modal').style.display = 'flex';
+    initMemoryGame();
+    showMemoryHelp();
+  }
+
+  function initMemoryGame() {
+    memScore = 0;
+    memFlips = 0;
+    memMatchedPairs = 0;
+    memComboCount = 0;
+    memFlippedCards = [];
+    isMemBusy = false;
+
+    document.getElementById('mem-score').innerText = memScore;
+    document.getElementById('mem-flips').innerText = memFlips;
+    document.getElementById('mem-feedback').innerText = "";
+
+    memCards = buildMemoryDeck();
+    resizeMemoryCanvas();
+    if (!memAnimFrameId) renderMemoryCanvas();
+  }
+
+  function showMemoryHelp() {
+    document.getElementById('mem-help-modal').style.display = 'flex';
+  }
+
+  function closeMemoryHelp() {
+    document.getElementById('mem-help-modal').style.display = 'none';
+  }
+
+  function endMemoryGame() {
+    let stars = "⭐";
+    if (memFlips <= 8) stars = "⭐⭐⭐";
+    else if (memFlips <= 12) stars = "⭐⭐";
+
+    document.getElementById('mem-win-stars').innerText = stars;
+    document.getElementById('mem-final-score').innerText = memScore;
+    document.getElementById('mem-final-flips').innerText = memFlips;
+
+    document.getElementById('mem-win-modal').style.display = 'flex';
+    speakText("Syabas! Anda berjaya mencari kesemua pasangan!");
+  }
+
+  function closeWinModalAndRestart() {
+    document.getElementById('mem-win-modal').style.display = 'none';
+    initMemoryGame();
+  }
+
+  function closeMemoryGame() {
+    if (memAnimFrameId) cancelAnimationFrame(memAnimFrameId);
+    memAnimFrameId = null;
+    document.getElementById('mem-help-modal').style.display = 'none';
+    document.getElementById('mem-win-modal').style.display = 'none';
+    document.getElementById('memory-modal').style.display = 'none';
+  }
+
+  memCanvas.addEventListener('click', (e) => handleMemoryClick(e.clientX, e.clientY));
+  memCanvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (e.touches.length > 0) handleMemoryClick(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: false });
+</script>
+</body>
+</html>

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Pelari Ejaan 3D</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Poppins:wght@600;700;800&display=swap');
+
+    * {
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Fredoka', 'Poppins', sans-serif;
+      background-color: #1a0b2e;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.25);
+    }
+
+    .glass-btn {
+      background: rgba(255, 255, 255, 0.35);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 2px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .glass-btn:active {
+      transform: scale(0.92);
+      background: rgba(255, 255, 255, 0.55);
+    }
+
+    .letter-slot {
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px dashed rgba(255, 255, 255, 0.6);
+      font-weight: 800;
+      font-size: 1.4rem;
+      color: #fef08a;
+    }
+
+    .letter-slot.filled {
+      background: #22c55e;
+      border: 2px solid #ffffff;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body class="relative w-full h-full select-none">
+
+  <!-- Canvas Container Three.js -->
+  <div id="canvas-container" class="absolute inset-0 w-full h-full z-0"></div>
+
+  <!-- HUD Layer -->
+  <div id="hud-layer" class="absolute inset-0 z-10 pointer-events-none flex flex-col justify-between p-4 md:p-6">
+    
+    <div class="w-full max-w-xl mx-auto flex flex-col items-center gap-2 pointer-events-auto">
+      <div class="w-full flex justify-between items-center px-2">
+        <a href="bina_ayat.html" class="glass-card px-3 py-1.5 rounded-full text-rose-300 font-bold text-sm flex items-center gap-1 shadow-lg no-underline">
+          🏠 Keluar
+        </a>
+        <div class="glass-card px-3 py-1.5 rounded-full text-white font-bold text-sm flex items-center gap-1 shadow-lg">
+          <span>🏃</span> <span id="hud-progress">1/8</span>
+        </div>
+        <div class="glass-card px-3 py-1.5 rounded-full text-white font-bold text-sm flex items-center gap-1 shadow-lg">
+          <span class="text-amber-400">MARKAH:</span> <span id="hud-score" class="text-yellow-300">0</span>
+        </div>
+      </div>
+
+      <div id="question-card" class="w-full glass-card rounded-3xl p-3 text-center border-2 border-white/50 shadow-2xl">
+        <div id="q-label" class="text-xs font-bold text-yellow-200 uppercase mb-1">Tangkap Huruf Vokal Yang Betul!</div>
+        <div class="flex items-center justify-center gap-3 my-1">
+          <span id="q-emoji" class="text-4xl">⚽</span>
+          <div id="q-word-container" class="flex items-center justify-center gap-2"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kawalan Butang Touch Screen -->
+    <div class="w-full max-w-md mx-auto flex justify-between items-end pb-2 pointer-events-auto">
+      <div class="flex gap-3">
+        <button id="btn-left" class="glass-btn w-16 h-16 rounded-2xl flex items-center justify-center text-3xl text-white font-bold">◀</button>
+        <button id="btn-right" class="glass-btn w-16 h-16 rounded-2xl flex items-center justify-center text-3xl text-white font-bold">▶</button>
+      </div>
+      <button id="btn-jump" class="glass-btn px-6 h-16 rounded-2xl flex items-center justify-center text-xl text-yellow-300 font-bold">▲ LOMPAT</button>
+    </div>
+  </div>
+
+  <!-- Start Overlay Card -->
+  <div id="start-overlay" class="absolute inset-0 z-40 bg-purple-950/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-card max-w-md w-full rounded-3xl p-6 text-center text-white border-2 border-white/60 shadow-2xl flex flex-col items-center gap-4">
+      <div class="text-5xl animate-bounce">🏃‍♂️✨</div>
+      <h1 class="text-3xl font-extrabold text-yellow-300">Pelari Ejaan 3D</h1>
+      <p class="text-sm text-purple-200">Bantu pelari mengumpul huruf vokal untuk melengkapkan ejaan!</p>
+      <button id="btn-start" class="w-full py-4 bg-yellow-400 text-purple-950 font-extrabold text-xl rounded-2xl shadow-xl hover:bg-yellow-300 transition">Tekan Untuk Lari! 🚀</button>
+    </div>
+  </div>
+
+  <!-- Victory Overlay Card -->
+  <div id="end-overlay" class="hidden absolute inset-0 z-50 bg-purple-950/90 backdrop-blur-lg flex items-center justify-center p-4">
+    <div class="glass-card max-w-md w-full rounded-3xl p-6 text-center text-white border-2 border-yellow-300 shadow-2xl flex flex-col items-center gap-4">
+      <div class="text-6xl animate-bounce">🏆</div>
+      <h2 class="text-3xl font-extrabold text-yellow-300">Syabas! Tamat Permainan!</h2>
+      <p class="text-2xl font-extrabold text-amber-300">Markah Akhir: <span id="end-score">0</span></p>
+
+      <div class="w-full flex gap-3">
+        <button id="btn-restart" onclick="restartGame()" class="w-1/2 py-3 bg-green-500 text-white font-extrabold text-lg rounded-2xl shadow-lg">Main Lagi 🔄</button>
+        <a href="bina_ayat.html" class="w-1/2 py-3 bg-red-500 text-white font-extrabold text-lg rounded-2xl flex items-center justify-center no-underline shadow-lg">Keluar 🏠</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let msVoice = null;
+    function loadVoices() {
+      if ('speechSynthesis' in window) {
+        const voices = window.speechSynthesis.getVoices();
+        msVoice = voices.find(v => v.lang === 'ms-MY' || v.lang === 'ms_MY' || v.lang.toLowerCase().includes('melayu'));
+      }
+    }
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+      loadVoices();
+    }
+
+    function speakText(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text.toLowerCase());
+        utterance.lang = 'ms-MY';
+        if (msVoice) utterance.voice = msVoice;
+        utterance.rate = 0.85;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    /* Senarai 8 Perkataan Permainan */
+    const QUESTIONS = [
+      { emoji: "⚽", full: "BOLA", display: ["B", "", "L", "A"], missingChar: "O", options: ["A", "O", "U"] },
+      { emoji: "🧹", full: "SAPU", display: ["S", "A", "P", ""], missingChar: "U", options: ["I", "E", "U"] },
+      { emoji: "✍️", full: "TULIS", display: ["T", "", "L", "I", "S"], missingChar: "U", options: ["U", "O", "A"] },
+      { emoji: "🍽️", full: "MAKAN", display: ["M", "", "K", "A", "N"], missingChar: "A", options: ["E", "A", "I"] },
+      { emoji: "🥤", full: "MINUM", display: ["M", "I", "N", "", "M"], missingChar: "U", options: ["U", "O", "E"] },
+      { emoji: "📖", full: "BUKU", display: ["B", "", "K", "U"], missingChar: "U", options: ["I", "E", "U"] },
+      { emoji: "🪑", full: "MEJA", display: ["M", "E", "J", ""], missingChar: "A", options: ["U", "I", "A"] },
+      { emoji: "🍳", full: "MASAK", display: ["M", "A", "S", "", "K"], missingChar: "A", options: ["O", "A", "I"] }
+    ];
+
+    let currentQIndex = 0;
+    let score = 0;
+    let isGameRunning = false;
+    let isQuestionTransitioning = false;
+
+    let scene, camera, renderer, playerGroup;
+    let leftArm, rightArm, leftLeg, rightLeg; // Anggota badan watak manusia
+    const LANES = [-2.2, 0, 2.2];
+    let targetLaneIndex = 1;
+    let isJumping = false;
+    let jumpVelocity = 0;
+    let animTime = 0;
+
+    let spawnedBlocks = [];
+    let speed = 0.15;
+
+    function init3D() {
+      const container = document.getElementById('canvas-container');
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x2e1065);
+      scene.fog = new THREE.FogExp2(0x2e1065, 0.035);
+
+      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+      camera.position.set(0, 3.5, 6);
+      camera.lookAt(0, 1.4, -5);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      container.appendChild(renderer.domElement);
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+      scene.add(ambientLight);
+
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+      dirLight.position.set(5, 10, 7);
+      scene.add(dirLight);
+
+      // Pembinaan Landasan 3D (3 Lorong)
+      const trackGeo = new THREE.BoxGeometry(7.5, 0.2, 100);
+      const trackMat = new THREE.MeshStandardMaterial({ color: 0x3b0764 });
+      const track = new THREE.Mesh(trackGeo, trackMat);
+      track.position.set(0, -0.1, -40);
+      scene.add(track);
+
+      LANES.forEach(x => {
+        const lineGeo = new THREE.BoxGeometry(0.1, 0.22, 100);
+        const lineMat = new THREE.MeshBasicMaterial({ color: 0xa855f7 });
+        const line = new THREE.Mesh(lineGeo, lineMat);
+        line.position.set(x, -0.08, -40);
+        scene.add(line);
+      });
+
+      /* ==========================================
+         PEMBINAAN ASET WATAK MANUSIA 3D
+         ========================================== */
+      playerGroup = new THREE.Group();
+
+      // Head (Kepala Manusia)
+      const headGeo = new THREE.SphereGeometry(0.35, 16, 16);
+      const headMat = new THREE.MeshStandardMaterial({ color: 0xffdbac }); // Warna kulit
+      const head = new THREE.Mesh(headGeo, headMat);
+      head.position.y = 1.6;
+      playerGroup.add(head);
+
+      // Hair (Rambut Manusia)
+      const hairGeo = new THREE.SphereGeometry(0.37, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+      const hairMat = new THREE.MeshStandardMaterial({ color: 0x3b1d11 });
+      const hair = new THREE.Mesh(hairGeo, hairMat);
+      hair.position.y = 1.63;
+      playerGroup.add(hair);
+
+      // Torso / Body (Baju / Badan Manusia)
+      const bodyGeo = new THREE.CylinderGeometry(0.3, 0.25, 0.7, 12);
+      const bodyMat = new THREE.MeshStandardMaterial({ color: 0x3b82f6 }); // Baju biru
+      const body = new THREE.Mesh(bodyGeo, bodyMat);
+      body.position.y = 1.05;
+      playerGroup.add(body);
+
+      // Arms (Tangan Manusia - Kiri & Kanan)
+      const armGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.5, 8);
+      const armMat = new THREE.MeshStandardMaterial({ color: 0xffdbac });
+
+      leftArm = new THREE.Mesh(armGeo, armMat);
+      leftArm.position.set(-0.38, 1.1, 0);
+      playerGroup.add(leftArm);
+
+      rightArm = new THREE.Mesh(armGeo, armMat);
+      rightArm.position.set(0.38, 1.1, 0);
+      playerGroup.add(rightArm);
+
+      // Legs (Seluar / Kaki Manusia - Kiri & Kanan)
+      const legGeo = new THREE.CylinderGeometry(0.1, 0.09, 0.6, 8);
+      const legMat = new THREE.MeshStandardMaterial({ color: 0x1e293b }); // Seluar gelap
+
+      leftLeg = new THREE.Mesh(legGeo, legMat);
+      leftLeg.position.set(-0.16, 0.4, 0);
+      playerGroup.add(leftLeg);
+
+      rightLeg = new THREE.Mesh(legGeo, legMat);
+      rightLeg.position.set(0.16, 0.4, 0);
+      playerGroup.add(rightLeg);
+
+      playerGroup.position.set(LANES[targetLaneIndex], 0, 0);
+      scene.add(playerGroup);
+    }
+
+    function createLetterTexture(text, bgColor) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 128;
+      canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, 128, 128);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 75px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 64, 64);
+
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    function spawnRowOfBlocks() {
+      spawnedBlocks.forEach(b => scene.remove(b.mesh));
+      spawnedBlocks = [];
+
+      const q = QUESTIONS[currentQIndex];
+      const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+
+      LANES.forEach((laneX, idx) => {
+        const char = shuffledOptions[idx];
+        const isCorrect = (char === q.missingChar);
+
+        const geo = new THREE.BoxGeometry(0.9, 0.9, 0.9);
+        const texture = createLetterTexture(char, isCorrect ? '#3b82f6' : '#ec4899');
+        const mat = new THREE.MeshStandardMaterial({ map: texture });
+        const mesh = new THREE.Mesh(geo, mat);
+
+        mesh.position.set(laneX, 0.8, -32);
+        scene.add(mesh);
+
+        spawnedBlocks.push({ mesh: mesh, char: char, isCorrect: isCorrect, hit: false });
+      });
+
+      isQuestionTransitioning = false;
+    }
+
+    function renderQuestionUI() {
+      const q = QUESTIONS[currentQIndex];
+      document.getElementById('hud-progress').innerText = `${currentQIndex + 1}/${QUESTIONS.length}`;
+      document.getElementById('hud-score').innerText = score;
+      document.getElementById('q-emoji').innerText = q.emoji;
+
+      const container = document.getElementById('q-word-container');
+      container.innerHTML = "";
+
+      q.display.forEach(ch => {
+        const slot = document.createElement('div');
+        if (ch === "") {
+          slot.className = "letter-slot";
+          slot.innerText = "_";
+        } else {
+          slot.className = "letter-slot filled";
+          slot.innerText = ch;
+        }
+        container.appendChild(slot);
+      });
+    }
+
+    function moveLeft() { if (targetLaneIndex > 0) targetLaneIndex--; }
+    function moveRight() { if (targetLaneIndex < 2) targetLaneIndex++; }
+
+    function jump() {
+      if (!isJumping) {
+        isJumping = true;
+        jumpVelocity = 0.22;
+      }
+    }
+
+    document.getElementById('btn-left').addEventListener('click', moveLeft);
+    document.getElementById('btn-right').addEventListener('click', moveRight);
+    document.getElementById('btn-jump').addEventListener('click', jump);
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'ArrowLeft' || e.code === 'KeyA') moveLeft();
+      if (e.code === 'ArrowRight' || e.code === 'KeyD') moveRight();
+      if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') jump();
+    });
+
+    document.getElementById('btn-start').addEventListener('click', () => {
+      document.getElementById('start-overlay').classList.add('hidden');
+      isGameRunning = true;
+      renderQuestionUI();
+      spawnRowOfBlocks();
+    });
+
+    function restartGame() {
+      document.getElementById('end-overlay').classList.add('hidden');
+      currentQIndex = 0;
+      score = 0;
+      targetLaneIndex = 1;
+      isGameRunning = true;
+      renderQuestionUI();
+      spawnRowOfBlocks();
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      if (isGameRunning) {
+        // Pergerakan Watak Lorong Kiri/Kanan
+        playerGroup.position.x += (LANES[targetLaneIndex] - playerGroup.position.x) * 0.25;
+
+        // Animasi Hayunan Tangan & Kaki Manusia Semasa Berlari
+        animTime += 0.15;
+        if (!isJumping) {
+          leftLeg.rotation.x = Math.sin(animTime) * 0.6;
+          rightLeg.rotation.x = -Math.sin(animTime) * 0.6;
+          leftArm.rotation.x = -Math.sin(animTime) * 0.6;
+          rightArm.rotation.x = Math.sin(animTime) * 0.6;
+        }
+
+        // Pergerakan Lompat
+        if (isJumping) {
+          playerGroup.position.y += jumpVelocity;
+          jumpVelocity -= 0.012;
+          if (playerGroup.position.y <= 0) {
+            playerGroup.position.y = 0;
+            isJumping = false;
+          }
+        }
+
+        // Pergerakan Blok Huruf ke Arah Manusia
+        spawnedBlocks.forEach(b => {
+          b.mesh.position.z += speed;
+          b.mesh.rotation.y += 0.02;
+
+          if (b.mesh.position.z > 4 && !isQuestionTransitioning) {
+            b.mesh.position.z = -32;
+          }
+
+          const distZ = Math.abs(b.mesh.position.z - playerGroup.position.z);
+          const distX = Math.abs(b.mesh.position.x - playerGroup.position.x);
+
+          if (distZ < 0.7 && distX < 0.6 && !b.hit && !isQuestionTransitioning) {
+            b.hit = true;
+            speakText(b.char);
+
+            if (b.isCorrect) {
+              isQuestionTransitioning = true;
+              score += 10;
+
+              const q = QUESTIONS[currentQIndex];
+              const container = document.getElementById('q-word-container');
+              container.innerHTML = "";
+              q.display.forEach(ch => {
+                const slot = document.createElement('div');
+                slot.className = "letter-slot filled";
+                slot.innerText = ch === "" ? q.missingChar : ch;
+                container.appendChild(slot);
+              });
+
+              speakText(q.full);
+
+              setTimeout(() => {
+                if (currentQIndex < QUESTIONS.length - 1) {
+                  currentQIndex++;
+                  renderQuestionUI();
+                  spawnRowOfBlocks();
+                } else {
+                  isGameRunning = false;
+                  document.getElementById('end-score').innerText = score;
+                  document.getElementById('end-overlay').classList.remove('hidden');
+                }
+              }, 1400);
+
+            } else {
+              score = Math.max(0, score - 5);
+              document.getElementById('hud-score').innerText = score;
+              b.mesh.position.z = -32;
+              setTimeout(() => { b.hit = false; }, 500);
+            }
+          }
+        });
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    init3D();
+    animate();
+  </script>
+</body>
+</html>

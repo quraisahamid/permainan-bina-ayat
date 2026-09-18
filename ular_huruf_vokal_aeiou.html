@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ms" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Ular Huruf Vokal AEIOU</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Mali:wght@600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #7dd3fc;
+      font-family: 'Fredoka', 'Mali', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #game-wrapper {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      max-width: 650px;
+      max-height: 900px;
+      display: flex;
+      flex-direction: column;
+      background: #bae6fd;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      overflow: hidden;
+    }
+
+    #top-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(5px);
+      gap: 6px;
+      z-index: 10;
+      border-bottom: 3px solid #7dd3fc;
+    }
+
+    .pill-chip {
+      background: #ffffff;
+      padding: 6px 12px;
+      border-radius: 20px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+      border: 2px solid #e2e8f0;
+      font-size: clamp(0.85rem, 2.5vw, 1.05rem);
+      font-weight: 700;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .goal-banner {
+      background: #a7f3d0;
+      border-color: #34d399;
+      color: #065f46;
+      font-weight: 700;
+      width: 100%;
+      justify-content: center;
+      text-align: center;
+      order: 3;
+    }
+
+    @media (min-width: 480px) {
+      .goal-banner {
+        width: auto;
+        order: 2;
+      }
+    }
+
+    #canvas-container {
+      flex: 1;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      background: #a7f3d0;
+      border-radius: 16px;
+      box-shadow: inset 0 0 12px rgba(0,0,0,0.05);
+    }
+
+    #controls-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.85);
+      border-top: 2px solid #cbd5e1;
+      z-index: 10;
+    }
+
+    .dpad {
+      display: grid;
+      grid-template-columns: repeat(3, 50px);
+      grid-template-rows: repeat(2, 45px);
+      gap: 6px;
+    }
+
+    .dpad-btn {
+      background: #38bdf8;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.4rem;
+      font-weight: bold;
+      box-shadow: 0 4px 0 #0284c7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .dpad-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #0284c7;
+    }
+
+    .dpad-up { grid-column: 2; grid-row: 1; }
+    .dpad-left { grid-column: 1; grid-row: 2; }
+    .dpad-down { grid-column: 2; grid-row: 2; }
+    .dpad-right { grid-column: 3; grid-row: 2; }
+
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      padding: 16px;
+    }
+
+    .modal-card {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 24px;
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 30px rgba(0,0,0,0.25);
+      border: 4px solid #38bdf8;
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-title {
+      font-size: 1.6rem;
+      color: #0284c7;
+      margin-top: 0;
+      margin-bottom: 12px;
+    }
+
+    .guide-box {
+      background: #f0f9ff;
+      border: 2px dashed #7dd3fc;
+      border-radius: 14px;
+      padding: 12px;
+      text-align: left;
+      font-size: 0.95rem;
+      color: #334155;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .guide-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .btn-primary {
+      background: #22c55e;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border-radius: 16px;
+      box-shadow: 0 5px 0 #15803d;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+
+    .btn-primary:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 #15803d;
+    }
+
+    .btn-exit {
+      background: #ef4444;
+      box-shadow: 0 5px 0 #b91c1c;
+    }
+
+    .btn-exit:active {
+      box-shadow: 0 2px 0 #b91c1c;
+    }
+
+    .help-icon-btn {
+      background: #e0f2fe;
+      border: 2px solid #38bdf8;
+      color: #0284c7;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+
+<div id="game-wrapper">
+  <div id="top-bar">
+    <div style="display:flex; gap:6px; order:1;">
+      <a href="bina_ayat.html" class="pill-chip" style="background:#fee2e2; border-color:#ef4444; color:#991b1b; text-decoration:none;">🏠 Keluar</a>
+      <div class="pill-chip" id="chip-level">Peringkat: 1 (A)</div>
+      <div class="pill-chip" id="chip-score">⭐ <span id="val-score">0</span></div>
+    </div>
+
+    <div class="pill-chip goal-banner" id="chip-goal">
+      🎯 Makan huruf vokal A sahaja!
+    </div>
+
+    <div style="display:flex; gap:6px; align-items:center; order:2;">
+      <div class="pill-chip" id="chip-lives">❤️❤️❤️</div>
+      <button class="help-icon-btn" onclick="openHelpModal()">❔</button>
+    </div>
+  </div>
+
+  <div id="canvas-container">
+    <canvas id="gameCanvas"></canvas>
+    <div id="start-tap-overlay" style="position:absolute; color:#0f766e; font-size:1.3rem; font-weight:bold; background:rgba(255,255,255,0.85); padding:10px 20px; border-radius:30px; border:2px solid #0d9488; pointer-events:none; text-align:center;">
+      👆 Tekan Anak Panah / Leret untuk Mula!
+    </div>
+  </div>
+
+  <div id="controls-container">
+    <div class="dpad">
+      <button class="dpad-btn dpad-up" onclick="handleInput('UP')">▲</button>
+      <button class="dpad-btn dpad-left" onclick="handleInput('LEFT')">◀</button>
+      <button class="dpad-btn dpad-down" onclick="handleInput('DOWN')">▼</button>
+      <button class="dpad-btn dpad-right" onclick="handleInput('RIGHT')">▶</button>
+    </div>
+  </div>
+
+  <!-- Modal Cara Bermain -->
+  <div class="modal-overlay" id="help-modal">
+    <div class="modal-card">
+      <h2 class="modal-title">🎮 Cara Bermain</h2>
+      <div class="guide-box">
+        <div class="guide-item"><span>🎯</span><span><strong>Matlamat:</strong> Pandu ular makan telur huruf vokal yang betul!</span></div>
+        <div class="guide-item"><span>👆</span><span><strong>Kawalan:</strong> Tekan anak panah atau leret jari.</span></div>
+        <div class="guide-item"><span>❤️</span><span><strong>Nyawa:</strong> Elakkan makan kata perangkap!</span></div>
+      </div>
+      <button class="btn-primary" onclick="closeHelpModal()">Main! 🚀</button>
+    </div>
+  </div>
+
+  <!-- Modal Penamat / Tamat Game -->
+  <div class="modal-overlay" id="end-modal" style="display:none;">
+    <div class="modal-card">
+      <h2 class="modal-title" id="end-title">🎉 Peringkat Selesai!</h2>
+      <div id="end-stars" style="font-size:2.5rem; margin:10px 0;">⭐⭐⭐</div>
+      <p id="end-message" style="font-size:1.1rem; color:#334155; margin-bottom:20px;">Syabas!</p>
+      
+      <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
+        <button class="btn-primary" id="end-btn" onclick="nextLevelOrRestart()">Seterusnya ➡️</button>
+        <a href="bina_ayat.html" class="btn-primary btn-exit">🏠 Keluar Ke Latihan</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  let audioCtx = null;
+
+  function initAudio() {
+    if (!audioCtx) audioCtx = new AudioContext();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  }
+
+  function playSFX(type) {
+    if (!audioCtx) return;
+    try {
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'correct') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.15);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+        osc.start(now);
+        osc.stop(now + 0.2);
+      } else if (type === 'wrong') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.linearRampToValueAtTime(130, now + 0.25);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      } else if (type === 'win') {
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, i) => {
+          const o = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          o.connect(g);
+          g.connect(audioCtx.destination);
+          o.frequency.setValueAtTime(freq, now + i * 0.1);
+          g.gain.setValueAtTime(0.25, now + i * 0.1);
+          g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.3);
+          o.start(now + i * 0.1);
+          o.stop(now + i * 0.1 + 0.3);
+        });
+      }
+    } catch(e) {}
+  }
+
+  const GRID_SIZE = 12;
+  const TARGET_EATS_PER_LEVEL = 5;
+  const TRAP_WORDS = ["buku", "kucing", "meja", "pokok", "rumah", "bola", "tangan", "bunga", "gajah", "susu", "ikan", "topi"];
+
+  const LEVELS = [
+    { level: 1, targetVowel: 'A', speedMs: 220, desc: "Cari huruf vokal A sahaja!" },
+    { level: 2, targetVowel: 'E', speedMs: 195, desc: "Cari huruf vokal E sahaja!" },
+    { level: 3, targetVowel: 'I', speedMs: 170, desc: "Cari huruf vokal I sahaja!" },
+    { level: 4, targetVowel: 'O', speedMs: 145, desc: "Cari huruf vokal O sahaja!" },
+    { level: 5, targetVowel: 'U', speedMs: 120, desc: "Cari huruf vokal U sahaja!" }
+  ];
+
+  let currentLevelIdx = 0;
+  let score = 0;
+  let lives = 3;
+  let levelEatsCount = 0;
+  let snake = [];
+  let dir = { x: 0, y: 0 };
+  let nextDir = { x: 0, y: 0 };
+  let eggs = [];
+  let gameStarted = false;
+  let isPaused = true;
+  let lastTime = 0;
+  let accumulatedTime = 0;
+
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  let cellSize = 40;
+
+  function resizeCanvas() {
+    const container = document.getElementById('canvas-container');
+    const minDim = Math.min(container.clientWidth - 16, container.clientHeight - 16);
+    cellSize = Math.floor(minDim / GRID_SIZE);
+    canvas.width = cellSize * GRID_SIZE;
+    canvas.height = cellSize * GRID_SIZE;
+  }
+  window.addEventListener('resize', resizeCanvas);
+
+  function initGame() {
+    resizeCanvas();
+    currentLevelIdx = 0;
+    score = 0;
+    resetLevelState();
+  }
+
+  function resetLevelState() {
+    lives = 3;
+    levelEatsCount = 0;
+    gameStarted = false;
+    dir = { x: 0, y: 0 };
+    nextDir = { x: 0, y: 0 };
+    
+    const startX = Math.floor(GRID_SIZE / 2);
+    const startY = Math.floor(GRID_SIZE / 2);
+    snake = [
+      { x: startX, y: startY },
+      { x: startX - 1, y: startY },
+      { x: startX - 2, y: startY }
+    ];
+
+    respawnEggs();
+    document.getElementById('start-tap-overlay').style.display = 'block';
+    updateUI();
+  }
+
+  function respawnEggs() {
+    eggs = [];
+    const currentTarget = LEVELS[currentLevelIdx].targetVowel;
+
+    for (let i = 0; i < 4; i++) {
+      let isTarget = (i === 0) || Math.random() < 0.35;
+      let text = isTarget ? currentTarget : TRAP_WORDS[Math.floor(Math.random() * TRAP_WORDS.length)];
+      const pos = getFreeGridPos();
+      eggs.push({ x: pos.x, y: pos.y, text: text, isTarget: isTarget });
+    }
+    eggs.sort(() => Math.random() - 0.5);
+  }
+
+  function getFreeGridPos() {
+    let attempts = 0;
+    while (attempts < 200) {
+      attempts++;
+      const rx = Math.floor(Math.random() * GRID_SIZE);
+      const ry = Math.floor(Math.random() * GRID_SIZE);
+      if (snake.some(seg => seg.x === rx && seg.y === ry)) continue;
+      if (eggs.some(e => e.x === rx && e.y === ry)) continue;
+      return { x: rx, y: ry };
+    }
+    return { x: 0, y: 0 };
+  }
+
+  function handleInput(type) {
+    initAudio();
+    if (isPaused) return;
+
+    if (!gameStarted) {
+      gameStarted = true;
+      document.getElementById('start-tap-overlay').style.display = 'none';
+    }
+
+    if (type === 'UP' && dir.y !== 1) nextDir = { x: 0, y: -1 };
+    else if (type === 'DOWN' && dir.y !== -1) nextDir = { x: 0, y: 1 };
+    else if (type === 'LEFT' && dir.x !== 1) nextDir = { x: -1, y: 0 };
+    else if (type === 'RIGHT' && dir.x !== -1) nextDir = { x: 1, y: 0 };
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (['ArrowUp', 'KeyW'].includes(e.code)) handleInput('UP');
+    if (['ArrowDown', 'KeyS'].includes(e.code)) handleInput('DOWN');
+    if (['ArrowLeft', 'KeyA'].includes(e.code)) handleInput('LEFT');
+    if (['ArrowRight', 'KeyD'].includes(e.code)) handleInput('RIGHT');
+  });
+
+  function gameLoop(timestamp) {
+    if (!lastTime) lastTime = timestamp;
+    const dt = timestamp - lastTime;
+    lastTime = timestamp;
+
+    if (!isPaused && gameStarted) {
+      accumulatedTime += dt;
+      if (accumulatedTime >= LEVELS[currentLevelIdx].speedMs) {
+        stepSnake();
+        accumulatedTime %= LEVELS[currentLevelIdx].speedMs;
+      }
+    }
+    drawScene();
+    requestAnimationFrame(gameLoop);
+  }
+
+  function stepSnake() {
+    dir = { ...nextDir };
+    if (dir.x === 0 && dir.y === 0) return;
+
+    let newHeadX = (snake[0].x + dir.x + GRID_SIZE) % GRID_SIZE;
+    let newHeadY = (snake[0].y + dir.y + GRID_SIZE) % GRID_SIZE;
+
+    if (snake.some(seg => seg.x === newHeadX && seg.y === newHeadY)) {
+      triggerMistake();
+      return;
+    }
+
+    snake.unshift({ x: newHeadX, y: newHeadY });
+    const eggIndex = eggs.findIndex(e => e.x === newHeadX && e.y === newHeadY);
+
+    if (eggIndex !== -1) {
+      const eatenEgg = eggs[eggIndex];
+      eggs.splice(eggIndex, 1);
+
+      if (eatenEgg.isTarget) {
+        score += 10;
+        levelEatsCount++;
+        playSFX('correct');
+        if (levelEatsCount >= TARGET_EATS_PER_LEVEL) {
+          setTimeout(completeLevel, 100);
+          return;
+        }
+      } else {
+        triggerMistake();
+        return;
+      }
+      respawnEggs();
+    } else {
+      snake.pop();
+    }
+    updateUI();
+  }
+
+  function triggerMistake() {
+    playSFX('wrong');
+    lives--;
+    updateUI();
+
+    if (lives <= 0) {
+      setTimeout(() => showEndScreen(false), 300);
+    } else {
+      setTimeout(() => resetLevelState(), 400);
+    }
+  }
+
+  function completeLevel() {
+    playSFX('win');
+    if (currentLevelIdx < LEVELS.length - 1) {
+      document.getElementById('end-title').innerText = `Bagus! Peringkat ${currentLevelIdx + 1} Selesai 🎉`;
+      document.getElementById('end-message').innerText = `Mari teruskan ke vokal '${LEVELS[currentLevelIdx + 1].targetVowel}'.`;
+      document.getElementById('end-btn').innerText = "Seterusnya ➡️";
+      document.getElementById('end-modal').style.display = 'flex';
+    } else {
+      showEndScreen(true);
+    }
+  }
+
+  function showEndScreen(isVictory) {
+    document.getElementById('end-modal').style.display = 'flex';
+    if (isVictory) {
+      playSFX('win');
+      document.getElementById('end-title').innerText = "Hebat! Habis semua peringkat 🏆";
+      document.getElementById('end-message').innerText = `Jumlah Markah: ${score}`;
+      document.getElementById('end-btn').innerText = "Main Semula 🔄";
+    } else {
+      document.getElementById('end-title').innerText = "Alamak! Game Over 😢";
+      document.getElementById('end-message').innerText = `Jumlah Markah: ${score}`;
+      document.getElementById('end-btn').innerText = "Cuba Lagi 🔄";
+    }
+  }
+
+  function nextLevelOrRestart() {
+    document.getElementById('end-modal').style.display = 'none';
+    if (lives <= 0 || currentLevelIdx >= LEVELS.length - 1) {
+      initGame();
+    } else {
+      currentLevelIdx++;
+      resetLevelState();
+    }
+  }
+
+  function drawScene() {
+    for (let r = 0; r < GRID_SIZE; r++) {
+      for (let c = 0; c < GRID_SIZE; c++) {
+        ctx.fillStyle = (r + c) % 2 === 0 ? '#a7f3d0' : '#6ee7b7';
+        ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+      }
+    }
+    eggs.forEach(egg => {
+      const cx = (egg.x + 0.5) * cellSize;
+      const cy = (egg.y + 0.5) * cellSize;
+      ctx.fillStyle = '#fffbeb';
+      ctx.beginPath();
+      ctx.arc(cx, cy, cellSize * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#1e293b';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = `bold ${Math.floor(cellSize * 0.4)}px Fredoka`;
+      ctx.fillText(egg.text, cx, cy);
+    });
+
+    snake.forEach((seg, i) => {
+      ctx.fillStyle = i === 0 ? '#059669' : '#10b981';
+      ctx.beginPath();
+      ctx.arc((seg.x + 0.5) * cellSize, (seg.y + 0.5) * cellSize, cellSize * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  function updateUI() {
+    const lvlInfo = LEVELS[currentLevelIdx];
+    document.getElementById('chip-level').innerText = `Peringkat ${lvlInfo.level} (${lvlInfo.targetVowel})`;
+    document.getElementById('val-score').innerText = score;
+    let hearts = "";
+    for (let i = 0; i < 3; i++) hearts += i < lives ? "❤️" : "🖤";
+    document.getElementById('chip-lives').innerText = hearts;
+  }
+
+  function openHelpModal() { isPaused = true; document.getElementById('help-modal').style.display = 'flex'; }
+  function closeHelpModal() { isPaused = false; document.getElementById('help-modal').style.display = 'none'; initAudio(); }
+
+  window.onload = function() {
+    initGame();
+    isPaused = false;
+    requestAnimationFrame(gameLoop);
+  };
+</script>
+</body>
+</html>

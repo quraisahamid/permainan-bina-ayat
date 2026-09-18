@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="ms" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="google" content="notranslate">
+  <meta name="chrome" content="notranslate">
+
+  <title>FASA 2: Mengeja i-SKA</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ec4899">
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js?v=24').then((registration) => {
+        const showUpdateScreen = () => {
+          const overlay = document.getElementById('update-overlay');
+          if (overlay) overlay.style.display = 'flex';
+        };
+
+        if (registration.installing) {
+          showUpdateScreen();
+          registration.installing.onstatechange = (e) => {
+            if (e.target.state === 'installed') {
+              if (navigator.serviceWorker.controller) {
+                window.location.reload();
+              }
+            }
+          };
+        }
+
+        if (registration.waiting) {
+          showUpdateScreen();
+          registration.waiting.postMessage({ action: 'skipWaiting' });
+        }
+
+        registration.addEventListener('updatefound', () => {
+          showUpdateScreen();
+          const newWorker = registration.installing;
+          if (newWorker) {
+            newWorker.onstatechange = () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                window.location.reload();
+              }
+            };
+          }
+        });
+      }).catch((err) => console.log('SW Error:', err));
+    });
+  }
+
+  navigator.serviceWorker?.addEventListener('message', (event) => {
+    if (event.data && event.data.action === 'forceReload') {
+      const overlay = document.getElementById('update-overlay');
+      if (overlay) overlay.style.display = 'flex';
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    }
+  });
+</script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #fdf2f8;
+      background-image: radial-gradient(#fbcfe8 1.5px, transparent 1.5px), radial-gradient(#fbcfe8 1.5px, #fdf2f8 1.5px);
+      background-size: 60px 60px;
+      background-position: 0 0, 30px 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0;
+      padding: clamp(8px, 2vw, 20px);
+    }
+
+    #confetti-canvas {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    .external-menu-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: clamp(300px, 90vw, 720px);
+      margin-bottom: 12px;
+      gap: 10px;
+    }
+
+    .nav-mode-btn {
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-weight: bold;
+      font-size: clamp(0.85rem, 2vw, 1.05rem);
+      cursor: pointer;
+      box-shadow: 0 4px 0 #1d4ed8;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .bgm-btn {
+      background: #f59e0b;
+      border: none;
+      border-radius: 12px;
+      padding: 8px 16px;
+      font-size: clamp(0.85rem, 2vw, 1rem);
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #b45309;
+    }
+
+    .main-card {
+      background: white;
+      border: 4px solid #ec4899;
+      border-radius: 24px;
+      padding: clamp(14px, 3vw, 24px);
+      width: clamp(300px, 90vw, 720px);
+      text-align: center;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.1);
+    }
+
+    .title-banner {
+      background-color: #ec4899;
+      color: white;
+      padding: 10px;
+      border-radius: 14px;
+      font-size: clamp(1.2rem, 3vw, 1.6rem);
+      font-weight: bold;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 0 #be185d;
+      text-transform: uppercase;
+    }
+
+    .reference-word-card {
+      background: #e0f2fe;
+      border: 2px solid #3b82f6;
+      border-radius: 14px;
+      padding: 8px 16px;
+      display: inline-block;
+      margin-bottom: 12px;
+    }
+
+    .reference-word-title {
+      font-size: 0.8rem;
+      color: #1d4ed8;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .reference-word-text {
+      font-size: clamp(1.4rem, 4vw, 2.2rem);
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
+    .word-display-box {
+      background: #fff1f2;
+      border: 3px dashed #fda4af;
+      border-radius: 16px;
+      padding: 15px;
+      margin-bottom: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .spelling-box {
+      min-height: 65px;
+      width: 100%;
+      border: 3px dashed #f472b6;
+      border-radius: 14px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px;
+      flex-wrap: wrap;
+    }
+
+    .syllable-part-1 { color: #1e293b; }
+    .syllable-part-2 { color: #dc2626; }
+
+    .tile-btn {
+      background: #ffffff;
+      border: 3px solid #ec4899;
+      padding: clamp(8px, 2vw, 12px) clamp(14px, 3vw, 20px);
+      border-radius: 14px;
+      font-size: clamp(1.4rem, 4.5vw, 2.3rem);
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #be185d;
+      transition: transform 0.1s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tile-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #be185d;
+    }
+
+    .pool-box {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      min-height: 60px;
+    }
+
+    .feedback-text {
+      font-size: clamp(1rem, 2.5vw, 1.3rem);
+      font-weight: bold;
+      margin-top: 10px;
+      min-height: 30px;
+      color: #be185d;
+    }
+
+    .controls-bar {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .action-btn {
+      padding: 10px 18px;
+      font-size: clamp(0.9rem, 2vw, 1.1rem);
+      font-weight: bold;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    }
+
+    .btn-prev { background-color: #64748b; }
+    .btn-reset { background-color: #ef4444; }
+    .btn-next { background-color: #10b981; }
+
+    .action-btn:disabled {
+      background-color: #cbd5e1 !important;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* Skrin Amaran Kemas Kini */
+    #update-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.85);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .update-box {
+      background: white;
+      color: #1e3a8a;
+      padding: 30px;
+      border-radius: 20px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      border: 4px solid #3b82f6;
+    }
+
+    .spinner {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #3b82f6;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body class="notranslate">
+
+<div id="update-overlay">
+  <div class="update-box">
+    <div class="spinner"></div>
+    <h2 style="margin-top: 0; color: #1e3a8a;">Sila tunggu sebentar...</h2>
+    <p style="font-size: 1rem; color: #475569; font-weight: bold;">
+      Aplikasi sedang memuat turun fail pembelajaran terkini. Jangan tutup atau sentuh skrin.
+    </p>
+  </div>
+</div>
+
+<canvas id="confetti-canvas"></canvas>
+<audio id="bgm-player" loop autoplay src="bgm.mp3"></audio>
+
+<div class="external-menu-bar">
+  <a href="index.html" class="nav-mode-btn">🏠 Halaman Utama</a>
+  <button class="bgm-btn" id="bgm-toggle" onclick="toggleBGM()">🔊 Muzik: ON</button>
+</div>
+
+<div class="main-card">
+  <div class="title-banner">🗣️ Fasa 2: Mengeja Suku Kata i-SKA</div>
+
+  <div style="font-size: 1.1rem; font-weight: bold; color: #475569; margin-bottom: 8px;" id="progress-text">
+    Perkataan 1 / 10
+  </div>
+
+  <div class="reference-word-card">
+    <div class="reference-word-title">Perkataan Untuk Dieja:</div>
+    <div class="reference-word-text" id="reference-word-display">-</div>
+  </div>
+
+  <div class="word-display-box">
+    <div style="font-size: 0.95rem; color: #881337; font-weight: bold;">
+      Tekan suku kata mengikut warna untuk mengeja perkataan:
+    </div>
+    <div class="spelling-box" id="built-spelling-box"></div>
+    <div class="pool-box" id="tile-pool-box"></div>
+  </div>
+
+  <div class="feedback-text" id="feedback-msg"></div>
+
+  <div class="controls-bar">
+    <button class="action-btn btn-prev" id="prev-btn" onclick="prevWord()">⬅️ Sebelum</button>
+    <button class="action-btn btn-reset" onclick="resetCurrentWord()">🔄 Semula</button>
+    <button class="action-btn btn-next" id="next-btn" onclick="nextWord()">Seterusnya ➡️</button>
+  </div>
+</div>
+
+<script>
+  const confettiCanvas = document.getElementById('confetti-canvas');
+  const cCtx = confettiCanvas.getContext('2d');
+  let confettiParticles = [];
+  let confettiAnimFrame = null;
+
+  function resizeConfettiCanvas() {
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resizeConfettiCanvas);
+  resizeConfettiCanvas();
+
+  function triggerConfetti() {
+    confettiParticles = [];
+    const colors = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+    for (let i = 0; i < 70; i++) {
+      confettiParticles.push({
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2 - 50,
+        vx: (Math.random() - 0.5) * 16,
+        vy: (Math.random() - 0.7) * 16,
+        size: Math.random() * 8 + 6,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rotation: Math.random() * 360,
+        rSpeed: (Math.random() - 0.5) * 10,
+        opacity: 1
+      });
+    }
+    if (!confettiAnimFrame) animateConfetti();
+  }
+
+  function animateConfetti() {
+    cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    for (let i = confettiParticles.length - 1; i >= 0; i--) {
+      let p = confettiParticles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.35;
+      p.rotation += p.rSpeed;
+      p.opacity -= 0.012;
+
+      if (p.opacity <= 0) {
+        confettiParticles.splice(i, 1);
+        continue;
+      }
+
+      cCtx.save();
+      cCtx.globalAlpha = p.opacity;
+      cCtx.translate(p.x, p.y);
+      cCtx.rotate((p.rotation * Math.PI) / 180);
+      cCtx.fillStyle = p.color;
+      cCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+      cCtx.restore();
+    }
+
+    if (confettiParticles.length > 0) {
+      confettiAnimFrame = requestAnimationFrame(animateConfetti);
+    } else {
+      confettiAnimFrame = null;
+    }
+  }
+
+  const audioMemoryCache = {};
+  let isProcessing = false;
+  let audioQueue = [];
+  let isQueueRunning = false;
+
+  function preloadAudioFile(soundKey) {
+    const audioUrl = `sebutan/${soundKey.toLowerCase().replace(/\s+/g, '_')}.mp3`;
+    fetch(audioUrl)
+      .then(res => res.blob())
+      .then(blob => {
+        audioMemoryCache[soundKey.toLowerCase()] = URL.createObjectURL(blob);
+      })
+      .catch(() => {});
+  }
+
+  function clearAudioQueue() {
+    audioQueue = [];
+    isQueueRunning = false;
+  }
+
+  function queueAudio(soundKey, delayMs = 0, callback = null) {
+    audioQueue.push({ soundKey, delayMs, callback });
+    if (!isQueueRunning) {
+      processAudioQueue();
+    }
+  }
+
+  function processAudioQueue() {
+    if (audioQueue.length === 0) {
+      isQueueRunning = false;
+      return;
+    }
+
+    isQueueRunning = true;
+    const currentItem = audioQueue.shift();
+
+    setTimeout(() => {
+      const soundKey = currentItem.soundKey.toLowerCase();
+      const formattedKey = soundKey.replace(/\s+/g, '_');
+      const audioSource = audioMemoryCache[soundKey] || `sebutan/${formattedKey}.mp3`;
+      const audio = new Audio(audioSource);
+
+      if (!bgmAudio.paused) bgmAudio.volume = 0.03;
+
+      audio.play().then(() => {
+        audio.onended = () => {
+          if (!bgmAudio.paused) bgmAudio.volume = 0.12;
+          if (currentItem.callback) currentItem.callback();
+          processAudioQueue();
+        };
+      }).catch((err) => {
+        if (!bgmAudio.paused) bgmAudio.volume = 0.12;
+        if (currentItem.callback) currentItem.callback();
+        processAudioQueue();
+      });
+
+    }, currentItem.delayMs);
+  }
+
+  const bgmAudio = document.getElementById("bgm-player");
+  const bgmBtn = document.getElementById("bgm-toggle");
+
+  function tryAutoplayBGM() {
+    bgmAudio.volume = 0.12;
+    bgmAudio.play().then(() => {
+      bgmBtn.innerText = "🔊 Muzik: ON";
+    }).catch(() => {
+      const enableOnGesture = () => {
+        bgmAudio.play().then(() => {
+          bgmBtn.innerText = "🔊 Muzik: ON";
+        });
+        document.removeEventListener('click', enableOnGesture);
+        document.removeEventListener('touchstart', enableOnGesture);
+      };
+      document.addEventListener('click', enableOnGesture);
+      document.addEventListener('touchstart', enableOnGesture);
+    });
+  }
+
+  function toggleBGM() {
+    if (bgmAudio.paused) {
+      bgmAudio.volume = 0.12;
+      bgmAudio.play();
+      bgmBtn.innerText = "🔊 Muzik: ON";
+    } else {
+      bgmAudio.pause();
+      bgmBtn.innerText = "🔇 Muzik: OFF";
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded", tryAutoplayBGM);
+
+  const wordList = [
+    { word: "cuci", syllables: [{ text: "cu", part: 1 }, { text: "ci", part: 2 }] },
+    { word: "masak", syllables: [{ text: "ma", part: 1 }, { text: "sak", part: 2 }] },
+    { word: "lintas", syllables: [{ text: "lin", part: 1 }, { text: "tas", part: 2 }] },
+    { word: "sapu", syllables: [{ text: "sa", part: 1 }, { text: "pu", part: 2 }] },
+    { word: "minum", syllables: [{ text: "mi", part: 1 }, { text: "num", part: 2 }] },
+    { word: "lipat", syllables: [{ text: "li", part: 1 }, { text: "pat", part: 2 }] },
+    { word: "basuh", syllables: [{ text: "ba", part: 1 }, { text: "suh", part: 2 }] },
+    { word: "potong", syllables: [{ text: "po", part: 1 }, { text: "tong", part: 2 }] },
+    { word: "susun", syllables: [{ text: "su", part: 1 }, { text: "sun", part: 2 }] },
+    { word: "tulis", syllables: [{ text: "tu", part: 1 }, { text: "lis", part: 2 }] }
+  ];
+
+  window.addEventListener('load', () => {
+    wordList.forEach(w => {
+      preloadAudioFile(w.word);
+      w.syllables.forEach(s => preloadAudioFile(s.text));
+    });
+    preloadAudioFile("Sila cuba lagi");
+  });
+
+  let currentIndex = 0;
+  let selectedSyllables = [];
+
+  function loadWord() {
+    clearAudioQueue();
+    isProcessing = false;
+    selectedSyllables = [];
+    
+    const item = wordList[currentIndex];
+    
+    document.getElementById("progress-text").innerText = `Perkataan ${currentIndex + 1} / ${wordList.length}`;
+    
+    const refDisplay = document.getElementById("reference-word-display");
+    refDisplay.innerHTML = `<span class="syllable-part-1">${item.syllables[0].text}</span><span class="syllable-part-2">${item.syllables[1].text}</span>`;
+
+    document.getElementById("feedback-msg").innerText = "";
+    document.getElementById("prev-btn").disabled = currentIndex === 0;
+    document.getElementById("next-btn").disabled = currentIndex === wordList.length - 1;
+
+    document.getElementById("built-spelling-box").innerHTML = "";
+
+    const poolBox = document.getElementById("tile-pool-box");
+    poolBox.innerHTML = "";
+
+    const shuffled = [...item.syllables].sort(() => Math.random() - 0.5);
+
+    shuffled.forEach((sylObj) => {
+      const btn = document.createElement("button");
+      btn.className = "tile-btn";
+      
+      const colorClass = sylObj.part === 1 ? "syllable-part-1" : "syllable-part-2";
+      btn.innerHTML = `<span class="${colorClass}">${sylObj.text}</span>`;
+
+      btn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        selectSyllable(sylObj, btn);
+      }, { passive: false });
+
+      btn.onclick = (e) => {
+        if (e.pointerType !== 'touch') selectSyllable(sylObj, btn);
+      };
+
+      poolBox.appendChild(btn);
+    });
+  }
+
+  function selectSyllable(sylObj, originalBtn) {
+    if (isProcessing) return;
+
+    selectedSyllables.push(sylObj);
+    originalBtn.style.visibility = "hidden";
+
+    queueAudio(sylObj.text, 1000);
+
+    const builtBox = document.getElementById("built-spelling-box");
+    const tileSpan = document.createElement("button");
+    tileSpan.className = "tile-btn";
+    
+    const colorClass = sylObj.part === 1 ? "syllable-part-1" : "syllable-part-2";
+    tileSpan.innerHTML = `<span class="${colorClass}">${sylObj.text}</span>`;
+
+    tileSpan.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      undoSyllable(sylObj, originalBtn, tileSpan);
+    }, { passive: false });
+
+    tileSpan.onclick = (e) => {
+      if (e.pointerType !== 'touch') undoSyllable(sylObj, originalBtn, tileSpan);
+    };
+
+    builtBox.appendChild(tileSpan);
+
+    const currentItem = wordList[currentIndex];
+    if (selectedSyllables.length === currentItem.syllables.length) {
+      checkSpelling();
+    }
+  }
+
+  function undoSyllable(sylObj, originalBtn, builtTile) {
+    clearAudioQueue();
+    if (isProcessing) return;
+
+    selectedSyllables = selectedSyllables.filter(s => s !== sylObj);
+    builtTile.remove();
+    originalBtn.style.visibility = "visible";
+    document.getElementById("feedback-msg").innerText = "";
+  }
+
+  function checkSpelling() {
+    const currentItem = wordList[currentIndex];
+    const userWord = selectedSyllables.map(s => s.text).join("");
+    const targetWord = currentItem.word;
+
+    if (userWord === targetWord) {
+      isProcessing = true;
+
+      queueAudio(targetWord, 1000, () => {
+        document.getElementById("feedback-msg").innerHTML = "<span style='color: #16a34a;'>Tahniah! Ejaan Betul! 🎉</span>";
+        triggerConfetti();
+        isProcessing = false;
+      });
+
+    } else {
+      clearAudioQueue();
+      document.getElementById("feedback-msg").innerHTML = "<span style='color: #dc2626;'>Cuba lagi! ❌</span>";
+      queueAudio("Sila cuba lagi", 0);
+    }
+  }
+
+  function resetCurrentWord() {
+    loadWord();
+  }
+
+  function prevWord() {
+    if (currentIndex > 0) {
+      currentIndex--;
+      loadWord();
+    }
+  }
+
+  function nextWord() {
+    if (currentIndex < wordList.length - 1) {
+      currentIndex++;
+      loadWord();
+    }
+  }
+
+  loadWord();
+</script>
+</body>
+</html>
