@@ -13,7 +13,7 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=34').then((registration) => {
+      navigator.serviceWorker.register('sw.js?v=35').then((registration) => {
         const showUpdateScreen = () => {
           const overlay = document.getElementById('update-overlay');
           if (overlay) overlay.style.display = 'flex';
@@ -643,7 +643,7 @@
     selectedSyllables.push(sylObj);
     originalBtn.style.visibility = "hidden";
 
-    queueAudio(sylObj.text, 1000);
+    queueAudio(sylObj.text, 0);
 
     const builtBox = document.getElementById("built-spelling-box");
     const tileSpan = document.createElement("button");

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'iska-app-v34';
+const CACHE_NAME = 'iska-app-v35';
 
 // Senarai lengkap fail tempatan & audio (tanpa tanda '/')
 const LOCAL_ASSETS = [
