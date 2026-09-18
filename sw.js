@@ -1,8 +1,7 @@
-const CACHE_NAME = 'iska-app-v23';
+const CACHE_NAME = 'iska-app-v24';
 
-// Senarai lengkap fail tempatan & audio di dalam direktori sebutan/
+// Senarai lengkap fail tempatan & audio (tanpa tanda '/')
 const LOCAL_ASSETS = [
-  '/',
   'index.html',
   'eja.html',
   'bina_ayat.html',
@@ -31,7 +30,7 @@ const LOCAL_ASSETS = [
   'images/lembaran9_3.png',
   'images/lembaran9_4.png',
 
-  // Audio Sebutan Ayat Penuh (.mp3)
+  // Audio Sebutan Ayat Penuh Fasa 3 (.mp3)
   'sebutan/faris_menulis_karangan.mp3',
   'sebutan/aina_sapu_lantai.mp3',
   'sebutan/hakim_membawa_beg_sekolah.mp3',
@@ -44,12 +43,16 @@ const LOCAL_ASSETS = [
   'sebutan/amir_menunggang_basikal.mp3',
   'sebutan/hana_melompat_tali.mp3',
   'sebutan/danish_bermain_gelongsor.mp3',
+  'sebutan/ali_cuci_tangan.mp3',
+  'sebutan/mira_potong_kuku.mp3',
+  'sebutan/abu_minum_susu.mp3',
+  'sebutan/siti_makan_buah.mp3',
   'sebutan/bapa_tanam_cili_di_kebun.mp3',
   'sebutan/abang_siram_pokok_bunga_waktu_petang.mp3',
   'sebutan/ibu_petik_mangga_dengan_berhati_hati.mp3',
   'sebutan/adik_letak_baja_tanaman_supaya_subur.mp3',
 
-  // Audio Sebutan Perkataan Individu Fasa 3
+  // Audio Sebutan Perkataan Individu & Ralat
   'sebutan/Faris.mp3',
   'sebutan/Tulis.mp3',
   'sebutan/Karangan.mp3',
@@ -85,6 +88,18 @@ const LOCAL_ASSETS = [
   'sebutan/Tali.mp3',
   'sebutan/Danish.mp3',
   'sebutan/Gelongsor.mp3',
+  'sebutan/Ali.mp3',
+  'sebutan/Cuci.mp3',
+  'sebutan/Tangan.mp3',
+  'sebutan/Mira.mp3',
+  'sebutan/Potong.mp3',
+  'sebutan/Kuku.mp3',
+  'sebutan/Abu.mp3',
+  'sebutan/Minum.mp3',
+  'sebutan/Susu.mp3',
+  'sebutan/Siti.mp3',
+  'sebutan/Makan.mp3',
+  'sebutan/Buah.mp3',
   'sebutan/Bapa.mp3',
   'sebutan/Tanam.mp3',
   'sebutan/Cili.mp3',
@@ -98,7 +113,8 @@ const LOCAL_ASSETS = [
   'sebutan/Dengan_berhati_hati.mp3',
   'sebutan/Letak.mp3',
   'sebutan/Baja_tanaman.mp3',
-  'sebutan/Supaya_subur.mp3'
+  'sebutan/Supaya_subur.mp3',
+  'sebutan/Sila_cuba_lagi.mp3'
 ];
 
 const EXTERNAL_CDN = [
@@ -110,7 +126,7 @@ const EXTERNAL_CDN = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      console.log('[Service Worker v22] Memuat turun semula kesemua aset & audio perkataan...');
+      console.log('[Service Worker v24] Memuat turun semula kesemua aset...');
       for (const asset of LOCAL_ASSETS) {
         try {
           const response = await fetch(asset, { cache: 'reload' });
@@ -137,7 +153,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cache) => {
           if (cache !== CACHE_NAME) {
-            console.log('[Service Worker] Memadam cache lama yang tersangkut:', cache);
+            console.log('[Service Worker] Memadam cache lama:', cache);
             return caches.delete(cache);
           }
         })
