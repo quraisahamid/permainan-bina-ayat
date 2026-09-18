@@ -144,29 +144,10 @@
   }
 
   function loadMiniGameQuestion() {
-    stopTimers();
-    isWordCompleted = false;
-    mgTimeLeft = 30;
-    document.getElementById("mg1-timer").innerText = mgTimeLeft;
-
     const gameData = standaloneMiniGameData[mgIndex];
     mgTargetWord = gameData.target;
     document.getElementById("minigame-hint").innerText = `Petunjuk: "${gameData.hint}"`;
     setupMiniGameLetters();
-
-    mgCountdownInterval = setInterval(() => {
-      if (!isWordCompleted) {
-        mgTimeLeft--;
-        document.getElementById("mg1-timer").innerText = mgTimeLeft;
-
-        if (mgTimeLeft <= 0) {
-          stopTimers();
-          document.getElementById("minigame-feedback").style.color = "#dc2626";
-          document.getElementById("minigame-feedback").innerText = "⏰ Masa telah tamat! Tekan Semula untuk cuba lagi.";
-          speakText("Masa telah tamat. Cuba lagi ya!");
-        }
-      }
-    }, 1000);
   }
 
   function setupMiniGameLetters() {
@@ -181,10 +162,7 @@
         document.getElementById("mg1-timer").innerText = mgTimeLeft;
 
         if (mgTimeLeft <= 0) {
-          stopTimers();
-          document.getElementById("minigame-feedback").style.color = "#dc2626";
-          document.getElementById("minigame-feedback").innerText = "⏰ Masa telah tamat! Tekan Semula.";
-          speakText("Masa telah tamat. Cuba lagi ya!");
+          revealAnswerOnTimeout();
         }
       }
     }, 1000);
@@ -254,6 +232,32 @@
     }
   }
 
+  function revealAnswerOnTimeout() {
+    isWordCompleted = true;
+    stopTimers();
+
+    const targetDiv = document.getElementById("minigame-target");
+    targetDiv.innerHTML = "";
+    mgTargetWord.split('').forEach((char) => {
+      const box = document.createElement("div");
+      box.className = "letter-box";
+      box.style.background = "#fee2e2";
+      box.style.borderColor = "#dc2626";
+      box.style.color = "#dc2626";
+      box.innerText = char;
+      targetDiv.appendChild(box);
+    });
+
+    document.getElementById("minigame-feedback").style.color = "#dc2626";
+    document.getElementById("minigame-feedback").innerText = `⏰ Masa tamat! Jawapannya: ${mgTargetWord}`;
+    speakText(`Masa telah tamat. Jawapannya ialah ${mgTargetWord}`);
+    document.getElementById("mg-next-btn").style.display = "inline-block";
+
+    mgTimer = setTimeout(() => {
+      nextMiniGameWord();
+    }, 10000);
+  }
+
   function resetMiniGameLetters() {
     const lettersContainer = document.getElementById("minigame-letters");
     const boxes = lettersContainer.querySelectorAll(".letter-box");
@@ -276,6 +280,7 @@
   }
 
   function nextMiniGameWord() {
+    stopTimers();
     if (mgIndex < standaloneMiniGameData.length - 1) {
       mgIndex++;
       loadMiniGameQuestion();

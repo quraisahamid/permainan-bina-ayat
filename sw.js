@@ -1,4 +1,4 @@
-const CACHE_NAME = 'iska-app-v36';
+const CACHE_NAME = 'iska-app-v37';
 
 // Senarai lengkap fail tempatan & audio (tanpa tanda '/')
 const LOCAL_ASSETS = [
@@ -99,12 +99,8 @@ const LOCAL_ASSETS = [
   'sebutan/Letak.mp3',
   'sebutan/Baja_tanaman.mp3',
   'sebutan/Supaya_subur.mp3',
-  'sebutan/Sila_cuba_lagi.mp3'
-];
-
-const EXTERNAL_CDN = [
-  'https://cdn.tailwindcss.com',
-  'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
+  'sebutan/Sila_cuba_lagi.mp3',
+  'three.min.js'
 ];
 
 // 1. Pemasangan & Muat Turun Paksa
@@ -123,9 +119,6 @@ self.addEventListener('install', (event) => {
         } catch (e) {
           console.error('[SW Error] Gagal fetch:', asset, e);
         }
-      }
-      for (const url of EXTERNAL_CDN) {
-        try { await cache.add(url); } catch (e) {}
       }
     }).then(() => self.skipWaiting())
   );
