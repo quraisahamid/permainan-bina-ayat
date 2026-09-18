@@ -13,7 +13,7 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=31').then((registration) => {
+      navigator.serviceWorker.register('sw.js?v=32').then((registration) => {
         const showUpdateScreen = () => {
           const overlay = document.getElementById('update-overlay');
           if (overlay) overlay.style.display = 'flex';
@@ -241,20 +241,28 @@
 
     .controls-bar {
       display: flex;
+      flex-wrap: wrap;
       justify-content: space-between;
       gap: 10px;
       margin-top: 15px;
     }
 
     .action-btn {
-      padding: 10px 18px;
-      font-size: clamp(0.9rem, 2vw, 1.1rem);
+      flex: 1 1 100px;
+      min-width: 0;
+      padding: 10px clamp(8px, 2vw, 18px);
+      font-size: clamp(0.8rem, 2vw, 1.1rem);
       font-weight: bold;
       border-radius: 12px;
       border: none;
       cursor: pointer;
       color: white;
       box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      white-space: normal;
     }
 
     .btn-prev { background-color: #64748b; }
