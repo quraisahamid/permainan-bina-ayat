@@ -13,7 +13,7 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=24').then((registration) => {
+      navigator.serviceWorker.register('sw.js?v=25').then((registration) => {
         const showUpdateScreen = () => {
           const overlay = document.getElementById('update-overlay');
           if (overlay) overlay.style.display = 'flex';
@@ -426,8 +426,25 @@
   let audioQueue = [];
   let isQueueRunning = false;
 
+  // Fail sebenar di pelayan menggunakan huruf besar pada awal nama,
+  // kecuali 'sapu' dan 'tulis' yang disimpan huruf kecil sepenuhnya.
+  const AUDIO_FILENAME_MAP = {
+    'cuci': 'Cuci', 'masak': 'Masak', 'lintas': 'Lintas', 'sapu': 'sapu',
+    'minum': 'Minum', 'lipat': 'Lipat', 'basuh': 'Basuh', 'potong': 'Potong',
+    'susun': 'Susun', 'tulis': 'tulis',
+    'cu': 'Cu', 'ci': 'Ci', 'ma': 'Ma', 'sak': 'Sak', 'lin': 'Lin', 'tas': 'Tas',
+    'sa': 'Sa', 'pu': 'Pu', 'mi': 'Mi', 'num': 'Num', 'li': 'Li', 'pat': 'Pat',
+    'ba': 'Ba', 'suh': 'Suh', 'po': 'Po', 'tong': 'Tong', 'su': 'Su', 'sun': 'Sun',
+    'tu': 'Tu', 'lis': 'Lis', 'sila_cuba_lagi': 'Sila_cuba_lagi'
+  };
+
+  function toAudioFilename(soundKey) {
+    const key = soundKey.toLowerCase().replace(/\s+/g, '_');
+    return AUDIO_FILENAME_MAP[key] || key;
+  }
+
   function preloadAudioFile(soundKey) {
-    const audioUrl = `sebutan/${soundKey.toLowerCase().replace(/\s+/g, '_')}.mp3`;
+    const audioUrl = `sebutan/${toAudioFilename(soundKey)}.mp3`;
     fetch(audioUrl)
       .then(res => res.blob())
       .then(blob => {
@@ -459,8 +476,7 @@
 
     setTimeout(() => {
       const soundKey = currentItem.soundKey.toLowerCase();
-      const formattedKey = soundKey.replace(/\s+/g, '_');
-      const audioSource = audioMemoryCache[soundKey] || `sebutan/${formattedKey}.mp3`;
+      const audioSource = audioMemoryCache[soundKey] || `sebutan/${toAudioFilename(currentItem.soundKey)}.mp3`;
       const audio = new Audio(audioSource);
 
       if (!bgmAudio.paused) bgmAudio.volume = 0.03;
