@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ms" translate="no">
+<head>
+  <meta name="google" content="notranslate">
+  <meta name="chrome" content="notranslate">
+
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#3b82f6">
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js?v=39').then((registration) => {
+        const showUpdateScreen = () => {
+          const overlay = document.getElementById('update-overlay');
+          if (overlay) overlay.style.display = 'flex';
+        };
+
+        if (registration.installing) {
+          showUpdateScreen();
+          registration.installing.onstatechange = (e) => {
+            if (e.target.state === 'installed') {
+              if (navigator.serviceWorker.controller) {
+                window.location.reload();
+              }
+            }
+          };
+        }
+
+        if (registration.waiting) {
+          showUpdateScreen();
+          registration.waiting.postMessage({ action: 'skipWaiting' });
+        }
+
+        registration.addEventListener('updatefound', () => {
+          showUpdateScreen();
+          const newWorker = registration.installing;
+          if (newWorker) {
+            newWorker.onstatechange = () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                window.location.reload();
+              }
+            };
+          }
+        });
+      }).catch((err) => console.log('SW Error:', err));
+    });
+  }
+
+  navigator.serviceWorker?.addEventListener('message', (event) => {
+    if (event.data && event.data.action === 'forceReload') {
+      const overlay = document.getElementById('update-overlay');
+      if (overlay) overlay.style.display = 'flex';
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    }
+  });
+</script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Kredit &amp; Penghargaan</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Comic Neue', 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #f0f9ff;
+      background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px), radial-gradient(#cbd5e1 1.5px, #f0f9ff 1.5px);
+      background-size: 60px 60px;
+      background-position: 0 0, 30px 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0;
+      padding: clamp(8px, 2vw, 20px);
+    }
+
+    .external-menu-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: clamp(300px, 90vw, 800px);
+      margin-bottom: 12px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .nav-mode-btn {
+      background-color: #ec4899;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-weight: bold;
+      font-size: clamp(0.85rem, 2vw, 1.05rem);
+      cursor: pointer;
+      box-shadow: 0 4px 0 #be185d;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .bgm-btn {
+      background: #f59e0b;
+      border: none;
+      border-radius: 12px;
+      padding: 8px 16px;
+      font-size: clamp(0.85rem, 2vw, 1rem);
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #b45309;
+    }
+
+    .game-container {
+      background: #ffffff;
+      border: 4px solid #3b82f6;
+      border-radius: 20px;
+      padding: clamp(12px, 2.5vw, 24px);
+      width: clamp(300px, 90vw, 800px);
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      position: relative;
+    }
+
+    .main-title {
+      color: #1e3a8a;
+      font-size: clamp(1.3rem, 3.5vw, 2rem);
+      margin-top: 5px;
+      margin-bottom: 5px;
+    }
+
+    .sub-title {
+      color: #475569;
+      font-weight: bold;
+      font-size: clamp(0.85rem, 2.2vw, 1rem);
+      margin-top: 0;
+      margin-bottom: 18px;
+    }
+
+    .slide-hint {
+      color: #64748b;
+      font-weight: bold;
+      font-size: clamp(0.8rem, 2vw, 0.95rem);
+      margin-bottom: 10px;
+    }
+
+    .credit-track {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      padding: 6px 6px 20px 6px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .credit-track::-webkit-scrollbar {
+      height: 8px;
+    }
+    .credit-track::-webkit-scrollbar-thumb {
+      background: #93c5fd;
+      border-radius: 10px;
+    }
+    .credit-track::-webkit-scrollbar-track {
+      background: #e0f2fe;
+      border-radius: 10px;
+    }
+
+    .credit-card {
+      flex: 0 0 auto;
+      scroll-snap-align: center;
+      width: clamp(120px, 26vw, 150px);
+      background: #f0f9ff;
+      border: 3px solid #bae6fd;
+      border-radius: 18px;
+      padding: 14px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .credit-avatar {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid #ffffff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--avatar-bg, #38bdf8);
+      flex-shrink: 0;
+    }
+
+    .credit-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .credit-avatar .avatar-fallback {
+      display: none;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.6rem;
+    }
+
+    .credit-name {
+      color: #0f172a;
+      font-weight: bold;
+      font-size: clamp(0.85rem, 2.2vw, 1rem);
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    /* Skrin Amaran Kemas Kini */
+    #update-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.85);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .update-box {
+      background: white;
+      color: #1e3a8a;
+      padding: 30px;
+      border-radius: 20px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      border: 4px solid #3b82f6;
+    }
+
+    .spinner {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #3b82f6;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="update-overlay">
+  <div class="update-box">
+    <div class="spinner"></div>
+    <h2 style="margin-top: 0; color: #1e3a8a;">Sila tunggu sebentar...</h2>
+    <p style="font-size: 1rem; color: #475569; font-weight: bold;">
+      Aplikasi sedang memuat turun fail pembelajaran terkini. Jangan tutup atau sentuh skrin.
+    </p>
+  </div>
+</div>
+
+<audio id="bgm-player" loop autoplay src="bgm.mp3"></audio>
+
+<div class="external-menu-bar">
+  <a href="index.html" class="nav-mode-btn">🏠 Kembali</a>
+  <button class="bgm-btn" id="bgm-toggle" onclick="toggleBGM()">🔊 Muzik: ON</button>
+</div>
+
+<div class="game-container">
+  <h1 class="main-title">🎓 Kredit &amp; Penghargaan</h1>
+  <p class="sub-title">Terima kasih kepada guru-guru yang terlibat dalam pembangunan aplikasi ini</p>
+
+  <p class="slide-hint">👉 Leret ke kiri / kanan untuk lihat semua</p>
+
+  <div class="credit-track" id="credit-track">
+    <!-- Kad guru dijana secara automatik oleh skrip di bawah -->
+  </div>
+</div>
+
+<script>
+  const bgmPlayer = document.getElementById("bgm-player");
+  const bgmBtn = document.getElementById("bgm-toggle");
+  let bgmManuallyPaused = false;
+
+  function startAutoplayBGM() {
+    bgmPlayer.volume = 0.12;
+    bgmPlayer.play().then(() => {
+      bgmBtn.innerText = "🔊 Muzik: ON";
+    }).catch(() => {
+      const enableGesture = () => {
+        document.removeEventListener('click', enableGesture);
+        document.removeEventListener('touchstart', enableGesture);
+        if (bgmManuallyPaused) return;
+        bgmPlayer.play().then(() => {
+          bgmBtn.innerText = "🔊 Muzik: ON";
+        });
+      };
+      document.addEventListener('click', enableGesture);
+      document.addEventListener('touchstart', enableGesture);
+    });
+  }
+
+  function toggleBGM() {
+    if (bgmPlayer.paused) {
+      bgmManuallyPaused = false;
+      bgmPlayer.volume = 0.12;
+      bgmPlayer.play();
+      bgmBtn.innerText = "🔊 Muzik: ON";
+    } else {
+      bgmManuallyPaused = true;
+      bgmPlayer.pause();
+      bgmBtn.innerText = "🔇 Muzik: OFF";
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded", startAutoplayBGM);
+
+  // Senarai guru yang terlibat. Letakkan gambar (format .png) dalam folder
+  // "images/" menggunakan nama fail yang sama seperti dalam senarai "photo"
+  // di bawah - ia akan dipaparkan secara automatik. Jika gambar belum ada,
+  // ikon 🧑‍🏫 dipaparkan sebagai gantian sementara.
+  const TEACHER_CREDITS = [
+    { name: "Cikgu Fairuz", photo: "images/kredit_cikgu_fairuz.png", color: "#f87171" },
+    { name: "Cikgu Muliati", photo: "images/kredit_cikgu_muliati.png", color: "#fb923c" },
+    { name: "Cikgu Nadiah", photo: "images/kredit_cikgu_nadiah.png", color: "#facc15" },
+    { name: "Cikgu Alif", photo: "images/kredit_cikgu_alif.png", color: "#4ade80" },
+    { name: "Cikgu Nurin", photo: "images/kredit_cikgu_nurin.png", color: "#38bdf8" },
+    { name: "Cikgu Chang", photo: "images/kredit_cikgu_chang.png", color: "#a78bfa" }
+  ];
+
+  const track = document.getElementById("credit-track");
+  TEACHER_CREDITS.forEach((t) => {
+    const card = document.createElement("div");
+    card.className = "credit-card";
+
+    card.innerHTML = `
+      <div class="credit-avatar" style="--avatar-bg:${t.color}">
+        <img src="${t.photo}" alt="${t.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="avatar-fallback">🧑‍🏫</div>
+      </div>
+      <div class="credit-name">${t.name}</div>
+    `;
+
+    track.appendChild(card);
+  });
+</script>
+</body>
+</html>

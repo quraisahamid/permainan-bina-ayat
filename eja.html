@@ -10,10 +10,14 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ec4899">
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=38').then((registration) => {
+      navigator.serviceWorker.register('sw.js?v=39').then((registration) => {
         const showUpdateScreen = () => {
           const overlay = document.getElementById('update-overlay');
           if (overlay) overlay.style.display = 'flex';
@@ -64,7 +68,7 @@
   <style>
     * {
       box-sizing: border-box;
-      font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
+      font-family: 'Comic Neue', 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
     }

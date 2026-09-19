@@ -1,10 +1,11 @@
-const CACHE_NAME = 'iska-app-v38';
+const CACHE_NAME = 'iska-app-v39';
 
 // Senarai lengkap fail tempatan & audio (tanpa tanda '/')
 const LOCAL_ASSETS = [
   'index.html',
   'eja.html',
   'bina_ayat.html',
+  'kredit.html',
   'ular_huruf_vokal_aeiou.html',
   'game_2_ketuk_tikus_tanah.html',
   'game_lompat_lari.html',
@@ -29,6 +30,14 @@ const LOCAL_ASSETS = [
   'images/lembaran9_2.png',
   'images/lembaran9_3.png',
   'images/lembaran9_4.png',
+
+  // Gambar Kredit / Penghargaan Guru
+  'images/kredit_cikgu_fairuz.png',
+  'images/kredit_cikgu_muliati.png',
+  'images/kredit_cikgu_nadiah.png',
+  'images/kredit_cikgu_alif.png',
+  'images/kredit_cikgu_nurin.png',
+  'images/kredit_cikgu_chang.png',
 
   // Audio Sebutan Ayat Penuh Fasa 3 (.mp3)
   'sebutan/faris_tulis_karangan.mp3',
@@ -175,7 +184,13 @@ self.addEventListener('fetch', (event) => {
       }
 
       return fetch(event.request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200) return networkResponse;
+        // Fon Google (fonts.googleapis.com/fonts.gstatic.com) dimuat tanpa
+        // atribut 'crossorigin', jadi ia pulang sebagai respons 'opaque'
+        // (status 0) dan bukan 200 - tetap perlu disimpan dalam cache supaya
+        // fon boleh dimuat semula ketika luar talian (offline).
+        if (!networkResponse || (networkResponse.status !== 200 && networkResponse.type !== 'opaque')) {
+          return networkResponse;
+        }
         const responseToCache = networkResponse.clone();
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, responseToCache);

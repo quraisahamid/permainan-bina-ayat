@@ -10,7 +10,7 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=38').then((registration) => {
+      navigator.serviceWorker.register('sw.js?v=39').then((registration) => {
         const showUpdateScreen = () => {
           const overlay = document.getElementById('update-overlay');
           if (overlay) overlay.style.display = 'flex';
@@ -61,10 +61,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>FASA 3: Membina Ayat i-SKA</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+
   <style>
     * {
       box-sizing: border-box;
-      font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
+      font-family: 'Comic Neue', 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
       touch-action: manipulation;
     }
 
@@ -404,7 +409,9 @@
 <audio id="bgm-player" loop autoplay src="bgm.mp3"></audio>
 
 <div class="external-menu-bar">
-  <a href="index.html" class="nav-mode-btn">🏠 Halaman Utama</a>
+  <div style="display:flex; flex-direction:column; gap:6px;">
+    <a href="index.html" class="nav-mode-btn">🏠 Halaman Utama</a>
+  </div>
   <button class="bgm-btn" id="bgm-toggle" onclick="toggleBGM()">🔊 Muzik: ON</button>
 </div>
 
@@ -429,7 +436,7 @@
 
   <div class="pattern-legend" id="pattern-legend">
     <span class="legend-tag tag-siapa">Siapa (Subjek)</span> + 
-    <span class="legend-tag tag-kerja">Kata Kerja (Tunggal)</span> + 
+    <span class="legend-tag tag-kerja">Kata Kerja (Buat apa)</span> + 
     <span class="legend-tag tag-apa">Apa (Objek)</span>
   </div>
 
@@ -693,12 +700,20 @@
     }
   }
 
-  // Warna suku kata berselang-seli merah/hitam, bermula semula pada setiap
-  // perkataan (kumpulan) baharu supaya sempadan perkataan dalam frasa jelas.
+  // Warna suku kata berselang-seli merah/hitam merentasi SEMUA kumpulan bagi
+  // satu perkataan (kiraan tidak reset pada setiap kumpulan) supaya jujukan
+  // warna sentiasa berselang-seli walaupun sesuatu kumpulan mempunyai bilangan
+  // suku kata ganjil. Sempadan perkataan dalam frasa tetap jelas kerana
+  // kumpulan diasingkan dengan ruang (spasi).
   const SYLLABLE_COLORS = ["#dc2626", "#1e293b"];
   function renderSyllableSpans(syllableGroups) {
+    let syllableIndex = 0;
     return syllableGroups.map(group =>
-      group.map((syl, i) => `<span style="color:${SYLLABLE_COLORS[i % 2]}">${syl}</span>`).join("")
+      group.map((syl) => {
+        const span = `<span style="color:${SYLLABLE_COLORS[syllableIndex % 2]}">${syl}</span>`;
+        syllableIndex++;
+        return span;
+      }).join("")
     ).join(" ");
   }
 
@@ -720,7 +735,7 @@
 
     { sheet: 4, img: "images/lembaran9_1.png", audio: "sebutan/bapa_tanam_cili_di_kebun.mp3", words: [{ text: "Bapa", syllableGroups: [["Ba", "pa"]], type: "siapa", audio: "sebutan/Bapa.mp3" }, { text: "tanam", syllableGroups: [["ta", "nam"]], type: "kerja", audio: "sebutan/Tanam.mp3" }, { text: "cili", syllableGroups: [["ci", "li"]], type: "apa", audio: "sebutan/Cili.mp3" }, { text: "di kebun", syllableGroups: [["di"], ["ke", "bun"]], type: "ket", audio: "sebutan/Di_kebun.mp3" }] },
     { sheet: 4, img: "images/lembaran9_2.png", audio: "sebutan/abang_siram_pokok_bunga_waktu_petang.mp3", words: [{ text: "Abang", syllableGroups: [["A", "bang"]], type: "siapa", audio: "sebutan/Abang.mp3" }, { text: "siram", syllableGroups: [["si", "ram"]], type: "kerja", audio: "sebutan/Siram.mp3" }, { text: "pokok bunga", syllableGroups: [["po", "kok"], ["bu", "nga"]], type: "apa", audio: "sebutan/Pokok_bunga.mp3" }, { text: "pada waktu petang", syllableGroups: [["pa", "da"], ["wak", "tu"], ["pe", "tang"]], type: "ket", audio: "sebutan/Pada_waktu_petang.mp3" }] },
-    { sheet: 4, img: "images/lembaran9_3.png", audio: "sebutan/ibu_petik_mangga_dengan_berhati_hati.mp3", words: [{ text: "Ibu", syllableGroups: [["I", "bu"]], type: "siapa", audio: "sebutan/Ibu.mp3" }, { text: "petik", syllableGroups: [["pe", "tik"]], type: "kerja", audio: "sebutan/Petik.mp3" }, { text: "mangga", syllableGroups: [["ma", "ngga"]], type: "apa", audio: "sebutan/Mangga.mp3" }, { text: "dengan berhati-hati", syllableGroups: [["de", "ngan"], ["ber", "ha", "ti", "ha", "ti"]], type: "ket", audio: "sebutan/Dengan_berhati_hati.mp3" }] },
+    { sheet: 4, img: "images/lembaran9_3.png", audio: "sebutan/ibu_petik_mangga_dengan_berhati_hati.mp3", words: [{ text: "Ibu", syllableGroups: [["I", "bu"]], type: "siapa", audio: "sebutan/Ibu.mp3" }, { text: "petik", syllableGroups: [["pe", "tik"]], type: "kerja", audio: "sebutan/Petik.mp3" }, { text: "mangga", syllableGroups: [["ma", "ngga"]], type: "apa", audio: "sebutan/Mangga.mp3" }, { text: "dengan berhati-hati", syllableGroups: [["de", "ngan"], ["ber", "ha", "ti-", "ha", "ti"]], type: "ket", audio: "sebutan/Dengan_berhati_hati.mp3" }] },
     { sheet: 4, img: "images/lembaran9_4.png", audio: "sebutan/adik_letak_baja_tanaman_supaya_subur.mp3", words: [{ text: "Adik", syllableGroups: [["A", "dik"]], type: "siapa", audio: "sebutan/Adik.mp3" }, { text: "letak", syllableGroups: [["le", "tak"]], type: "kerja", audio: "sebutan/Letak.mp3" }, { text: "baja tanaman", syllableGroups: [["ba", "ja"], ["ta", "na", "man"]], type: "apa", audio: "sebutan/Baja_tanaman.mp3" }, { text: "supaya subur", syllableGroups: [["su", "pa", "ya"], ["su", "bur"]], type: "ket", audio: "sebutan/Supaya_subur.mp3" }] }
   ];
 
@@ -767,15 +782,15 @@
       const patternLegend = document.getElementById("pattern-legend");
       if (q.sheet === 4) {
         patternLegend.innerHTML = `
-          <span class="legend-tag tag-siapa">Siapa</span> + 
-          <span class="legend-tag tag-kerja">Kata Kerja</span> + 
+          <span class="legend-tag tag-siapa">Siapa (Subjek)</span> + 
+          <span class="legend-tag tag-kerja">Kata Kerja (Buat Apa)</span> + 
           <span class="legend-tag tag-apa">Apa</span> + 
           <span class="legend-tag tag-ket">Penerangan / Keterangan</span>
         `;
       } else {
         patternLegend.innerHTML = `
           <span class="legend-tag tag-siapa">Siapa (Subjek)</span> + 
-          <span class="legend-tag tag-kerja">Kata Kerja (Tunggal)</span> + 
+          <span class="legend-tag tag-kerja">Kata Kerja (Buat Apa)</span> + 
           <span class="legend-tag tag-apa">Apa (Objek)</span>
         `;
       }

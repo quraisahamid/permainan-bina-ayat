@@ -611,6 +611,7 @@
   function updateUI() {
     const lvlInfo = LEVELS[currentLevelIdx];
     document.getElementById('chip-level').innerText = `Peringkat ${lvlInfo.level} (${lvlInfo.targetVowel})`;
+    document.getElementById('chip-goal').innerText = `🎯 Makan huruf vokal ${lvlInfo.targetVowel} sahaja!`;
     document.getElementById('val-score').innerText = score;
     let hearts = "";
     for (let i = 0; i < 3; i++) hearts += i < lives ? "❤️" : "🖤";
