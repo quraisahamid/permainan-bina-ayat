@@ -12,7 +12,7 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=43').then((registration) => {
+      navigator.serviceWorker.register('sw.js?v=44').then((registration) => {
         const showUpdateScreen = () => {
           const overlay = document.getElementById('update-overlay');
           if (overlay) overlay.style.display = 'flex';
@@ -547,6 +547,46 @@
   const BGM_NORMAL_VOLUME = 0.05;
   const BGM_DUCK_VOLUME = 0.015;
   const BGM_MUTE_KEY = "binaAyatBgmMuted";
+
+  // NOTA PENTING: Safari/iOS mengabaikan sepenuhnya sifat `.volume` pada
+  // elemen <audio> - muzik latar akan sentiasa dimainkan pada tahap
+  // penuh walau apa jua nilai `.volume` ditetapkan, menyebabkan ia
+  // menenggelamkan sebutan suara khusus di iPhone/iPad (Android/Chrome
+  // tidak terjejas kerana pelayar itu menghormati `.volume`). Sekatan iOS
+  // ini hanya terpakai pada sifat `.volume` DOM sahaja - Web Audio API
+  // (GainNode) tidak terjejas, jadi laluan audio muzik latar disalurkan
+  // melaluinya supaya ia benar-benar boleh diredupkan di semua peranti.
+  let bgmAudioCtx = null;
+  let bgmGainNode = null;
+  function ensureBgmGain() {
+    if (bgmGainNode || bgmAudioCtx) return;
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      bgmAudioCtx = new AudioCtx();
+      const source = bgmAudioCtx.createMediaElementSource(bgmPlayer);
+      bgmGainNode = bgmAudioCtx.createGain();
+      source.connect(bgmGainNode).connect(bgmAudioCtx.destination);
+    } catch (e) {
+      bgmGainNode = null;
+    }
+  }
+  function setBgmVolume(v) {
+    ensureBgmGain();
+    if (bgmGainNode) {
+      bgmGainNode.gain.value = v;
+    } else {
+      bgmPlayer.volume = v;
+    }
+  }
+  function resumeBgmAudioCtx() {
+    if (bgmAudioCtx && bgmAudioCtx.state === 'suspended') {
+      bgmAudioCtx.resume().catch(() => {});
+    }
+  }
+  document.addEventListener('click', resumeBgmAudioCtx);
+  document.addEventListener('touchstart', resumeBgmAudioCtx, { passive: true });
+
   // Jika pengguna tekan "OFF" sebelum sentuhan pertama selesai membuka kunci
   // autoplay, tanda ini menghalang sentuhan yang sama daripada terus
   // menyambung semula muzik (punca bunyi "berganda" selepas OFF ditekan).
@@ -557,7 +597,7 @@
       bgmBtn.innerText = "🔇 Muzik: OFF";
       return;
     }
-    bgmPlayer.volume = BGM_NORMAL_VOLUME;
+    setBgmVolume(BGM_NORMAL_VOLUME);
     bgmPlayer.play().then(() => {
       bgmBtn.innerText = "🔊 Muzik: ON";
     }).catch(() => {
@@ -578,7 +618,7 @@
     if (bgmPlayer.paused) {
       bgmManuallyPaused = false;
       localStorage.setItem(BGM_MUTE_KEY, "0");
-      bgmPlayer.volume = BGM_NORMAL_VOLUME;
+      setBgmVolume(BGM_NORMAL_VOLUME);
       bgmPlayer.play();
       bgmBtn.innerText = "🔊 Muzik: ON";
     } else {
@@ -660,7 +700,7 @@
       return;
     }
 
-    if (!bgmPlayer.paused) bgmPlayer.volume = BGM_DUCK_VOLUME;
+    if (!bgmPlayer.paused) setBgmVolume(BGM_DUCK_VOLUME);
 
     const targetSrc = audioMemoryCache[audioPath] || audioPath;
     delayedAudioEl.src = targetSrc;
@@ -669,7 +709,7 @@
     const finishAudio = () => {
       if (!hasEnded) {
         hasEnded = true;
-        if (!bgmPlayer.paused) bgmPlayer.volume = BGM_NORMAL_VOLUME;
+        if (!bgmPlayer.paused) setBgmVolume(BGM_NORMAL_VOLUME);
         if (callback) callback();
       }
     };
@@ -680,14 +720,14 @@
     };
 
     delayedAudioEl.play().catch(() => {
-      if (!bgmPlayer.paused) bgmPlayer.volume = 0.12;
+      if (!bgmPlayer.paused) setBgmVolume(BGM_NORMAL_VOLUME);
       if (callback) callback();
     });
   }
 
   function playAudioFile(text, audioPath, callback) {
     if (audioPath) {
-      if (!bgmPlayer.paused) bgmPlayer.volume = BGM_DUCK_VOLUME;
+      if (!bgmPlayer.paused) setBgmVolume(BGM_DUCK_VOLUME);
 
       const targetSrc = audioMemoryCache[audioPath] || audioPath;
       const audio = new Audio(targetSrc);
@@ -697,7 +737,7 @@
       const finishAudio = () => {
         if (!hasEnded) {
           hasEnded = true;
-          if (!bgmPlayer.paused) bgmPlayer.volume = BGM_NORMAL_VOLUME;
+          if (!bgmPlayer.paused) setBgmVolume(BGM_NORMAL_VOLUME);
           if (callback) callback();
         }
       };
@@ -708,7 +748,7 @@
           if (callback) callback();
         };
       }).catch(() => {
-        if (!bgmPlayer.paused) bgmPlayer.volume = BGM_NORMAL_VOLUME;
+        if (!bgmPlayer.paused) setBgmVolume(BGM_NORMAL_VOLUME);
         if (callback) callback();
       });
     } else {

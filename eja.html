@@ -19,7 +19,7 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=43').then((registration) => {
+      navigator.serviceWorker.register('sw.js?v=44').then((registration) => {
         const showUpdateScreen = () => {
           const overlay = document.getElementById('update-overlay');
           if (overlay) overlay.style.display = 'flex';
@@ -522,16 +522,16 @@
       const audioSource = audioMemoryCache[soundKey] || `sebutan/${toAudioFilename(currentItem.soundKey)}.mp3`;
       sfxAudioEl.src = audioSource;
 
-      if (!bgmAudio.paused) bgmAudio.volume = BGM_DUCK_VOLUME;
+      if (!bgmAudio.paused) setBgmVolume(BGM_DUCK_VOLUME);
 
       sfxAudioEl.play().then(() => {
         sfxAudioEl.onended = () => {
-          if (!bgmAudio.paused) bgmAudio.volume = BGM_NORMAL_VOLUME;
+          if (!bgmAudio.paused) setBgmVolume(BGM_NORMAL_VOLUME);
           if (currentItem.callback) currentItem.callback();
           processAudioQueue();
         };
       }).catch((err) => {
-        if (!bgmAudio.paused) bgmAudio.volume = BGM_NORMAL_VOLUME;
+        if (!bgmAudio.paused) setBgmVolume(BGM_NORMAL_VOLUME);
         if (currentItem.callback) currentItem.callback();
         processAudioQueue();
       });
@@ -545,6 +545,46 @@
   const BGM_NORMAL_VOLUME = 0.05;
   const BGM_DUCK_VOLUME = 0.015;
   const BGM_MUTE_KEY = "binaAyatBgmMuted";
+
+  // NOTA PENTING: Safari/iOS mengabaikan sepenuhnya sifat `.volume` pada
+  // elemen <audio> - muzik latar akan sentiasa dimainkan pada tahap
+  // penuh walau apa jua nilai `.volume` ditetapkan, menyebabkan ia
+  // menenggelamkan sebutan suara khusus di iPhone/iPad (Android/Chrome
+  // tidak terjejas kerana pelayar itu menghormati `.volume`). Sekatan iOS
+  // ini hanya terpakai pada sifat `.volume` DOM sahaja - Web Audio API
+  // (GainNode) tidak terjejas, jadi laluan audio muzik latar disalurkan
+  // melaluinya supaya ia benar-benar boleh diredupkan di semua peranti.
+  let bgmAudioCtx = null;
+  let bgmGainNode = null;
+  function ensureBgmGain() {
+    if (bgmGainNode || bgmAudioCtx) return;
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      bgmAudioCtx = new AudioCtx();
+      const source = bgmAudioCtx.createMediaElementSource(bgmAudio);
+      bgmGainNode = bgmAudioCtx.createGain();
+      source.connect(bgmGainNode).connect(bgmAudioCtx.destination);
+    } catch (e) {
+      bgmGainNode = null;
+    }
+  }
+  function setBgmVolume(v) {
+    ensureBgmGain();
+    if (bgmGainNode) {
+      bgmGainNode.gain.value = v;
+    } else {
+      bgmAudio.volume = v;
+    }
+  }
+  function resumeBgmAudioCtx() {
+    if (bgmAudioCtx && bgmAudioCtx.state === 'suspended') {
+      bgmAudioCtx.resume().catch(() => {});
+    }
+  }
+  document.addEventListener('click', resumeBgmAudioCtx);
+  document.addEventListener('touchstart', resumeBgmAudioCtx, { passive: true });
+
   // Jika pengguna tekan "OFF" sebelum sentuhan pertama selesai membuka kunci
   // autoplay, tanda ini menghalang sentuhan yang sama daripada terus
   // menyambung semula muzik (punca bunyi "berganda" selepas OFF ditekan).
@@ -555,7 +595,7 @@
       bgmBtn.innerText = "🔇 Muzik: OFF";
       return;
     }
-    bgmAudio.volume = BGM_NORMAL_VOLUME;
+    setBgmVolume(BGM_NORMAL_VOLUME);
     bgmAudio.play().then(() => {
       bgmBtn.innerText = "🔊 Muzik: ON";
     }).catch(() => {
@@ -576,7 +616,7 @@
     if (bgmAudio.paused) {
       bgmManuallyPaused = false;
       localStorage.setItem(BGM_MUTE_KEY, "0");
-      bgmAudio.volume = BGM_NORMAL_VOLUME;
+      setBgmVolume(BGM_NORMAL_VOLUME);
       bgmAudio.play();
       bgmBtn.innerText = "🔊 Muzik: ON";
     } else {
