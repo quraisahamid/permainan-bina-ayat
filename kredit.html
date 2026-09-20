@@ -5,12 +5,14 @@
   <meta name="chrome" content="notranslate">
 
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="images/ikonkata_2.png">
+  <link rel="apple-touch-icon" href="images/ikonkata_2.png">
   <meta name="theme-color" content="#3b82f6">
 
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=39').then((registration) => {
+      navigator.serviceWorker.register('sw.js?v=40').then((registration) => {
         const showUpdateScreen = () => {
           const overlay = document.getElementById('update-overlay');
           if (overlay) overlay.style.display = 'flex';
@@ -184,7 +186,7 @@
     .credit-card {
       flex: 0 0 auto;
       scroll-snap-align: center;
-      width: clamp(120px, 26vw, 150px);
+      width: clamp(150px, 34vw, 190px);
       background: #f0f9ff;
       border: 3px solid #bae6fd;
       border-radius: 18px;
@@ -192,7 +194,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
     .credit-avatar {
@@ -230,6 +232,22 @@
       font-size: clamp(0.85rem, 2.2vw, 1rem);
       text-align: center;
       line-height: 1.3;
+    }
+
+    .credit-role {
+      color: #475569;
+      font-size: clamp(0.7rem, 1.8vw, 0.8rem);
+      text-align: center;
+      line-height: 1.35;
+    }
+
+    .credit-role .role-line {
+      display: block;
+    }
+
+    .credit-role .role-line + .role-line {
+      font-weight: bold;
+      color: #1e3a8a;
     }
 
     /* Skrin Amaran Kemas Kini */
@@ -347,12 +365,42 @@
   // di bawah - ia akan dipaparkan secara automatik. Jika gambar belum ada,
   // ikon 🧑‍🏫 dipaparkan sebagai gantian sementara.
   const TEACHER_CREDITS = [
-    { name: "Cikgu Fairuz", photo: "images/kredit_cikgu_fairuz.png", color: "#f87171" },
-    { name: "Cikgu Muliati", photo: "images/kredit_cikgu_muliati.png", color: "#fb923c" },
-    { name: "Cikgu Nadiah", photo: "images/kredit_cikgu_nadiah.png", color: "#facc15" },
-    { name: "Cikgu Alif", photo: "images/kredit_cikgu_alif.png", color: "#4ade80" },
-    { name: "Cikgu Nurin", photo: "images/kredit_cikgu_nurin.png", color: "#38bdf8" },
-    { name: "Cikgu Chang", photo: "images/kredit_cikgu_chang.png", color: "#a78bfa" }
+    {
+      name: "Mohd Fairuz bin Mohamad Sahid",
+      roles: ["Guru PJPK & BM", "Pembangunan Kandungan & Pedagogi"],
+      photo: "images/kredit_cikgu_fairuz.png",
+      color: "#f87171"
+    },
+    {
+      name: "Muliati Sofa binti Mohd Hafid",
+      roles: ["Ketua Panitia BM", "Pengujian & Penjaminan Kualiti"],
+      photo: "images/kredit_cikgu_muliati.png",
+      color: "#fb923c"
+    },
+    {
+      name: "Nurul Nadiah binti Rosli",
+      roles: ["Guru Pemulihan Khas", "Ketua Pembangunan Inovasi"],
+      photo: "images/kredit_cikgu_nadiah.png",
+      color: "#facc15"
+    },
+    {
+      name: "Muhammad Alif Irfan bin Khosim",
+      roles: ["Guru RBT & BI", "Teknikal & Pembangunan BBM"],
+      photo: "images/kredit_cikgu_alif.png",
+      color: "#4ade80"
+    },
+    {
+      name: "Nurin Aishah binti Badrol Hisham",
+      roles: ["Guru BM & PLaN", "Pengujian & Penjaminan Kualiti"],
+      photo: "images/kredit_cikgu_nurin.png",
+      color: "#38bdf8"
+    },
+    {
+      name: "Chang Yun Xi",
+      roles: ["Guru Bahasa Cina & Sains", "Publisiti & Dokumentasi"],
+      photo: "images/kredit_cikgu_chang.png",
+      color: "#a78bfa"
+    }
   ];
 
   const track = document.getElementById("credit-track");
@@ -360,12 +408,15 @@
     const card = document.createElement("div");
     card.className = "credit-card";
 
+    const roleLines = t.roles.map((r) => `<span class="role-line">${r}</span>`).join("");
+
     card.innerHTML = `
       <div class="credit-avatar" style="--avatar-bg:${t.color}">
         <img src="${t.photo}" alt="${t.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
         <div class="avatar-fallback">🧑‍🏫</div>
       </div>
       <div class="credit-name">${t.name}</div>
+      <div class="credit-role">${roleLines}</div>
     `;
 
     track.appendChild(card);

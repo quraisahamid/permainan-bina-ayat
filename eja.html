@@ -8,6 +8,8 @@
 
   <title>FASA 2: Mengeja i-SKA</title>
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="images/ikonkata_2.png">
+  <link rel="apple-touch-icon" href="images/ikonkata_2.png">
   <meta name="theme-color" content="#ec4899">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,7 +19,7 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=39').then((registration) => {
+      navigator.serviceWorker.register('sw.js?v=40').then((registration) => {
         const showUpdateScreen = () => {
           const overlay = document.getElementById('update-overlay');
           if (overlay) overlay.style.display = 'flex';
