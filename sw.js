@@ -1,4 +1,4 @@
-const CACHE_NAME = 'iska-app-v41';
+const CACHE_NAME = 'iska-app-v42';
 
 // Senarai lengkap fail tempatan & audio (tanpa tanda '/')
 const LOCAL_ASSETS = [
@@ -12,6 +12,9 @@ const LOCAL_ASSETS = [
   'game_1_kumpul_huruf.html',
   'manifest.json',
   'bgm.mp3',
+
+  // Gambar latar belakang utama
+  'images/bg_pwa.png',
 
   // Gambar Lembaran Latihan (Set 1 - 4)
   'images/lembaran5_1.png',
