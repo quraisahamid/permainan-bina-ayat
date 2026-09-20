@@ -12,7 +12,7 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=42').then((registration) => {
+      navigator.serviceWorker.register('sw.js?v=43').then((registration) => {
         const showUpdateScreen = () => {
           const overlay = document.getElementById('update-overlay');
           if (overlay) overlay.style.display = 'flex';
@@ -543,13 +543,21 @@
 
   const bgmPlayer = document.getElementById("bgm-player");
   const bgmBtn = document.getElementById("bgm-toggle");
+  // Muzik latar dikekalkan lembut supaya sebutan suara kekal jelas.
+  const BGM_NORMAL_VOLUME = 0.05;
+  const BGM_DUCK_VOLUME = 0.015;
+  const BGM_MUTE_KEY = "binaAyatBgmMuted";
   // Jika pengguna tekan "OFF" sebelum sentuhan pertama selesai membuka kunci
   // autoplay, tanda ini menghalang sentuhan yang sama daripada terus
   // menyambung semula muzik (punca bunyi "berganda" selepas OFF ditekan).
-  let bgmManuallyPaused = false;
+  let bgmManuallyPaused = localStorage.getItem(BGM_MUTE_KEY) === "1";
 
   function startAutoplayBGM() {
-    bgmPlayer.volume = 0.12;
+    if (bgmManuallyPaused) {
+      bgmBtn.innerText = "🔇 Muzik: OFF";
+      return;
+    }
+    bgmPlayer.volume = BGM_NORMAL_VOLUME;
     bgmPlayer.play().then(() => {
       bgmBtn.innerText = "🔊 Muzik: ON";
     }).catch(() => {
@@ -569,11 +577,13 @@
   function toggleBGM() {
     if (bgmPlayer.paused) {
       bgmManuallyPaused = false;
-      bgmPlayer.volume = 0.12;
+      localStorage.setItem(BGM_MUTE_KEY, "0");
+      bgmPlayer.volume = BGM_NORMAL_VOLUME;
       bgmPlayer.play();
       bgmBtn.innerText = "🔊 Muzik: ON";
     } else {
       bgmManuallyPaused = true;
+      localStorage.setItem(BGM_MUTE_KEY, "1");
       bgmPlayer.pause();
       bgmBtn.innerText = "🔇 Muzik: OFF";
     }
@@ -624,6 +634,7 @@
   // Android tidak terjejas kerana ia hanya memainkan satu bunyi pada satu masa juga.
   const delayedAudioEl = new Audio();
   delayedAudioEl.preload = 'auto';
+  delayedAudioEl.volume = 1.0;
   let delayedAudioUnlocked = false;
   function unlockDelayedAudio() {
     if (delayedAudioUnlocked) return;
@@ -649,7 +660,7 @@
       return;
     }
 
-    if (!bgmPlayer.paused) bgmPlayer.volume = 0.03;
+    if (!bgmPlayer.paused) bgmPlayer.volume = BGM_DUCK_VOLUME;
 
     const targetSrc = audioMemoryCache[audioPath] || audioPath;
     delayedAudioEl.src = targetSrc;
@@ -658,7 +669,7 @@
     const finishAudio = () => {
       if (!hasEnded) {
         hasEnded = true;
-        if (!bgmPlayer.paused) bgmPlayer.volume = 0.12;
+        if (!bgmPlayer.paused) bgmPlayer.volume = BGM_NORMAL_VOLUME;
         if (callback) callback();
       }
     };
@@ -676,16 +687,17 @@
 
   function playAudioFile(text, audioPath, callback) {
     if (audioPath) {
-      if (!bgmPlayer.paused) bgmPlayer.volume = 0.03;
+      if (!bgmPlayer.paused) bgmPlayer.volume = BGM_DUCK_VOLUME;
 
       const targetSrc = audioMemoryCache[audioPath] || audioPath;
       const audio = new Audio(targetSrc);
-      
+      audio.volume = 1.0;
+
       let hasEnded = false;
       const finishAudio = () => {
         if (!hasEnded) {
           hasEnded = true;
-          if (!bgmPlayer.paused) bgmPlayer.volume = 0.12;
+          if (!bgmPlayer.paused) bgmPlayer.volume = BGM_NORMAL_VOLUME;
           if (callback) callback();
         }
       };
@@ -696,7 +708,7 @@
           if (callback) callback();
         };
       }).catch(() => {
-        if (!bgmPlayer.paused) bgmPlayer.volume = 0.12;
+        if (!bgmPlayer.paused) bgmPlayer.volume = BGM_NORMAL_VOLUME;
         if (callback) callback();
       });
     } else {

@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<html lang="ms">
+<html lang="ms" translate="no">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="google" content="notranslate">
+  <meta name="chrome" content="notranslate">
   <title>Pelari Ejaan 3D</title>
   <script src="three.min.js"></script>
   <style>
@@ -163,19 +165,24 @@
     }
   </style>
 </head>
-<body class="relative w-full h-full select-none">
+<body class="notranslate relative w-full h-full select-none">
 
   <!-- Canvas Container Three.js -->
   <div id="canvas-container" class="absolute inset-0 w-full h-full z-0"></div>
+
+  <audio id="bgm-player" loop autoplay src="bgm.mp3"></audio>
 
   <!-- HUD Layer -->
   <div id="hud-layer" class="absolute inset-0 z-10 pointer-events-none flex flex-col justify-between p-4 md:p-6">
     
     <div class="w-full max-w-xl mx-auto flex flex-col items-center gap-2 pointer-events-auto">
       <div class="w-full flex justify-between items-center px-2">
-        <a href="bina_ayat.html" class="glass-card px-3 py-1.5 rounded-full text-rose-300 font-bold text-sm flex items-center gap-1 shadow-lg no-underline">
-          🏠 Keluar
-        </a>
+        <div class="flex items-center gap-2">
+          <a href="bina_ayat.html" class="glass-card px-3 py-1.5 rounded-full text-rose-300 font-bold text-sm flex items-center gap-1 shadow-lg no-underline">
+            🏠 Keluar
+          </a>
+          <button id="bgm-toggle" onclick="toggleBGM()" class="glass-card px-3 py-1.5 rounded-full text-white font-bold text-sm flex items-center gap-1 shadow-lg" style="cursor:pointer; font-family:inherit;">🔊</button>
+        </div>
         <div class="glass-card px-3 py-1.5 rounded-full text-white font-bold text-sm flex items-center gap-1 shadow-lg">
           <span>🏃</span> <span id="hud-progress">1/8</span>
         </div>
@@ -228,6 +235,53 @@
   </div>
 
   <script>
+    const bgmAudio = document.getElementById("bgm-player");
+    const bgmBtn = document.getElementById("bgm-toggle");
+    // Muzik latar dikekalkan lembut supaya sebutan huruf/perkataan kekal jelas.
+    const BGM_NORMAL_VOLUME = 0.05;
+    const BGM_DUCK_VOLUME = 0.015;
+    const BGM_MUTE_KEY = "binaAyatBgmMuted";
+    let bgmManuallyPaused = localStorage.getItem(BGM_MUTE_KEY) === "1";
+
+    function tryAutoplayBGM() {
+      if (bgmManuallyPaused) {
+        bgmBtn.innerText = "🔇";
+        return;
+      }
+      bgmAudio.volume = BGM_NORMAL_VOLUME;
+      bgmAudio.play().then(() => {
+        bgmBtn.innerText = "🔊";
+      }).catch(() => {
+        const enableOnGesture = () => {
+          document.removeEventListener('click', enableOnGesture);
+          document.removeEventListener('touchstart', enableOnGesture);
+          if (bgmManuallyPaused) return;
+          bgmAudio.play().then(() => {
+            bgmBtn.innerText = "🔊";
+          });
+        };
+        document.addEventListener('click', enableOnGesture);
+        document.addEventListener('touchstart', enableOnGesture);
+      });
+    }
+
+    function toggleBGM() {
+      if (bgmAudio.paused) {
+        bgmManuallyPaused = false;
+        localStorage.setItem(BGM_MUTE_KEY, "0");
+        bgmAudio.volume = BGM_NORMAL_VOLUME;
+        bgmAudio.play();
+        bgmBtn.innerText = "🔊";
+      } else {
+        bgmManuallyPaused = true;
+        localStorage.setItem(BGM_MUTE_KEY, "1");
+        bgmAudio.pause();
+        bgmBtn.innerText = "🔇";
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", tryAutoplayBGM);
+
     let msVoice = null;
     function loadVoices() {
       if ('speechSynthesis' in window) {
@@ -240,28 +294,81 @@
       loadVoices();
     }
 
-    function speakText(text) {
+    function speakText(text, onDone) {
       if ('speechSynthesis' in window) {
+        if (!bgmAudio.paused) bgmAudio.volume = BGM_NORMAL_VOLUME;
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text.toLowerCase());
         utterance.lang = 'ms-MY';
         if (msVoice) utterance.voice = msVoice;
         utterance.rate = 0.85;
+        utterance.onstart = () => { if (!bgmAudio.paused) bgmAudio.volume = BGM_DUCK_VOLUME; };
+        utterance.onend = () => {
+          if (!bgmAudio.paused) bgmAudio.volume = BGM_NORMAL_VOLUME;
+          if (onDone) onDone();
+        };
+        utterance.onerror = () => {
+          if (!bgmAudio.paused) bgmAudio.volume = BGM_NORMAL_VOLUME;
+          if (onDone) onDone();
+        };
         window.speechSynthesis.speak(utterance);
+      } else if (onDone) {
+        onDone();
       }
     }
 
     /* Senarai 8 Perkataan Permainan */
     const QUESTIONS = [
-      { emoji: "⚽", full: "BOLA", display: ["B", "", "L", "A"], missingChar: "O", options: ["A", "O", "U"] },
-      { emoji: "🧹", full: "SAPU", display: ["S", "A", "P", ""], missingChar: "U", options: ["I", "E", "U"] },
-      { emoji: "✍️", full: "TULIS", display: ["T", "", "L", "I", "S"], missingChar: "U", options: ["U", "O", "A"] },
-      { emoji: "🍽️", full: "MAKAN", display: ["M", "", "K", "A", "N"], missingChar: "A", options: ["E", "A", "I"] },
-      { emoji: "🥤", full: "MINUM", display: ["M", "I", "N", "", "M"], missingChar: "U", options: ["U", "O", "E"] },
-      { emoji: "📖", full: "BUKU", display: ["B", "", "K", "U"], missingChar: "U", options: ["I", "E", "U"] },
-      { emoji: "🪑", full: "MEJA", display: ["M", "E", "J", ""], missingChar: "A", options: ["U", "I", "A"] },
-      { emoji: "🍳", full: "MASAK", display: ["M", "A", "S", "", "K"], missingChar: "A", options: ["O", "A", "I"] }
+      { emoji: "📖", full: "BACA", display: ["B", "", "C", "A"], missingChar: "A", options: ["A", "O", "U"], audio: "sebutan/baca.mp3" },
+      { emoji: "🧹", full: "SAPU", display: ["S", "A", "P", ""], missingChar: "U", options: ["I", "E", "U"], audio: "sebutan/sapu.mp3" },
+      { emoji: "✍️", full: "TULIS", display: ["T", "", "L", "I", "S"], missingChar: "U", options: ["U", "O", "A"], audio: "sebutan/tulis.mp3" },
+      { emoji: "🍽️", full: "MAKAN", display: ["M", "", "K", "A", "N"], missingChar: "A", options: ["E", "A", "I"], audio: "sebutan/Makan.mp3" },
+      { emoji: "🥤", full: "MINUM", display: ["M", "I", "N", "", "M"], missingChar: "U", options: ["U", "O", "E"], audio: "sebutan/Minum.mp3" },
+      { emoji: "📖", full: "BUKU", display: ["B", "", "K", "U"], missingChar: "U", options: ["I", "E", "U"], audio: "sebutan/buku.mp3" },
+      { emoji: "👨", full: "BAPA", display: ["B", "A", "P", ""], missingChar: "A", options: ["A", "O", "U"], audio: "sebutan/Bapa.mp3" },
+      { emoji: "🍳", full: "MASAK", display: ["M", "A", "S", "", "K"], missingChar: "A", options: ["O", "A", "I"], audio: "sebutan/Masak.mp3" }
     ];
+
+    const wordAudioCache = {};
+    function preloadWordAudio() {
+      QUESTIONS.forEach(q => {
+        if (q.audio) {
+          fetch(q.audio)
+            .then(res => res.blob())
+            .then(blob => { wordAudioCache[q.audio] = URL.createObjectURL(blob); })
+            .catch(() => {});
+        }
+      });
+    }
+    window.addEventListener('load', preloadWordAudio);
+
+    // Sebutan perkataan penuh diutamakan drpd rakaman "sebutan/" - lebih jelas
+    // & kekal berbunyi walaupun peranti/pelayar tiada suara TTS Bahasa Melayu.
+    // Muzik latar diredupkan lagi (lebih senyap drpd semasa sebutan huruf)
+    // supaya sebutan perkataan penuh kedengaran nyaring berbanding muzik latar.
+    function playWordAudio(q, onDone) {
+      if (!q.audio) {
+        speakText(q.full, onDone);
+        return;
+      }
+      if (!bgmAudio.paused) bgmAudio.volume = BGM_DUCK_VOLUME;
+
+      const src = wordAudioCache[q.audio] || q.audio;
+      const audio = new Audio(src);
+      audio.volume = 1.0;
+
+      let finished = false;
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        if (!bgmAudio.paused) bgmAudio.volume = BGM_NORMAL_VOLUME;
+        if (onDone) onDone();
+      };
+
+      audio.onended = finish;
+      audio.onerror = finish;
+      audio.play().catch(finish);
+    }
 
     let currentQIndex = 0;
     let score = 0;
@@ -512,7 +619,6 @@
 
           if (distZ < 0.7 && distX < 0.6 && !b.hit && !isQuestionTransitioning) {
             b.hit = true;
-            speakText(b.char);
 
             if (b.isCorrect) {
               isQuestionTransitioning = true;
@@ -528,21 +634,32 @@
                 container.appendChild(slot);
               });
 
-              speakText(q.full);
+              // Nota: TIDAK bergantung pada callback onend "speakText" untuk
+              // mencetuskan audio perkataan - sesetengah pelayar (cth. Chrome)
+              // kadangkala mengumpul sampah (garbage collect) SpeechSynthesisUtterance
+              // sebelum ia tamat, jadi onend gagal dipanggil dan audio perkataan
+              // langsung tidak kedengaran. Guna jeda tetap supaya ia sentiasa dimainkan.
+              speakText(b.char);
 
               setTimeout(() => {
-                if (currentQIndex < QUESTIONS.length - 1) {
-                  currentQIndex++;
-                  renderQuestionUI();
-                  spawnRowOfBlocks();
-                } else {
-                  isGameRunning = false;
-                  document.getElementById('end-score').innerText = score;
-                  document.getElementById('end-overlay').classList.remove('hidden');
-                }
-              }, 1400);
+                playWordAudio(q, () => {
+                  // Jeda 1 saat selepas sebutan penuh tamat sebelum soalan seterusnya.
+                  setTimeout(() => {
+                    if (currentQIndex < QUESTIONS.length - 1) {
+                      currentQIndex++;
+                      renderQuestionUI();
+                      spawnRowOfBlocks();
+                    } else {
+                      isGameRunning = false;
+                      document.getElementById('end-score').innerText = score;
+                      document.getElementById('end-overlay').classList.remove('hidden');
+                    }
+                  }, 1000);
+                });
+              }, 700);
 
             } else {
+              speakText(b.char);
               score = Math.max(0, score - 5);
               document.getElementById('hud-score').innerText = score;
               b.mesh.position.z = -32;
