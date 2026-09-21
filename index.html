@@ -20,7 +20,7 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=44').then((registration) => {
+      navigator.serviceWorker.register('sw.js?v=45').then((registration) => {
         console.log('Service Worker didaftarkan dengan berjaya:', registration.scope);
 
         const showUpdateScreen = () => {
@@ -181,6 +181,7 @@
     .btn-fasa3 { background-color: #10b981; box-shadow: 0 5px 0 #047857; }
     .btn-exit { background-color: #ef4444; box-shadow: 0 5px 0 #b91c1c; margin-top: 5px; }
     .btn-credit { background-color: #8b5cf6; box-shadow: 0 5px 0 #6d28d9; margin-top: 5px; }
+    .btn-feedback { background-color: #f126f1; box-shadow: 0 5px 0 #be1cbe; margin-top: 5px; }
 
     .success-badge {
       margin-top: clamp(14px, 2.5vw, 24px);
@@ -385,6 +386,12 @@
       <!-- Butang Kredit -->
       <a href="kredit.html" class="phase-btn btn-credit" title="📌 Klik untuk lihat senarai guru yang terlibat">
         <span>🎓 Kredit</span>
+        <span>➡️</span>
+      </a>
+
+            <!-- Butang Maklum Balas -->
+      <a href="https://padlet.com/alifirfan1519/maklum_balas" class="phase-btn btn-feedback" target="_blank" rel="noopener noreferrer" title="📌 Klik untuk beri maklum balas">
+        <span>💬 Maklum Balas</span>
         <span>➡️</span>
       </a>
 
