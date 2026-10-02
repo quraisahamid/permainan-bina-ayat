@@ -1,7 +1,7 @@
 {
-  "name": "Permainan Bina Ayat BM",
-  "short_name": "Bina Ayat",
-  "description": "Permainan Bina Ayat dan Mengeja Bahasa Melayu untuk Murid Pemulihan",
+  "name": "Aplikasi i-SKA",
+  "short_name": "i-SKA",
+  "description": "Aplikasi Bina Ayat dan Mengeja Bahasa Melayu",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#f0f9ff",
